@@ -1,0 +1,784 @@
+
+
+
+draft                                                         D. Balfanz
+                                                          B. de Medeiros
+                                                                  Google
+                                                             D. Recordon
+                                                               Six Apart
+                                                                J. Smarr
+                                                                   Plaxo
+                                                           July 17, 2008
+
+
+                         OpenID OAuth Extension
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 1]
+
+                         OpenID OAuth Extension                July 2008
+
+
+Abstract
+
+   This draft describe a mechanism to combine an OpenID authentication
+   request with the approval of an OAuth request token.
+
+
+Table of Contents
+
+   1.  Requirements notation  . . . . . . . . . . . . . . . . . . . .  3
+   2.  Terminology  . . . . . . . . . . . . . . . . . . . . . . . . .  4
+   3.  Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  5
+   4.  Before Requesting Authentication . . . . . . . . . . . . . . .  6
+   5.  Requesting Authentication  . . . . . . . . . . . . . . . . . .  7
+   6.  Responding to Authentication Requests  . . . . . . . . . . . .  8
+   7.  Requesting the Access Token  . . . . . . . . . . . . . . . . .  9
+     7.1.  Optimized Access Token Request for Non-Associated RPs  . .  9
+   8.  Responding to Access Token Requests  . . . . . . . . . . . . . 10
+   9.  General Considerations . . . . . . . . . . . . . . . . . . . . 11
+   10. Security Considerations  . . . . . . . . . . . . . . . . . . . 12
+   11. Normative References . . . . . . . . . . . . . . . . . . . . . 13
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 14
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 2]
+
+                         OpenID OAuth Extension                July 2008
+
+
+1.  Requirements notation
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 3]
+
+                         OpenID OAuth Extension                July 2008
+
+
+2.  Terminology
+
+   Terms _emphasized_ are pre-defined in either the [OpenID] or the
+   [OAuth] specifications.
+
+   Combined Consumer:  A web service that is simultaneously an OpenID
+      _Relying Party (RP)_ and an OAuth _Consumer._
+
+   Combined Provider:  A web service that is simultaneously an OpenID
+      _Identity Provider (OP)_ and an OAuth _Service Provider (SP)._
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 4]
+
+                         OpenID OAuth Extension                July 2008
+
+
+3.  Overview
+
+   The OpenID OAuth Extension describes how to make the OpenID
+   Authentication and OAuth Core specifications work well together.  In
+   its current form, it addresses the use case where the OpenID Provider
+   and OAuth Service Provider are the same service.  To provide good
+   user experience, it is important to present a combined authentication
+   and authorization screen for the two protocols.
+
+   This extension describes how to embed an OAuth approval request into
+   an OpenID authentication request to permit combined user approval.
+   For security reasons, the OAuth access token is not returned in the
+   URL.  Instead a mechanism to obtain the access token is provided.
+
+   The specific mechanisms proposed are extensions to the OpenID
+   authentication request and response, and also to the assertion
+   verification mechanism, found in Sections 9, 10, and 11 of [OpenID].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 5]
+
+                         OpenID OAuth Extension                July 2008
+
+
+4.  Before Requesting Authentication
+
+   The Combined Consumer must, prior to issuing an OpenID authentication
+   request, have obtained an unauthorized OAuth request token (Section
+   6.1 of [OAuth]).  It must also have performed OpenID discovery and
+   (optionally) created an association with the OP as indicated in the
+   preamble to Section 9 of [OpenID].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 6]
+
+                         OpenID OAuth Extension                July 2008
+
+
+5.  Requesting Authentication
+
+   When Requesting OpenID Authentication via the protocol mode
+   "checkid_setup" or "checkid_immediate", this extension can be used to
+   request that the end user authorize an OAuth token at the same time
+   as their OpenID authorization.  This is done by sending the following
+   parameters as part of the OpenID request.
+
+   openid.ns.oauth  REQUIRED.  Value:
+      "http://specs.openid.net/extensions/oauth/1.0".
+
+   openid.oauth.req_token  REQUIRED.  Value: The OAuth Unauthorized
+      Request token the Consumer wishes the end user to authorize.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 7]
+
+                         OpenID OAuth Extension                July 2008
+
+
+6.  Responding to Authentication Requests
+
+   If the OpenID authentication request cannot be fulfilled (either in
+   failure mode "setup_needed" or "cancel" as in Sections 10.2.1 and
+   10.2.2 of [OpenID]) then the OAuth request SHOULD be considered to
+   fail and the Provider MUST NOT send any OAuth extension values in the
+   response.
+
+   The remainder of this section specifies how to handle the OAuth
+   request in cases when the OpenID authentication response is a
+   positive assertion (Section 10.1 of [OpenID]).
+
+   If the request parameter "openid.oauth.req_token" is present and is a
+   valid Unauthorized Request Token, the Combined Provider SHOULD
+   determine that an authorized end user wishes to complete the OAuth
+   Authorization.
+
+   If the end user does wish to grant access to the Consumer, the
+   Combined Provider MUST include and MUST sign the following
+   parameters.
+
+   openid.ns.oauth  REQUIRED.  Identical value as defined in Section 5.
+
+   openid.oauth.req_token  REQUIRED.  The value included in the request.
+
+   openid.oauth.cb_token  OPTIONAL.  The callback token MUST be included
+      in the response if the Provider supports the 'Unregistered
+      Consumer' extension to OAuth, (see [UnregisteredOAuth]), and the
+      Consumer is unregistered, as defined in that extension.  Callback
+      tokens are needed by an unregistered Combined Consumer to obtain
+      an OAuth access token.
+
+   To note that the OAuth Authorization was declined or not valid, the
+   Combined Provider SHALL only respond with the parameter
+   "openid.ns.oauth".
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 8]
+
+                         OpenID OAuth Extension                July 2008
+
+
+7.  Requesting the Access Token
+
+   To exchange the request token for an access token, the Combined
+   Consumer follows Section 6.3 of [OAuth], or Section x.x of
+   [UnregisteredOAuth], whichever is appropriate.  However, if the
+   Combined Consumer cannot itself verify the signature in the
+   authentication response, it MAY use the following optimization.
+
+7.1.  Optimized Access Token Request for Non-Associated RPs
+
+   If the Combined Consumer cannot itself verify the signature in the
+   authentication response, it MUST construct a direct verification
+   request, according to section 11.4.2.1 of [OpenID], including all
+   openid.* parameters that appeared in the response.  The RP sends the
+   OAuth access token request parameters (section 6.3.1 of [OAuth])
+   either in the HTTP Authorization header or in the query part of the
+   URL (as described in section 5.2 of the same document).  The third
+   mechanism defined in the Section 5.2 of [OAuth] cannot be used
+   because the OpenID request POST body has an incompatible Mime-type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 9]
+
+                         OpenID OAuth Extension                July 2008
+
+
+8.  Responding to Access Token Requests
+
+   If the OpenID signature verification fails, the Combined Provider
+   should not include any OAuth extension parameters in the response,
+   and should proceed identically as in Section 11.4.2.2 of [OpenID].
+
+   If the OpenID signature verification succeeds, the Provider verifies
+   the OAuth signature, according to Section 9 of [OAuth].
+
+   If the OAuth signature verification fails, the OpenID signature
+   verification response proceeds identically as described in Section
+   11.4.2.2 of [OpenID].
+
+   If the OAuth signature verification succeeds, the Provider constructs
+   an OpenID signature verification response message with the following
+   additional parameters:
+
+   openid.ns.oauth  REQUIRED.  Same value as in Section Section 5.
+
+   openid.oauth.access_token  REQUIRED.  The OAuth access token, encoded
+      according to Section 5.1 of [OAuth].
+
+   openid.oauth.access_token_secret  REQUIRED.  The OAuth access token
+      secret, similarly encoded.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                [Page 10]
+
+                         OpenID OAuth Extension                July 2008
+
+
+9.  General Considerations
+
+   The proposal takes the approach to insulate each protocol from the
+   other, both for backwards compatibility as well as to enable OpenID
+   and OAuth to evolve and incorporate additional features without
+   requiring reviews of the combined usage described here.  In
+   particular:
+
+   OpenID full compatibility  The OpenID identity provider (OP) MAY
+      safely announce the endpoint supporting the OAuth extension to all
+      relying parties, whether or not they support the extension as
+      well.  The use of a separate service-type announcement for
+      Combined Providers endpoints provides a mechanism for auto-
+      discovery of OAuth capabilities by RPs.
+
+   OAuth token compatibility  The OAuth tokens approved via this
+      mechanism MAY be used identically as tokens acquired through
+      alternative mechanisms (e.g., via standard OAuth) without
+      requiring special considerations either because of functionality
+      or security reasons.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                [Page 11]
+
+                         OpenID OAuth Extension                July 2008
+
+
+10.  Security Considerations
+
+   This proposal composes protocols that provide security services
+   (authentication in the case of OpenID, authorization in the case of
+   OAuth) with the intention that the combined protocol provides both
+   services simultaneously.  Since security is not a property generally
+   preserved by composition, the design takes the approach of
+   encapsulating the OAuth flow within OpenID in a modular way, and
+   applies the general rule-of-thumb of NOT introducing reliance on the
+   security properties of one protocol for the correctness of the other.
+   Ultimately, only public scrutiny and review can incrementally provide
+   confidence that the approach described here is sound from a security
+   perspective.
+
+   The following security principles is reflected in this design:
+
+   No long-term OAuth secrets hit the browser  The OAuth protocol was
+      designed so that browser-mediated communication is not used to
+      transfer long-term secrets or capabilities to access data.
+      Instead, temporary approval tokens are exchanged through the
+      browser and then exchanged in authenticated server-to-server calls
+      for higher-value secrets and tokens.  In this protocol, the use of
+      callback_token preserves this feature of the OAuth protocol even
+      with unregistered consumers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                [Page 12]
+
+                         OpenID OAuth Extension                July 2008
+
+
+11.  Normative References
+
+   [OAuth]    OAuth Core Workgroup, "OAuth Core 1.0", December 2007,
+              <http://oauth.net/core/1.0/>.
+
+   [OpenID]   Openid.net, "OpenID Authentication 2.0 - Final",
+              December 2007,
+              <http://openid.net/specs/openid-authentication-2_0.html>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [UnregisteredOAuth]
+              Balfanz, D., Eaton, B., and B. de Medeiros, "OAuth
+              Unregistered Consumer Extension", <http://
+              breno.demedeiros.googlepages.com/oauth-unregistered.html>.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                [Page 13]
+
+                         OpenID OAuth Extension                July 2008
+
+
+Authors' Addresses
+
+   Dirk Balfanz (editor)
+   Google, Inc.
+
+   Email: balfanz@google.com
+
+
+   Breno de Medeiros (editor)
+   Google, Inc.
+
+   Email: breno@google.com
+
+
+   David Recordon (editor)
+   Six Apart, Ltd.
+
+   Email: david@sixapart.com
+
+
+   Joseph Smarr (editor)
+   Plaxo, Inc.
+
+   Email: joseph@plaxo.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                [Page 14]
+
