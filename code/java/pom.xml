@@ -20,13 +20,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <name>STEP2 Project</name>
+  <url>http://code.google.com/p/step2</url>
+  <inceptionYear>2008</inceptionYear>
+
   <groupId>com.google.step2</groupId>
   <artifactId>step2-parent</artifactId>
   <version>1-SNAPSHOT</version>
   <packaging>pom</packaging>
-
-  <name>STEP2 Project</name>
-  <inceptionYear>2008</inceptionYear>
 
   <prerequisites>
     <maven>2.0.6</maven>
@@ -44,6 +45,10 @@
       <version>1.0</version>
     </dependency>
   </dependencies>
+  <organization>
+  	<name>Google</name>
+  	<url>http://www.google.com</url>
+  </organization>
 
   <build>
     <plugins>
@@ -58,8 +63,33 @@
   </build>
 
   <modules>
-    <module>example</module>
+    <module>common</module>
+    <module>consumer</module>
+    <module>example-consumer</module>
   </modules>
+  <developers>
+  	<developer>
+  		<id>dirk.balfanz</id>
+  		<name>Dirk Balfanz</name>
+  		<email>dirk.balfanz@gmail.com</email>
+  		<organization>Google</organization>
+  		<organizationUrl>http://www.google.com</organizationUrl>
+  	</developer>
+    <developer>
+      <id>breno.demedeiros</id>
+      <name>Breno de Medeiros</name>
+      <email>breno.demedeiros@gmail.com</email>
+      <organization>Google</organization>
+      <organizationUrl>http://www.google.com</organizationUrl>
+    </developer>
+    <developer>
+      <id>steveweis</id>
+      <name>Steve Weis</name>
+      <email>steveweis@gmail.com</email>
+      <organization>Google</organization>
+      <organizationUrl>http://www.google.com</organizationUrl>
+    </developer>
+  </developers>
 
   <scm>
     <connection>scm:svn:svn://step2.googlecode.com/svn/code</connection>
