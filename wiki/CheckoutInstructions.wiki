@@ -1,6 +1,6 @@
-#summary How to check out Step 2 from Eclipse
+#summary How to check out Step 2 from Eclipse 3.3
 
-= How to check out Step 2 from Eclipse =
+= How to check out Step 2 from Eclipse 3.3 =
 
 == Requirements ==
 
