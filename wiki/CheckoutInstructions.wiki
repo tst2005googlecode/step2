@@ -1,0 +1,22 @@
+#summary How to check out Step 2 from Eclipse
+
+= How to check out Step 2 from Eclipse =
+
+== Requirements ==
+
+  * Java 1.5 or greater
+  * Subversion 1.4 or greater
+  * Maven 2.0.9 or greater
+  * Eclipse 3.3 or greater
+  * Subclipse 1.5 or greater
+  * m2Eclipse 0.9.5 or greater
+
+== Instructions ==
+
+  # Select File->Import
+  # From the Import dialog, select Other->"Check out Maven Projects from SCM"
+  # Select "svn" from the SCM URL drop down.
+  # Enter "https://step2.googlecode.com/svn/code/" in the URL field.
+  # Select "Finish"
+
+These instructions are written for Eclipse 3.3 (Europa). Eclipse 3.4 (Ganymede) may differ.
