@@ -16,7 +16,7 @@
   # Select File->Import
   # From the Import dialog, select Other->"Check out Maven Projects from SCM"
   # Select "svn" from the SCM URL drop down.
-  # Enter "https://step2.googlecode.com/svn/code/" in the URL field.
+  # Enter "https://step2.googlecode.com/svn/code/java/trunk" in the URL field.
   # Select "Finish"
 
 These instructions are written for Eclipse 3.3 (Europa). Eclipse 3.4 (Ganymede) may differ.
