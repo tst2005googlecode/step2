@@ -119,7 +119,7 @@
         <list style="hanging">
           <t hangText='openid.ns.oauth'>
             REQUIRED. Value: "http://specs.openid.net/extensions/oauth/1.0".</t>
-          <t hangText="openid.oauth.req_token">
+          <t hangText="openid.oauth.request_token">
             REQUIRED. Value: The OAuth Unauthorized Request token the Consumer
             wishes the end user to authorize. </t>
         </list>
@@ -137,7 +137,7 @@
         request in cases when the OpenID authentication response is a positive 
         assertion (Section 10.1 of <xref target="OpenID"/>).
       </t>
-      <t>If the request parameter "openid.oauth.req_token" is present and is
+      <t>If the request parameter "openid.oauth.request_token" is present and is
         a valid Unauthorized Request Token, the Combined Provider
         SHOULD determine that an authorized end user wishes to complete
         the OAuth Authorization.
@@ -149,16 +149,16 @@
           <t hangText='openid.ns.oauth'>
             REQUIRED. Identical value as defined in <xref target='AuthReq' />.
           </t>
-          <t hangText='openid.oauth.req_token'>
+          <t hangText='openid.oauth.request_token'>
             REQUIRED. The value included in the request.
           </t>  
-          <t hangText='openid.oauth.cb_token'>
-            OPTIONAL. The callback token MUST be included
+          <t hangText='openid.oauth.response_token'>
+            OPTIONAL. The response token MUST be included
             in the response if the Provider supports
             the 'Unregistered Consumer' extension to OAuth,
             (see <xref target="UnregisteredOAuth"/>), and the Consumer
             is unregistered, as defined in that extension.
-            Callback tokens are needed by an unregistered Combined Consumer to
+            Response tokens are needed by an unregistered Combined Consumer to
             obtain an OAuth access token.
           </t> 
         </list>
@@ -174,7 +174,7 @@
         follows Section 6.3 of <xref target="OAuth"/>, or Section x.x of 
         <xref target="UnregisteredOAuth"/>, whichever is appropriate.
         However, if the Combined Consumer cannot itself verify the signature
-        in the authentication response, it MAY use the following optimization.
+        in the authentication response, it MAY use the optimization described in this Section.
       </t>
       <section title ="Optimized Access Token Request for Non-Associated RPs">
         <t>If the Combined Consumer cannot itself verify the signature in the
@@ -191,37 +191,37 @@
           POST body has an incompatible Mime-type.
         </t>
       </section>
-    </section>
-
-    <section title="Responding to Access Token Requests">
-      <t>If the OpenID signature verification fails, the Combined Provider
-        should not include any OAuth extension parameters in the response,
-        and should proceed identically as in Section 11.4.2.2 of
-        <xref target="OpenID" />.
-      </t>
-      <t>If the OpenID signature verification succeeds, the Provider
-        verifies the
-        OAuth signature, according to Section 9 of <xref target="OAuth"/>. 
-      </t>
-      <t>If the OAuth signature verification fails,
-        the OpenID signature verification response proceeds identically
-        as described in Section  11.4.2.2 of <xref target="OpenID" />.
-      </t>
-      <t>If the OAuth signature verification succeeds, the Provider constructs
-        an OpenID signature verification response message with
-        the following additional parameters:
-        <list style="hanging">
-          <t hangText="openid.ns.oauth">
-            REQUIRED. Same value as in Section <xref target="AuthReq"/>.
-          </t>
-          <t hangText="openid.oauth.access_token">
-            REQUIRED. The OAuth access token, encoded according to Section 5.1
-            of <xref target="OAuth"/>.</t>
-          <t hangText="openid.oauth.access_token_secret">
-            REQUIRED. The OAuth access token secret, similarly encoded.
-          </t>
-        </list>
-      </t>
+      <section title="Responding to Access Token Requests">
+	<t>If the OpenID signature verification fails, the Combined Provider
+	  should not include any OAuth extension parameters in the response,
+	  and should proceed identically as in Section 11.4.2.2 of
+	  <xref target="OpenID" />.
+	</t>
+	<t>If the OpenID signature verification succeeds, the Provider
+	  verifies the
+	  OAuth signature, according to Section 9 of <xref target="OAuth"/>. 
+	</t>
+	<t>If the OAuth signature verification fails,
+	  the OpenID signature verification response proceeds identically
+	  as described in Section  11.4.2.2 of <xref target="OpenID" />.
+	</t>
+	<t>If the OAuth signature verification succeeds, the Provider constructs
+	  an OpenID signature verification response message with
+	  the following additional parameters:
+	  <list style="hanging">
+	    <t hangText="openid.ns.oauth">
+	      REQUIRED. Same value as in Section <xref target="AuthReq"/>.
+	    </t>
+	    <t hangText="openid.oauth.access_token">
+	      REQUIRED. The OAuth access token, encoded according to Section 5.1
+	      of <xref target="OAuth"/>.
+	    </t>
+	    <t hangText="openid.oauth.access_token_secret">
+	      REQUIRED. The OAuth access token secret, similarly encoded.
+	    </t>
+	  </list>
+	</t>
+      </section>
     </section>
 
     <section title="General Considerations">
@@ -275,7 +275,7 @@
             Instead, temporary approval tokens are exchanged through the browser
             and then exchanged in authenticated server-to-server calls
             for higher-value secrets and tokens. In this protocol, the use of
-            callback_token preserves this feature of the OAuth protocol even with
+            response_token preserves this feature of the OAuth protocol even with
             unregistered consumers.
           </t>
         </list>

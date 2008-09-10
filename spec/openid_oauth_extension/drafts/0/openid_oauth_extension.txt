@@ -8,7 +8,7 @@ draft                                                         D. Balfanz
                                                                Six Apart
                                                                 J. Smarr
                                                                    Plaxo
-                                                           July 17, 2008
+                                                      September 10, 2008
 
 
                          OpenID OAuth Extension
@@ -54,7 +54,7 @@ draft                                                         D. Balfanz
 
 Balfanz, et al.                                                 [Page 1]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
 Abstract
@@ -73,11 +73,11 @@ Table of Contents
    6.  Responding to Authentication Requests  . . . . . . . . . . . .  8
    7.  Requesting the Access Token  . . . . . . . . . . . . . . . . .  9
      7.1.  Optimized Access Token Request for Non-Associated RPs  . .  9
-   8.  Responding to Access Token Requests  . . . . . . . . . . . . . 10
-   9.  General Considerations . . . . . . . . . . . . . . . . . . . . 11
-   10. Security Considerations  . . . . . . . . . . . . . . . . . . . 12
-   11. Normative References . . . . . . . . . . . . . . . . . . . . . 13
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 14
+     7.2.  Responding to Access Token Requests  . . . . . . . . . . .  9
+   8.  General Considerations . . . . . . . . . . . . . . . . . . . . 10
+   9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 11
+   10. Normative References . . . . . . . . . . . . . . . . . . . . . 12
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 13
 
 
 
@@ -110,7 +110,7 @@ Table of Contents
 
 Balfanz, et al.                                                 [Page 2]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
 1.  Requirements notation
@@ -166,7 +166,7 @@ Balfanz, et al.                                                 [Page 2]
 
 Balfanz, et al.                                                 [Page 3]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
 2.  Terminology
@@ -222,7 +222,7 @@ Balfanz, et al.                                                 [Page 3]
 
 Balfanz, et al.                                                 [Page 4]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
 3.  Overview
@@ -278,7 +278,7 @@ Balfanz, et al.                                                 [Page 4]
 
 Balfanz, et al.                                                 [Page 5]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
 4.  Before Requesting Authentication
@@ -334,7 +334,7 @@ Balfanz, et al.                                                 [Page 5]
 
 Balfanz, et al.                                                 [Page 6]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
 5.  Requesting Authentication
@@ -348,7 +348,7 @@ Balfanz, et al.                                                 [Page 6]
    openid.ns.oauth  REQUIRED.  Value:
       "http://specs.openid.net/extensions/oauth/1.0".
 
-   openid.oauth.req_token  REQUIRED.  Value: The OAuth Unauthorized
+   openid.oauth.request_token  REQUIRED.  Value: The OAuth Unauthorized
       Request token the Consumer wishes the end user to authorize.
 
 
@@ -390,7 +390,7 @@ Balfanz, et al.                                                 [Page 6]
 
 Balfanz, et al.                                                 [Page 7]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
 6.  Responding to Authentication Requests
@@ -405,8 +405,8 @@ Balfanz, et al.                                                 [Page 7]
    request in cases when the OpenID authentication response is a
    positive assertion (Section 10.1 of [OpenID]).
 
-   If the request parameter "openid.oauth.req_token" is present and is a
-   valid Unauthorized Request Token, the Combined Provider SHOULD
+   If the request parameter "openid.oauth.request_token" is present and
+   is a valid Unauthorized Request Token, the Combined Provider SHOULD
    determine that an authorized end user wishes to complete the OAuth
    Authorization.
 
@@ -416,14 +416,15 @@ Balfanz, et al.                                                 [Page 7]
 
    openid.ns.oauth  REQUIRED.  Identical value as defined in Section 5.
 
-   openid.oauth.req_token  REQUIRED.  The value included in the request.
+   openid.oauth.request_token  REQUIRED.  The value included in the
+      request.
 
-   openid.oauth.cb_token  OPTIONAL.  The callback token MUST be included
-      in the response if the Provider supports the 'Unregistered
-      Consumer' extension to OAuth, (see [UnregisteredOAuth]), and the
-      Consumer is unregistered, as defined in that extension.  Callback
-      tokens are needed by an unregistered Combined Consumer to obtain
-      an OAuth access token.
+   openid.oauth.response_token  OPTIONAL.  The response token MUST be
+      included in the response if the Provider supports the
+      'Unregistered Consumer' extension to OAuth, (see
+      [UnregisteredOAuth]), and the Consumer is unregistered, as defined
+      in that extension.  Response tokens are needed by an unregistered
+      Combined Consumer to obtain an OAuth access token.
 
    To note that the OAuth Authorization was declined or not valid, the
    Combined Provider SHALL only respond with the parameter
@@ -443,10 +444,9 @@ Balfanz, et al.                                                 [Page 7]
 
 
 
-
 Balfanz, et al.                                                 [Page 8]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
 7.  Requesting the Access Token
@@ -455,7 +455,8 @@ Balfanz, et al.                                                 [Page 8]
    Consumer follows Section 6.3 of [OAuth], or Section x.x of
    [UnregisteredOAuth], whichever is appropriate.  However, if the
    Combined Consumer cannot itself verify the signature in the
-   authentication response, it MAY use the following optimization.
+   authentication response, it MAY use the optimization described in
+   this Section.
 
 7.1.  Optimized Access Token Request for Non-Associated RPs
 
@@ -469,43 +470,7 @@ Balfanz, et al.                                                 [Page 8]
    mechanism defined in the Section 5.2 of [OAuth] cannot be used
    because the OpenID request POST body has an incompatible Mime-type.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Balfanz, et al.                                                 [Page 9]
-
-                         OpenID OAuth Extension                July 2008
-
-
-8.  Responding to Access Token Requests
+7.2.  Responding to Access Token Requests
 
    If the OpenID signature verification fails, the Combined Provider
    should not include any OAuth extension parameters in the response,
@@ -535,33 +500,12 @@ Balfanz, et al.                                                 [Page 9]
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Balfanz, et al.                                                [Page 10]
+Balfanz, et al.                                                 [Page 9]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
-9.  General Considerations
+8.  General Considerations
 
    The proposal takes the approach to insulate each protocol from the
    other, both for backwards compatibility as well as to enable OpenID
@@ -612,12 +556,12 @@ Balfanz, et al.                                                [Page 10]
 
 
 
-Balfanz, et al.                                                [Page 11]
+Balfanz, et al.                                                [Page 10]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
-10.  Security Considerations
+9.  Security Considerations
 
    This proposal composes protocols that provide security services
    (authentication in the case of OpenID, authorization in the case of
@@ -639,7 +583,7 @@ Balfanz, et al.                                                [Page 11]
       Instead, temporary approval tokens are exchanged through the
       browser and then exchanged in authenticated server-to-server calls
       for higher-value secrets and tokens.  In this protocol, the use of
-      callback_token preserves this feature of the OAuth protocol even
+      response_token preserves this feature of the OAuth protocol even
       with unregistered consumers.
 
 
@@ -668,12 +612,12 @@ Balfanz, et al.                                                [Page 11]
 
 
 
-Balfanz, et al.                                                [Page 12]
+Balfanz, et al.                                                [Page 11]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
-11.  Normative References
+10.  Normative References
 
    [OAuth]    OAuth Core Workgroup, "OAuth Core 1.0", December 2007,
               <http://oauth.net/core/1.0/>.
@@ -724,9 +668,9 @@ Balfanz, et al.                                                [Page 12]
 
 
 
-Balfanz, et al.                                                [Page 13]
+Balfanz, et al.                                                [Page 12]
 
-                         OpenID OAuth Extension                July 2008
+                         OpenID OAuth Extension           September 2008
 
 
 Authors' Addresses
@@ -780,5 +724,5 @@ Authors' Addresses
 
 
 
-Balfanz, et al.                                                [Page 14]
+Balfanz, et al.                                                [Page 13]
 
