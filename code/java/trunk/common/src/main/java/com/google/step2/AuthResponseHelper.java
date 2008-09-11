@@ -19,6 +19,8 @@ package com.google.step2;
 
 import com.google.step2.openid.ax2.AxMessage2;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openid4java.consumer.VerificationResult;
 import org.openid4java.discovery.Identifier;
 import org.openid4java.message.AuthFailure;
@@ -39,6 +41,7 @@ import java.util.List;
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class AuthResponseHelper {
+  private static Log log = LogFactory.getLog(AuthResponseHelper.class);
 
   public enum ResultType {
     AUTH_SUCCESS,  // response is of type AuthSuccess
@@ -65,6 +68,7 @@ public class AuthResponseHelper {
    * @return the {@link ResultType}.
    */
   public ResultType getAuthResultType() {
+    log.info(result.getAuthResponse());
     if (result.getAuthResponse() instanceof AuthSuccess) {
       return ResultType.AUTH_SUCCESS;
     } else if (result.getAuthResponse() instanceof AuthImmediateFailure) {
@@ -93,6 +97,7 @@ public class AuthResponseHelper {
    * @return the IdP setup URL.
    */
   public String getIdpSetupUrl() {
+    log.info(result.getIdpSetupUrl());
     return result.getIdpSetupUrl();
   }
 
@@ -100,6 +105,7 @@ public class AuthResponseHelper {
    * Returns the status message of the verification step.
    */
   public String getStatusMsg() {
+    log.info(result.getStatusMsg());
     return result.getStatusMsg();
   }
 
@@ -151,7 +157,6 @@ public class AuthResponseHelper {
    * @return list of attribute values.
    *
    */
-  @SuppressWarnings("unchecked")
   public List<String> getAxAttributeValues(String alias) {
 
     FetchResponse resp;

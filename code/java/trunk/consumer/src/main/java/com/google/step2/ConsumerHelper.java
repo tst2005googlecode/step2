@@ -19,6 +19,8 @@ package com.google.step2;
 
 import com.google.inject.Inject;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openid4java.association.AssociationException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.VerificationResult;
@@ -36,6 +38,7 @@ import org.openid4java.message.ParameterList;
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class ConsumerHelper {
+  private static Log log = LogFactory.getLog(ConsumerHelper.class);
 
   // for doing associations, for generating requests that include
   // OpenID identity requests, and for verifying responses that include
@@ -60,6 +63,7 @@ public class ConsumerHelper {
    */
   public AuthRequestHelper getAuthRequestHelper(String openId,
       String returnToUrl) {
+    log.info("OpenId: " + openId + " Return URL: " + returnToUrl);
     return new AuthRequestHelper(consumerManager, openId,
         returnToUrl);
   }
@@ -87,6 +91,7 @@ public class ConsumerHelper {
       ParameterList authResponse, DiscoveryInformation discovered)
       throws MessageException, AssociationException, DiscoveryException,
       VerificationException {
+    log.info("Receiving URL: " + receivingUrl);
     VerificationResult verification =
       consumerManager.verify(receivingUrl, authResponse, discovered);
 

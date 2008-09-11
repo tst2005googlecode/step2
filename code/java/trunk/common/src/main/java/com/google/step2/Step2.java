@@ -17,6 +17,8 @@
 
 package com.google.step2;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openid4java.message.ParameterList;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +30,8 @@ import javax.servlet.http.HttpServletRequest;
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class Step2 {
+  private static Log log = LogFactory.getLog(Step2.class);
+  
   public static final String AX_EMAIL_SCHEMA =
     "http://axschema.org/contact/email";
 
@@ -45,6 +49,7 @@ public class Step2 {
     if (queryString != null && queryString.length() > 0) {
       receivingUrl.append("?").append(req.getQueryString());
     }
+    log.info(receivingUrl.toString());
     return receivingUrl.toString();
   }
 

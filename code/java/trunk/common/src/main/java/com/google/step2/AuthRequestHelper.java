@@ -17,8 +17,11 @@
 
 package com.google.step2;
 
+import com.google.step2.oauth.OauthMessage;
 import com.google.step2.openid.ax2.FetchRequest2;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.discovery.DiscoveryException;
@@ -62,7 +65,8 @@ import java.util.List;
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class AuthRequestHelper {
-
+  private static Log log = LogFactory.getLog(AuthRequestHelper.class);
+  
   // for doing associations, and for generating requests that include
   // OpenID identity requests
   private final ConsumerManager consumerManager;
@@ -79,7 +83,9 @@ public class AuthRequestHelper {
   // discovery information
   private DiscoveryInformation discovered = null;
 
-  AuthRequestHelper(ConsumerManager consumerManager, String openId, String returnToUrl) {
+  AuthRequestHelper(ConsumerManager consumerManager, String openId,
+      String returnToUrl) {
+    log.info("OpenId: " + openId + " ReturnToUrl: " + returnToUrl);
     this.consumerManager = consumerManager;
     this.openId = openId.trim();
     this.returnToUrl = returnToUrl;
@@ -95,7 +101,6 @@ public class AuthRequestHelper {
       throws DiscoveryException {
     // if discovered == null, we'll try again
     if (discovered == null) {
-      @SuppressWarnings("unchecked")
       List<DiscoveryInformation> discoveries = consumerManager.discover(openId);
       discovered = consumerManager.associate(discoveries);
     }
@@ -116,6 +121,7 @@ public class AuthRequestHelper {
    */
   public AuthRequestHelper requestAxAttribute(String alias, String typeUri,
       boolean required) {
+    log.info("Alias: " + alias);
     return requestAxAttribute(alias, typeUri, required, 1);
   }
 
@@ -155,7 +161,7 @@ public class AuthRequestHelper {
     if (axFetchRequest != null) {
       authReq.addExtension(axFetchRequest);
     }
-
+    log.info(authReq);
     return authReq;
   }
 }
