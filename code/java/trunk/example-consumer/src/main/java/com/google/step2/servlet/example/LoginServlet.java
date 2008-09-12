@@ -82,6 +82,9 @@ public class LoginServlet extends InjectableServlet {
     if (YES_STRING.equals(req.getParameter("country"))) {
       helper.requestAxAttribute("country", Step2.AX_COUNTRY_SCHEMA, true);
     }
+    
+    // TODO(sweis): This just creates a dummy value now.
+    helper.requestOauthAuthorization();
 
     try {
       AuthRequest authReq = helper.generateRequest();

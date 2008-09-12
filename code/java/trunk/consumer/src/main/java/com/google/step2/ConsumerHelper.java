@@ -88,8 +88,8 @@ public class ConsumerHelper {
    * @throws MessageException for other problems.
    */
   public AuthResponseHelper verify(String receivingUrl,
-      ParameterList authResponse, DiscoveryInformation discovered)
-      throws MessageException, AssociationException, DiscoveryException,
+      ParameterList authResponse, DiscoveryInformation discovered) throws
+      MessageException, AssociationException, DiscoveryException,
       VerificationException {
     log.info("Receiving URL: " + receivingUrl);
     VerificationResult verification =
