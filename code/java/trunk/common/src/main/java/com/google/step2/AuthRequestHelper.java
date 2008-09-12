@@ -17,7 +17,7 @@
 
 package com.google.step2;
 
-import com.google.step2.oauth.OauthMessage;
+import com.google.step2.hybrid.HybridOauthRequest;
 import com.google.step2.openid.ax2.FetchRequest2;
 
 import org.apache.commons.logging.Log;
@@ -67,18 +67,21 @@ import java.util.List;
 public class AuthRequestHelper {
   private static Log log = LogFactory.getLog(AuthRequestHelper.class);
   
-  // for doing associations, and for generating requests that include
+  // For doing associations, and for generating requests that include
   // OpenID identity requests
   private final ConsumerManager consumerManager;
 
-  // the user-supplied identifier
+  // The user-supplied identifier
   private final String openId;
 
-  // the URL that the auth result should be delivered to
+  // The URL that the auth result should be delivered to
   private final String returnToUrl;
 
-  // if AX attributes are specifies, this object will hold them.
+  // If AX attributes are specified, this object will hold them.
   private FetchRequest2 axFetchRequest = null;
+  
+  // If a Hybrid Oauth extension is specified, this object will hold it
+  private HybridOauthRequest hybridOauthRequest = null;
 
   // discovery information
   private DiscoveryInformation discovered = null;
@@ -106,6 +109,16 @@ public class AuthRequestHelper {
     }
 
     return discovered;
+  }
+  
+  /**
+   * 
+   */
+  public AuthRequestHelper requestOauthAuthorization() {
+    if (axFetchRequest == null) {
+      hybridOauthRequest = new HybridOauthRequest();
+    }
+    return this;
   }
 
   /**
@@ -161,6 +174,12 @@ public class AuthRequestHelper {
     if (axFetchRequest != null) {
       authReq.addExtension(axFetchRequest);
     }
+
+    if (hybridOauthRequest != null) {
+      hybridOauthRequest.setReqToken("dummy");
+      authReq.addExtension(hybridOauthRequest);
+    }
+
     log.info(authReq);
     return authReq;
   }

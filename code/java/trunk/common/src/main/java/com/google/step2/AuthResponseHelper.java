@@ -17,6 +17,8 @@
 
 package com.google.step2;
 
+import com.google.step2.hybrid.HybridOauthMessage;
+import com.google.step2.hybrid.HybridOauthResponse;
 import com.google.step2.openid.ax2.AxMessage2;
 
 import org.apache.commons.logging.Log;
@@ -84,7 +86,7 @@ public class AuthResponseHelper {
    * Returns the response message itself. Use getAuthResultType to figure out
    * which subclass this can be safely cast to.
    *
-   * @return the response message.
+   * @return The response message.
    */
   public Message getAuthResponse() {
     return result.getAuthResponse();
@@ -102,7 +104,7 @@ public class AuthResponseHelper {
   }
 
   /**
-   * Returns the status message of the verification step.
+   * @returns The status message of the verification step.
    */
   public String getStatusMsg() {
     log.info(result.getStatusMsg());
@@ -117,13 +119,51 @@ public class AuthResponseHelper {
    *   successful AuthResponse or doesn't include a claimed id
    */
   public Identifier getClaimedId() {
-    return (getAuthResultType() == ResultType.AUTH_SUCCESS)
-           ? result.getVerifiedId()
-           : null;
+    if (getAuthResultType() == ResultType.AUTH_SUCCESS) {
+      return result.getVerifiedId(); 
+    } else {
+      return null;
+    }
+  }
+  
+  private <T extends MessageExtension> T getExtension(Class<T> type,
+      String typeUri) throws MessageException {
+    if (!getAuthResponse().hasExtension(typeUri)) {
+      throw new MessageException("Response does not have extension for type: "
+          + typeUri);
+    }
+    
+    MessageExtension ext = getAuthResponse().getExtension(typeUri);
+    if (type.isAssignableFrom(ext.getClass())) {
+      return (T) ext;
+    }
+    throw new MessageException("Cannot cast type " + ext.getClass().getName() +
+        " to " + type.getName());
+  }
+  
+  /**
+   * @return True if response message includes the Oauth extension. 
+   */
+  public boolean hasOauthExtension() {
+    return getAuthResponse().hasExtension(HybridOauthMessage.OPENID_NS_OAUTH);
+  }
+  
+  /**
+   * Returns the complete FetchResponse object representing all the attributes
+   * returned through the Attribute Extension.
+   *
+   * @return a FetchResponse object
+   *
+   * @throws MessageException if Attribute Extension parameters were not
+   *   included in the response, or if some other error occurred.
+   */
+  public HybridOauthResponse getHybridOauthResponse() throws MessageException {
+    return getExtension(HybridOauthResponse.class,
+        HybridOauthMessage.OPENID_NS_OAUTH);
   }
 
   /**
-   * Returns true if response message includes the Attribute Exchange extension.
+   * @return True if response message includes the Attribute Exchange extension. 
    */
   public boolean hasAxExtension() {
     return getAuthResponse().hasExtension(AxMessage2.OPENID_NS_AX_FINAL);
@@ -138,17 +178,10 @@ public class AuthResponseHelper {
    * @throws MessageException if Attribute Extension parameters were not
    *   included in the response, or if some other error occurred.
    */
-  public FetchResponse getAxFetchRespone() throws MessageException {
-    MessageExtension ext =
-        getAuthResponse().getExtension(AxMessage2.OPENID_NS_AX_FINAL);
-
-    if (ext instanceof FetchResponse) {
-      return (FetchResponse)ext;
-    } else {
-      throw new MessageException("expected response type FetchResponse, " +
-      		"but got " + ext.getClass().getName());
-    }
+  public FetchResponse getAxFetchResponse() throws MessageException {
+    return getExtension(FetchResponse.class, AxMessage2.OPENID_NS_AX_FINAL);
   }
+  
 
   /**
    * Returns a list of AX attribute values.
@@ -161,7 +194,7 @@ public class AuthResponseHelper {
 
     FetchResponse resp;
     try {
-      resp = getAxFetchRespone();
+      resp = getAxFetchResponse();
     } catch (MessageException e) {
       return Collections.EMPTY_LIST;
     }
