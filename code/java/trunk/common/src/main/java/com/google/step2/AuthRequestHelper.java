@@ -71,6 +71,9 @@ public class AuthRequestHelper {
   // OpenID identity requests
   private final ConsumerManager consumerManager;
 
+  // An unauthorized oauthRequestToken
+  private final String oauthRequestToken;
+  
   // The user-supplied identifier
   private final String openId;
 
@@ -87,11 +90,12 @@ public class AuthRequestHelper {
   private DiscoveryInformation discovered = null;
 
   AuthRequestHelper(ConsumerManager consumerManager, String openId,
-      String returnToUrl) {
+      String returnToUrl, String oauthRequestToken) {
     log.info("OpenId: " + openId + " ReturnToUrl: " + returnToUrl);
     this.consumerManager = consumerManager;
     this.openId = openId.trim();
     this.returnToUrl = returnToUrl;
+    this.oauthRequestToken = oauthRequestToken;
   }
 
   /**
@@ -111,9 +115,6 @@ public class AuthRequestHelper {
     return discovered;
   }
   
-  /**
-   * 
-   */
   public AuthRequestHelper requestOauthAuthorization() {
     if (axFetchRequest == null) {
       hybridOauthRequest = new HybridOauthRequest();
@@ -176,7 +177,9 @@ public class AuthRequestHelper {
     }
 
     if (hybridOauthRequest != null) {
-      hybridOauthRequest.setReqToken("dummy");
+      if (oauthRequestToken != null) {
+        hybridOauthRequest.setReqToken(oauthRequestToken);
+      }
       authReq.addExtension(hybridOauthRequest);
     }
 
