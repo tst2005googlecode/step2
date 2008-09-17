@@ -23,12 +23,22 @@ import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
 import com.google.step2.servlet.InjectableServlet;
 
+import net.oauth.OAuthAccessor;
+import net.oauth.OAuthConsumer;
+import net.oauth.OAuthException;
+import net.oauth.OAuthServiceProvider;
+import net.oauth.client.HttpClientPool;
+import net.oauth.client.OAuthHttpClient;
+
+import org.apache.commons.httpclient.HttpClient;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.MessageException;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -61,7 +71,7 @@ public class LoginServlet extends InjectableServlet {
     RequestDispatcher d = req.getRequestDispatcher(templateFile);
     d.forward(req, resp);
   }
-
+  
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
@@ -72,8 +82,47 @@ public class LoginServlet extends InjectableServlet {
     // posted means they're sending us an OpenID4
     String returnToUrl = realm + redirectPath;
     String openId = req.getParameter("openid");
-    AuthRequestHelper helper =
-      consumerHelper.getAuthRequestHelper(openId, returnToUrl);
+    
+    String oauthRequestToken = null;
+    
+    if (YES_STRING.equals(req.getParameter("oauth"))) { 
+      // TODO(sweis): This is just for testing. May have to discover the 
+      // token_request URL.
+      OAuthServiceProvider provider = new OAuthServiceProvider(
+          "http://localhost:9090/oauth-provider/request_token",
+          "http://localhost:9090/oauth-provider/authorize",
+          "http://localhost:9090/oauth-provider/access_token");
+
+      OAuthConsumer consumer = new OAuthConsumer(
+          "http://localhost:8080/oauth", "myKey", "mySecret", provider);
+      OAuthAccessor accessor = new OAuthAccessor(consumer);
+    
+      try {
+        new OAuthHttpClient(
+            new HttpClientPool() {
+              // This trivial 'pool' simply allocates a new client every time.
+              // More efficient implementations are possible.
+              public HttpClient getHttpClient(URL server) {
+                return new HttpClient();
+              }}).getRequestToken(accessor);
+      } catch (OAuthException e) {
+        throw new ServletException(e);
+      } catch (URISyntaxException e) {
+        throw new ServletException(e);
+      }
+   
+      if (accessor.requestToken != null && accessor.tokenSecret != null) { 
+        oauthRequestToken = "oauth_token=" + accessor.requestToken +
+        "&oauth_token_secret=" + accessor.tokenSecret;
+      }
+    }
+
+    AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(
+        openId, returnToUrl, oauthRequestToken);
+    
+    if (YES_STRING.equals(req.getParameter("oauth"))) {
+      helper.requestOauthAuthorization();
+    }
 
     if (YES_STRING.equals(req.getParameter("email"))) {
       helper.requestAxAttribute("email", Step2.AX_EMAIL_SCHEMA, true);
@@ -82,9 +131,6 @@ public class LoginServlet extends InjectableServlet {
     if (YES_STRING.equals(req.getParameter("country"))) {
       helper.requestAxAttribute("country", Step2.AX_COUNTRY_SCHEMA, true);
     }
-    
-    // TODO(sweis): This just creates a dummy value now.
-    helper.requestOauthAuthorization();
 
     try {
       AuthRequest authReq = helper.generateRequest();
