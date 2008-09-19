@@ -15,7 +15,7 @@
  * 
  */
 
-package com.google.step2.servlet.example;
+package com.google.step2.example.consumer.servlet;
 
 import com.google.inject.Inject;
 import com.google.step2.AuthResponseHelper;

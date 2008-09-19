@@ -13,17 +13,17 @@
 
   <servlet>
     <servlet-name>LoginServlet</servlet-name>
-    <servlet-class>com.google.step2.servlet.example.LoginServlet</servlet-class>
+    <servlet-class>com.google.step2.example.consumer.servlet.LoginServlet</servlet-class>
   </servlet>
 
   <servlet>
     <servlet-name>HelloServlet</servlet-name>
-    <servlet-class>com.google.step2.servlet.example.HelloWorldServlet</servlet-class>
+    <servlet-class>com.google.step2.example.consumer.servlet.HelloWorldServlet</servlet-class>
   </servlet>
 
   <servlet>
     <servlet-name>CheckAuth</servlet-name>
-    <servlet-class>com.google.step2.servlet.example.CheckAuthServlet</servlet-class>
+    <servlet-class>com.google.step2.example.consumer.servlet.CheckAuthServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>

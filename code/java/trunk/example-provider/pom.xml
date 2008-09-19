@@ -33,14 +33,6 @@
   <packaging>jar</packaging>
   
   <artifactId>step2-example-provider</artifactId>
-  <dependencies>
-  	<dependency>
-  		<groupId>com.google.step2</groupId>
-  		<artifactId>step2-common</artifactId>
-  		<version>1-SNAPSHOT</version>
-  	</dependency>
-  </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -49,7 +41,12 @@
         <version>6.1.6</version>
         <configuration>
           <scanIntervalSeconds>10</scanIntervalSeconds>
-         </configuration>
+          <connectors>
+            <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
+              <port>8081</port>
+            </connector>
+          </connectors>
+        </configuration>
       </plugin>
     </plugins>
   </build>

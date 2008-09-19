@@ -15,7 +15,7 @@
  * 
  */
 
-package com.google.step2.servlet.example;
+package com.google.step2.example.consumer.servlet;
 
 import com.google.inject.Inject;
 import com.google.step2.AuthRequestHelper;
@@ -31,6 +31,7 @@ import net.oauth.client.HttpClientPool;
 import net.oauth.client.OAuthHttpClient;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.log4j.Logger;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.message.AuthRequest;
@@ -52,6 +53,7 @@ import javax.servlet.http.HttpSession;
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class LoginServlet extends InjectableServlet {
+  private Logger log = Logger.getLogger(LoginServlet.class); 
   private static final String templateFile = "/WEB-INF/login.jsp";
   private static final String redirectPath =
     "/step2-example-consumer/checkauth";
@@ -75,6 +77,7 @@ public class LoginServlet extends InjectableServlet {
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
+    log.info("Login Servlet Post");
     StringBuffer realm = new StringBuffer(req.getScheme());
     realm.append("://").append(req.getServerName());
     realm.append(":").append(req.getServerPort());
@@ -85,30 +88,36 @@ public class LoginServlet extends InjectableServlet {
     
     String oauthRequestToken = null;
     
-    if (YES_STRING.equals(req.getParameter("oauth"))) { 
-      // TODO(sweis): This is just for testing. May have to discover the 
+    if (YES_STRING.equals(req.getParameter("oauth"))) {
+      log.info("Oauth Request");
+      // TODO(sweis): This is just for testing. Will have to discover the 
       // token_request URL.
       OAuthServiceProvider provider = new OAuthServiceProvider(
-          "http://localhost:9090/oauth-provider/request_token",
-          "http://localhost:9090/oauth-provider/authorize",
-          "http://localhost:9090/oauth-provider/access_token");
+          "http://localhost:8081/step2-example-provider/request_token",
+          "http://localhost:8081/step2-example-provider/authorize",
+          "http://localhost:8081/step2-example-provider/access_token");
 
-      OAuthConsumer consumer = new OAuthConsumer(
-          "http://localhost:8080/oauth", "myKey", "mySecret", provider);
+      OAuthConsumer consumer = new OAuthConsumer("",  // No Callback
+          "DummyConsumer", "DummySecret", provider);
       OAuthAccessor accessor = new OAuthAccessor(consumer);
     
       try {
-        new OAuthHttpClient(
+        OAuthHttpClient client = new OAuthHttpClient(
             new HttpClientPool() {
               // This trivial 'pool' simply allocates a new client every time.
               // More efficient implementations are possible.
               public HttpClient getHttpClient(URL server) {
                 return new HttpClient();
-              }}).getRequestToken(accessor);
+              }}
+            );
+        client.getRequestToken(accessor);
+        log.info("Successful Oauth token request: " + accessor.toString());
       } catch (OAuthException e) {
-        throw new ServletException(e);
+        //throw new ServletException(e);
+        e.printStackTrace();  // Continue
       } catch (URISyntaxException e) {
-        throw new ServletException(e);
+        //throw new ServletException(e);
+        e.printStackTrace();  // Continue
       }
    
       if (accessor.requestToken != null && accessor.tokenSecret != null) { 

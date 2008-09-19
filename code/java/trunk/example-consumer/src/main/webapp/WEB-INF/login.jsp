@@ -18,9 +18,6 @@ optionally request user email and country attributes.
   OpenID URL: <input type="text" id="openid" name="openid" size="50" />
 </div>
 <div>
-  <input type="checkbox" name="oauth" value="yes" />Request OAuth Authorization
-</div>
-<div>
   <input type="checkbox" name="email" value="yes" />Request email
 </div>
 <div>
@@ -28,6 +25,9 @@ optionally request user email and country attributes.
 </div>
 <div>
   <input type="checkbox" name="usePost" value="yes" />Use POST instead of GET
+</div>
+<div>
+  <input type="checkbox" name="oauth" value="yes" />Request OAuth Authorization (experimental)
 </div>
 <div>
   <input type="submit" title="Login" />
