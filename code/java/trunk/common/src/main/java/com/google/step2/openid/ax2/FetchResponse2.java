@@ -17,28 +17,15 @@
 
 package com.google.step2.openid.ax2;
 
-import org.openid4java.message.ParameterList;
-import org.openid4java.message.ax.AxMessage;
+import org.openid4java.message.ax.FetchResponse;
 
-/**
- * 
- * @author Dirk Balfanz (dirk.balfanz@gmail.com)
- * @author Breno de Medeiros (breno.demedeiros@gmail.com)
- */
-public class AxMessage2 extends AxMessage {
-  public static final String OPENID_NS_AX_FINAL =
-      "http://openid.net/srv/ax/1.0";
-
+public class FetchResponse2 extends FetchResponse {
   @Override
   public String getTypeUri() {
-    return OPENID_NS_AX_FINAL;
+    return AxMessage2.OPENID_NS_AX_FINAL;
   }
-  
-  public AxMessage2() {
+
+  public FetchResponse2() {
     super();
-  }
-  
-  public AxMessage2(ParameterList params) {
-    super(params);
   }
 }
