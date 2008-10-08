@@ -22,6 +22,7 @@ import com.google.step2.AuthResponseHelper;
 import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
 import com.google.step2.VerificationException;
+import com.google.step2.hybrid.HybridOauthResponse;
 import com.google.step2.servlet.InjectableServlet;
 
 import org.openid4java.association.AssociationException;
@@ -74,11 +75,16 @@ public class CheckAuthServlet extends InjectableServlet {
       Identifier claimedId = authResponse.getClaimedId();
       String email = authResponse.getAxAttributeValue("email");
       String country = authResponse.getAxAttributeValue("country");
-
+      String token = "";
+      if (authResponse.hasHybridOauthExtension()) {
+        HybridOauthResponse hybridResp = authResponse.getHybridOauthResponse();
+        token = hybridResp.getParameter("request_token");        
+      }
       session.setAttribute("user",
           (claimedId == null) ? "unknown" : claimedId.getIdentifier());
       session.setAttribute("email", (email == null) ? "unknown" : email);
       session.setAttribute("country", (country == null) ? "unknown" : country);
+      session.setAttribute("token", (token == null) ? "None" : token);
 
     } catch (MessageException e) {
       throw new ServletException(e);

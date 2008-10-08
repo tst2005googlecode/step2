@@ -144,7 +144,7 @@ public class AuthResponseHelper {
   /**
    * @return True if response message includes the Oauth extension. 
    */
-  public boolean hasOauthExtension() {
+  public boolean hasHybridOauthExtension() {
     return getAuthResponse().hasExtension(HybridOauthMessage.OPENID_NS_OAUTH);
   }
   

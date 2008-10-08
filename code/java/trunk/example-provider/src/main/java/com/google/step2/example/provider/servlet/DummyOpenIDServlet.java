@@ -1,7 +1,9 @@
 package com.google.step2.example.provider.servlet;
 
 import com.google.step2.Step2;
+import com.google.step2.hybrid.HybridOauthResponse;
 import com.google.step2.openid.ax2.FetchResponse2;
+import com.google.step2.servlet.InjectableServlet;
 
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.Message;
@@ -19,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-public class DummyOpenIDServlet extends HttpServlet {
+public class DummyOpenIDServlet extends InjectableServlet {
   // instantiate a ServerManager object
   ServerManager manager = new ServerManager();
   
@@ -32,7 +34,9 @@ public class DummyOpenIDServlet extends HttpServlet {
   @Override
   public void doPost(HttpServletRequest httpReq, HttpServletResponse httpResp)
       throws IOException, ServletException {
-    manager.setOPEndpointUrl("http://localhost:8081/step2-example-provider/openid");
+    String endpoint = httpReq.getScheme() + "://" + httpReq.getServerName() +
+      ":" + httpReq.getServerPort() + "/step2-example-provider/";
+    manager.setOPEndpointUrl(endpoint);
 
     HttpSession session = httpReq.getSession();
     // extract the parameters from the request
@@ -94,6 +98,18 @@ public class DummyOpenIDServlet extends HttpServlet {
         } catch (MessageException e) {
           throw new ServletException(e);
         }
+        
+        String oauthToken = (String) session.getAttribute("oauth_token");
+        if (oauthToken != null) {
+          HybridOauthResponse hybridResponse = new HybridOauthResponse();
+          hybridResponse.setReqToken(oauthToken);
+          try {
+            responseMessage.addExtension(hybridResponse);
+          } catch (MessageException e) {
+            throw new ServletException(e);
+          }
+        }
+        
         httpResp.sendRedirect(
             ((AuthSuccess) responseMessage).getDestinationUrl(true));
         return;

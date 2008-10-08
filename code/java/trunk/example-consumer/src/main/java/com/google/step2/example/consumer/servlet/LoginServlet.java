@@ -54,9 +54,9 @@ import javax.servlet.http.HttpSession;
  */
 public class LoginServlet extends InjectableServlet {
   private Logger log = Logger.getLogger(LoginServlet.class); 
-  private static final String templateFile = "/WEB-INF/login.jsp";
-  private static final String redirectPath =
-    "/step2-example-consumer/checkauth";
+  private static final String TEMPLATE_FILE = "/WEB-INF/login.jsp";
+  private static final String PROJECT = "/step2-example-consumer";
+  private static final String REDIRECT_PATH = "/checkauth";
 
   private ConsumerHelper consumerHelper;
   private static final String YES_STRING = "yes";
@@ -70,7 +70,7 @@ public class LoginServlet extends InjectableServlet {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws IOException, ServletException {
 
-    RequestDispatcher d = req.getRequestDispatcher(templateFile);
+    RequestDispatcher d = req.getRequestDispatcher(TEMPLATE_FILE);
     d.forward(req, resp);
   }
   
@@ -81,9 +81,9 @@ public class LoginServlet extends InjectableServlet {
     StringBuffer realm = new StringBuffer(req.getScheme());
     realm.append("://").append(req.getServerName());
     realm.append(":").append(req.getServerPort());
-
+    
     // posted means they're sending us an OpenID4
-    String returnToUrl = realm + redirectPath;
+    String returnToUrl = realm + PROJECT + REDIRECT_PATH;
     String openId = req.getParameter("openid");
     
     String oauthRequestToken = null;
@@ -92,10 +92,12 @@ public class LoginServlet extends InjectableServlet {
       log.info("Oauth Request");
       // TODO(sweis): This is just for testing. Will have to discover the 
       // token_request URL.
+      String dummyProvider = req.getScheme() + "://" + req.getServerName() +
+        ":8081" + "/step2-example-provider";
       OAuthServiceProvider provider = new OAuthServiceProvider(
-          "http://localhost:8081/step2-example-provider/request_token",
-          "http://localhost:8081/step2-example-provider/authorize",
-          "http://localhost:8081/step2-example-provider/access_token");
+          dummyProvider + "/request_token",
+          dummyProvider + "/authorize",
+          dummyProvider + "/access_token");
 
       OAuthConsumer consumer = new OAuthConsumer("",  // No Callback
           "DummyConsumer", "DummySecret", provider);

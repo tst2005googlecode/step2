@@ -17,6 +17,8 @@
 
 package com.google.step2.openid.ax2;
 
+import org.openid4java.message.Message;
+import org.openid4java.message.MessageException;
 import org.openid4java.message.ParameterList;
 import org.openid4java.message.ax.AxMessage;
 
@@ -29,6 +31,9 @@ public class AxMessage2 extends AxMessage {
   public static final String OPENID_NS_AX_FINAL =
       "http://openid.net/srv/ax/1.0";
 
+  static {
+  }
+  
   @Override
   public String getTypeUri() {
     return OPENID_NS_AX_FINAL;

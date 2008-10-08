@@ -20,6 +20,7 @@ package com.google.step2.servlet;
 import com.google.inject.AbstractModule;
 import com.google.inject.CreationException;
 import com.google.inject.Scopes;
+import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.openid.ax2.AxMessage2;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -42,6 +43,12 @@ public class GuiceModule extends AbstractModule {
 
     try {
       Message.addExtensionFactory(AxMessage2.class);
+    } catch (MessageException e) {
+      throw new CreationException(null);
+    }
+    
+    try {
+      Message.addExtensionFactory(HybridOauthMessage.class);
     } catch (MessageException e) {
       throw new CreationException(null);
     }

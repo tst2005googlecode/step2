@@ -54,6 +54,7 @@ public class HelloWorldServlet extends InjectableServlet {
       req.setAttribute("user", session.getAttribute("user"));
       req.setAttribute("email", session.getAttribute("email"));
       req.setAttribute("country", session.getAttribute("country"));
+      req.setAttribute("token", session.getAttribute("token"));
 
       RequestDispatcher d = req.getRequestDispatcher(templateFile);
       d.forward(req, resp);

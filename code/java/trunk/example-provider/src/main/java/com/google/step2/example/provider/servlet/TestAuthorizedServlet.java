@@ -23,7 +23,9 @@ import com.google.step2.servlet.InjectableServlet;
 import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthConsumer;
+import net.oauth.OAuthException;
 import net.oauth.OAuthMessage;
+import net.oauth.OAuthProblemException;
 import net.oauth.SimpleOAuthValidator;
 import net.oauth.server.OAuthServlet;
 
@@ -31,6 +33,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -42,7 +45,7 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @author steveweis@gmail.com (Steve Weis)
  */
-public class OAuthRequestTokenServlet extends InjectableServlet {
+public class TestAuthorizedServlet extends InjectableServlet {
   private static final SimpleOAuthValidator validator =
     new SimpleOAuthValidator();
   
@@ -55,30 +58,18 @@ public class OAuthRequestTokenServlet extends InjectableServlet {
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response)
       throws IOException, ServletException {
-    
     OAuthMessage requestMessage = OAuthServlet.getMessage(request, null);
-    String consumerKey = requestMessage.getConsumerKey();
-    OAuthConsumer consumer = Step2OAuthProvider.getConsumer(consumerKey);
-    OAuthAccessor accessor = new OAuthAccessor(consumer);
-    try {
-      validator.validateMessage(requestMessage, accessor);
-    } catch (Exception e) {
-      OAuthServlet.handleException(response, e, request.getLocalName());
+    OAuthAccessor accessor =
+      Step2OAuthProvider.getAccessor(requestMessage.getToken());
+    String authorized = "false";
+    if (accessor != null && 
+        accessor.getProperty("authorized") != null &&
+        accessor.getProperty("authorized") == Boolean.TRUE) {
+      authorized = "true";
     }
-
-    // This is just a dummy token and secret generator
-    String keyTimeData = consumerKey + System.nanoTime();
-    accessor.requestToken = DigestUtils.shaHex(keyTimeData);
-    accessor.tokenSecret =
-      DigestUtils.shaHex(keyTimeData + accessor.requestToken);
-    accessor.accessToken = null;
-    Step2OAuthProvider.putAccessor(accessor.requestToken, accessor);
-
     response.setContentType("text/plain");
     OutputStream out = response.getOutputStream();
-    
-    OAuth.formEncode(OAuth.newList("oauth_token", accessor.requestToken,
-        "oauth_token_secret", accessor.tokenSecret), out);
+    OAuth.formEncode(OAuth.newList("authorized", authorized), out);
     out.close();
   }
 }

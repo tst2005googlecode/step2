@@ -5,6 +5,9 @@
                  org.openid4java.message.MessageExtensionFactory,
                  org.openid4java.message.Parameter,
                  com.google.step2.openid.ax2.AxMessage2,
+                 com.google.step2.hybrid.HybridOauthMessage,
+                 com.google.step2.example.provider.Step2OAuthProvider,
+                 net.oauth.OAuthAccessor,
                  java.util.Set" %>
 
 <%
@@ -24,21 +27,8 @@
   }
 
   Message message = Message.createMessage(requestParams);
-  Set s = message.getExtensions();
-  String axAlias = message.getExtensionAlias(AxMessage2.OPENID_NS_AX_FINAL);
-
 %>
 <h1>Provider Authentication and Authorization</h1>
-
-<%
-  for (Object o : s) {
-%>
-<%= o.toString() %>
-<%
-  }
-%>
-
-<%= message.toString() %>
 
 <ul>
 <%
@@ -52,7 +42,8 @@
 </ul>
 
 <%
-  if (request.getParameter("action") == null) {
+  String action = request.getParameter("action");
+  if (action == null) {
     String site = realm == null ? returnTo : realm;
 %>
 <div>
@@ -76,21 +67,47 @@
 </div>
 <% } %>
 
-<form action="?action=authorize" method="post">  
+<form action="?action=authorized" method="post">
+<%
+  if (message.hasExtension(AxMessage2.OPENID_NS_AX_FINAL)) {
+    MessageExtension axMessage =
+      message.getExtension(AxMessage2.OPENID_NS_AX_FINAL);
+    
+    if (axMessage.getParameters().hasParameter("type.email")) {
+%>  
 <div>
   <input type="checkbox" name="email" value="yes" checked="true" />
-  Approve request for email
+  Approve email request.
 </div>
+<% 
+    }  // End check for email request
+    
+    if (axMessage.getParameters().hasParameter("type.country")) {
+%>
 <div>
   <input type="checkbox" name="country" value="yes" checked="true" />
-  Approve request for country
+  Approve country request.
 </div>
+<%
+    }  // End check for country request
+  }  // End axMessage block
+
+  if (message.hasExtension(HybridOauthMessage.OPENID_NS_OAUTH)) {
+    MessageExtension oauthMessage =
+      message.getExtension(HybridOauthMessage.OPENID_NS_OAUTH);
+    String token =
+      oauthMessage.getParameters().getParameterValue("request_token");
+%>
 <div>
   <input type="checkbox" name="oauth" value="yes" checked="true" />
-  Approve Oauth Request
+  <input type="hidden" name="request_token" value="<%= token %>" />
+  Approve Oauth request.
 </div>
+<%
+  }  // End Oauth block
+%>
 <div>
-  <input type="submit" title="Login" id="login"/>
+  <input type="submit" title="Login" id="login" value="Approve"/>
 </div>
 </form>
 
@@ -108,9 +125,13 @@
       session.setAttribute("country", "us");
     }
 
-    // if (allowOauth.equals("yes")) {
-    //   Do Oauth stuff
-    // }
+    if ("yes".equals(allowOauth)) {
+      String oauthToken = request.getParameter("request_token");
+      session.setAttribute("oauth_token", oauthToken);
+      ParameterList params = ParameterList.createFromQueryString(oauthToken);
+      String token = params.getParameterValue("oauth_token");
+      Step2OAuthProvider.authorizeAccessor(token);
+    }
 
     session.setAttribute("authenticatedAndApproved", Boolean.TRUE);
     response.sendRedirect("openid?_action=complete");

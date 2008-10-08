@@ -18,6 +18,7 @@
 package com.google.step2.hybrid;
 
 import org.openid4java.message.MessageException;
+import org.openid4java.message.Parameter;
 import org.openid4java.message.ParameterList;
 
 import java.util.Arrays;
@@ -42,9 +43,17 @@ public class HybridOauthResponse extends HybridOauthMessage {
       throw new MessageException("Invalid parameters for Oauth fetch");
     }
   }
-  
+
+  public HybridOauthResponse() {
+    super();
+  }
+
   boolean isValid() {
     return isValid(requiredFields, optionalFields);
+  }
+  
+  public void setReqToken(String value) {
+    parameters.set(new Parameter(REQUEST_TOKEN, value));
   }
 
 }

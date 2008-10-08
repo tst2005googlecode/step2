@@ -10,9 +10,9 @@
 <p>Your Open ID is:<br/> ${user}</p>
 
 <h2>Authorization Results</h2>
-<p> Your email is: ${email}. 
-Your country is: ${country}.
-</p>
+<div> Your email is: ${email}. </div> 
+<div> Your country is: ${country}. </div>
+<div> Your Oauth Access Token is: ${token}. </div>
 
 <a href="?logout">Logout</a>
 

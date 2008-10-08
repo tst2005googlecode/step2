@@ -1,45 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+  <listener>
+    <listener-class>
+      com.google.step2.servlet.GuiceServletContextListener
+    </listener-class>
+  </listener>
+
   <servlet>
     <servlet-name>RequestTokenServlet</servlet-name>
     <servlet-class>
       com.google.step2.example.provider.servlet.OAuthRequestTokenServlet
     </servlet-class>
   </servlet>
-  <servlet-mapping>
-    <servlet-name>RequestTokenServlet</servlet-name>
-      <url-pattern>/request_token</url-pattern>
-  </servlet-mapping>
-   <servlet>
+  
+  <servlet>
+    <servlet-name>TestAuthServlet</servlet-name>
+    <servlet-class>
+      com.google.step2.example.provider.servlet.TestAuthorizedServlet
+    </servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>DummyOpenIDServlet</servlet-name>
     <servlet-class>
       com.google.step2.example.provider.servlet.DummyOpenIDServlet
     </servlet-class>
   </servlet>
+
   <servlet>
     <servlet-name>Authorize</servlet-name>
     <jsp-file>/WEB-INF/authorize.jsp</jsp-file>
   </servlet>
+
   <servlet>
     <servlet-name>Discovery</servlet-name>
     <jsp-file>/WEB-INF/xrds.jsp</jsp-file>
   </servlet>
+
   <servlet-mapping>
     <servlet-name>RequestTokenServlet</servlet-name>
     <url-pattern>/request_token</url-pattern>
   </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>TestAuthServlet</servlet-name>
+    <url-pattern>/test_auth</url-pattern>
+  </servlet-mapping>
+
   <servlet-mapping>
     <servlet-name>DummyOpenIDServlet</servlet-name>
     <url-pattern>/openid</url-pattern>
   </servlet-mapping>
+
   <servlet-mapping>
     <servlet-name>Authorize</servlet-name>
     <url-pattern>/authorize</url-pattern>
   </servlet-mapping>
+
   <servlet-mapping>
     <servlet-name>Discovery</servlet-name>
     <url-pattern>/</url-pattern>
   </servlet-mapping>
+
   <session-config>
     <session-timeout>
       20
