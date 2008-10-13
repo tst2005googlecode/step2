@@ -49,12 +49,12 @@ public class HybridOauthRequest extends HybridOauthMessage {
   public HybridOauthRequest() {
     super();
   }
-
-  public void setReqToken(String value) {
-    parameters.set(new Parameter(REQUEST_TOKEN, value));
-  }
   
   boolean isValid() {
     return isValid(requiredFields, optionalFields);
+  }
+  
+  public void setReqToken(String value) {
+    parameters.set(new Parameter(REQUEST_TOKEN, value));
   }
 }

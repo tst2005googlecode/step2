@@ -41,35 +41,43 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * A simple OAuth Request Token Servlet
+ * Check whether a token value has been authorized and if it is a request
+ * or access token.
  * 
  * @author steveweis@gmail.com (Steve Weis)
  */
 public class TestAuthorizedServlet extends InjectableServlet {
-  private static final SimpleOAuthValidator validator =
-    new SimpleOAuthValidator();
-  
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ServletException {
+      throws IOException {
     doPost(request, response);
   }
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ServletException {
+      throws IOException {
     OAuthMessage requestMessage = OAuthServlet.getMessage(request, null);
     OAuthAccessor accessor =
       Step2OAuthProvider.getAccessor(requestMessage.getToken());
     String authorized = "false";
-    if (accessor != null && 
-        accessor.getProperty("authorized") != null &&
-        accessor.getProperty("authorized") == Boolean.TRUE) {
-      authorized = "true";
+    String requestToken = "none";
+    String accessToken = "none";
+    if (accessor != null) {
+      if (accessor.getProperty("authorized") == Boolean.TRUE) {
+        authorized = "true";
+      }
+      if (accessor.requestToken != null) {
+        requestToken = accessor.requestToken;
+      }
+      if (accessor.accessToken != null) {
+        accessToken = accessor.accessToken;
+      }
     }
     response.setContentType("text/plain");
     OutputStream out = response.getOutputStream();
-    OAuth.formEncode(OAuth.newList("authorized", authorized), out);
+    
+    OAuth.formEncode(OAuth.newList("authorized", authorized, "requestToken",
+        requestToken, "accessToken", accessToken), out);
     out.close();
   }
 }

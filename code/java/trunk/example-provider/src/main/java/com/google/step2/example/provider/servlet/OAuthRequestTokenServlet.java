@@ -66,14 +66,7 @@ public class OAuthRequestTokenServlet extends InjectableServlet {
       OAuthServlet.handleException(response, e, request.getLocalName());
     }
 
-    // This is just a dummy token and secret generator
-    String keyTimeData = consumerKey + System.nanoTime();
-    accessor.requestToken = DigestUtils.shaHex(keyTimeData);
-    accessor.tokenSecret =
-      DigestUtils.shaHex(keyTimeData + accessor.requestToken);
-    accessor.accessToken = null;
-    Step2OAuthProvider.putAccessor(accessor.requestToken, accessor);
-
+    Step2OAuthProvider.generateRequestToken(accessor);
     response.setContentType("text/plain");
     OutputStream out = response.getOutputStream();
     

@@ -12,7 +12,11 @@
 <h2>Authorization Results</h2>
 <div> Your email is: ${email}. </div> 
 <div> Your country is: ${country}. </div>
-<div> Your Oauth Access Token is: ${token}. </div>
+<div> Your authorized Oauth request token is: ${request_token} </div>
+<!-- 
+<div> Your Oauth access token is: ${access_token} </div>
+<div> Your Oauth access token secret is: ${access_token_secret} </div>
+ -->
 
 <a href="?logout">Logout</a>
 

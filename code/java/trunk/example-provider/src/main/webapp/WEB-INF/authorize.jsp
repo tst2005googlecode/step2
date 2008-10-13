@@ -9,7 +9,14 @@
                  com.google.step2.example.provider.Step2OAuthProvider,
                  net.oauth.OAuthAccessor,
                  java.util.Set" %>
-
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<title>Provider Authentication and Authorization</title>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
 <%
   ParameterList requestParams =
     (ParameterList) session.getAttribute("parameterlist");
@@ -28,7 +35,7 @@
 
   Message message = Message.createMessage(requestParams);
 %>
-<h1>Provider Authentication and Authorization</h1>
+<h2>Provider Authentication and Authorization</h2>
 
 <ul>
 <%
@@ -76,7 +83,7 @@
     if (axMessage.getParameters().hasParameter("type.email")) {
 %>  
 <div>
-  <input type="checkbox" name="email" value="yes" checked="true" />
+  <input type="checkbox" name="email" value="yes" checked />
   Approve email request.
 </div>
 <% 
@@ -85,7 +92,7 @@
     if (axMessage.getParameters().hasParameter("type.country")) {
 %>
 <div>
-  <input type="checkbox" name="country" value="yes" checked="true" />
+  <input type="checkbox" name="country" value="yes" checked />
   Approve country request.
 </div>
 <%
@@ -95,44 +102,63 @@
   if (message.hasExtension(HybridOauthMessage.OPENID_NS_OAUTH)) {
     MessageExtension oauthMessage =
       message.getExtension(HybridOauthMessage.OPENID_NS_OAUTH);
-    String token =
+    String requestToken =
       oauthMessage.getParameters().getParameterValue("request_token");
+    if (requestToken != null) {
 %>
 <div>
-  <input type="checkbox" name="oauth" value="yes" checked="true" />
-  <input type="hidden" name="request_token" value="<%= token %>" />
-  Approve Oauth request.
+  <input type="checkbox" name="oauth_request" value="yes" checked />
+  Authorize OAuth Request Token
+<input type="hidden" name="request_token" value="<%= requestToken %>" />
+</div>
+<!--  <div>
+  <input type="checkbox" name="oauth_access" value="yes" />
+  Return OAuth Access Token
+</div>
+ -->
 </div>
 <%
+    }  // End request_token block  
   }  // End Oauth block
 %>
 <div>
   <input type="submit" title="Login" id="login" value="Approve"/>
 </div>
 </form>
-
 <%
   } else {
-    String allowEmail = request.getParameter("email");
-    String allowCountry = request.getParameter("country");
-    String allowOauth = request.getParameter("oauth");
-        
+    String allowEmail = request.getParameter("email");        
     if ("yes".equals(allowEmail)) {
       session.setAttribute("email", "foo@bar.com");      
     }
-    
+      
+    String allowCountry = request.getParameter("country");
     if ("yes".equals(allowCountry)) {
       session.setAttribute("country", "us");
     }
-
-    if ("yes".equals(allowOauth)) {
-      String oauthToken = request.getParameter("request_token");
-      session.setAttribute("oauth_token", oauthToken);
-      ParameterList params = ParameterList.createFromQueryString(oauthToken);
-      String token = params.getParameterValue("oauth_token");
-      Step2OAuthProvider.authorizeAccessor(token);
+    String requestToken = request.getParameter("request_token");
+    String allowOauthRequest = request.getParameter("oauth_request");
+    if (requestToken != null) {
+      if ("yes".equals(allowOauthRequest)) {
+        // Authorize this user's request token
+        Step2OAuthProvider.authorizeAccessor(requestToken);
+        /*
+        String allowOauthAccess = request.getParameter("oauth_access");
+        
+        if ("yes".equals(allowOauthAccess)) {
+          // Return an access token
+          OAuthAccessor accessor = Step2OAuthProvider.generateAccessToken(requestToken);
+          session.removeAttribute("oauth_request_token");
+          session.setAttribute("oauth_access_token", accessor.accessToken);
+          session.setAttribute("oauth_access_token_secret", accessor.tokenSecret);
+        } else {
+          // Just return an authorized request token
+          */
+          session.setAttribute("oauth_request_token", requestToken);
+        //}
+      }
     }
-
+    
     session.setAttribute("authenticatedAndApproved", Boolean.TRUE);
     response.sendRedirect("openid?_action=complete");
   }

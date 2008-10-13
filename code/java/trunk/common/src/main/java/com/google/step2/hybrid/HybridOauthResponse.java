@@ -55,5 +55,8 @@ public class HybridOauthResponse extends HybridOauthMessage {
   public void setReqToken(String value) {
     parameters.set(new Parameter(REQUEST_TOKEN, value));
   }
-
+  
+  public void setRespToken(String value) {
+    parameters.set(new Parameter(RESPONSE_TOKEN, value));
+  }
 }

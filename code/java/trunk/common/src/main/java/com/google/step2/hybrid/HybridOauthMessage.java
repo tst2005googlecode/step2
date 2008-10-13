@@ -32,7 +32,8 @@ import java.util.List;
  * 
  * @author steveweis@google.com (Steve Weis)
  */
-public class HybridOauthMessage implements MessageExtension, MessageExtensionFactory {
+public class HybridOauthMessage implements MessageExtension,
+    MessageExtensionFactory {
 
   protected ParameterList parameters = new ParameterList();
 
@@ -49,15 +50,15 @@ public class HybridOauthMessage implements MessageExtension, MessageExtensionFac
 
   public MessageExtension getExtension(ParameterList parameterList,
       boolean isRequest) throws MessageException {
-    if (parameterList.hasParameter(REQUEST_TOKEN)) {
-      if (isRequest) {
-        return new HybridOauthRequest(parameterList);
-      } else {
+    if (isRequest) {
+      return new HybridOauthRequest(parameterList);
+    } else {
+      if (parameterList.hasParameter(ACCESS_TOKEN)) {
+        return new HybridOauthAccessResponse(parameterList);
+      } else if (parameterList.hasParameter(REQUEST_TOKEN)) {
         return new HybridOauthResponse(parameterList);
       }
-    } else if (parameterList.hasParameter(ACCESS_TOKEN)) {
-      return new HybridOauthAccessRequest(parameterList);
-    }
+    } 
     throw new MessageException("Invalid parameters for Hybrid Message");
   }
 

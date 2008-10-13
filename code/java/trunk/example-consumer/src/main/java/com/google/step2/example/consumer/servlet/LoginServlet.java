@@ -122,9 +122,8 @@ public class LoginServlet extends InjectableServlet {
         e.printStackTrace();  // Continue
       }
    
-      if (accessor.requestToken != null && accessor.tokenSecret != null) { 
-        oauthRequestToken = "oauth_token=" + accessor.requestToken +
-        "&oauth_token_secret=" + accessor.tokenSecret;
+      if (accessor.requestToken != null) { 
+        oauthRequestToken = accessor.requestToken;
       }
     }
 

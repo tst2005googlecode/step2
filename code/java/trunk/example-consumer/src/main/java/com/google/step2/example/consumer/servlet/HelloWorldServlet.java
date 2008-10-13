@@ -50,12 +50,6 @@ public class HelloWorldServlet extends InjectableServlet {
       // redirect to login servlet
       resp.sendRedirect(req.getRequestURI().replaceAll("/hello$", "/login"));
     } else {
-      // fill in attributes for the JSP template
-      req.setAttribute("user", session.getAttribute("user"));
-      req.setAttribute("email", session.getAttribute("email"));
-      req.setAttribute("country", session.getAttribute("country"));
-      req.setAttribute("token", session.getAttribute("token"));
-
       RequestDispatcher d = req.getRequestDispatcher(templateFile);
       d.forward(req, resp);
     }

@@ -17,17 +17,18 @@
 
 package com.google.step2.hybrid;
 
+import org.openid4java.message.Parameter;
 import org.openid4java.message.ParameterList;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Hybrid OAuth Message Extension for Access Requests
+ * Hybrid OAuth Message Extension for Access Request Responses
  * 
  * @author steveweis@google.com (Steve Weis)
  */
-public class HybridOauthAccessRequest extends HybridOauthMessage {
+public class HybridOauthAccessResponse extends HybridOauthMessage {
   
   protected final static List<String> requiredFields = 
     Arrays.asList(new String[] {ACCESS_TOKEN, ACCESS_TOKEN_SECRET});
@@ -35,11 +36,21 @@ public class HybridOauthAccessRequest extends HybridOauthMessage {
   protected final static List<String> optionalFields = 
     Arrays.asList(new String[0]);
   
-  public HybridOauthAccessRequest(ParameterList parameters) {
+  public HybridOauthAccessResponse(ParameterList parameters) {
     this.parameters = parameters;
   }
   
+  public HybridOauthAccessResponse() {
+    super();
+  }
+
   boolean isValid() {
     return isValid(requiredFields, optionalFields);
+  }
+
+  public void setAccessToken(String oauthAccessToken,
+      String oauthAccessTokenSecret) {
+    parameters.set(new Parameter(ACCESS_TOKEN, oauthAccessToken));
+    parameters.set(new Parameter(ACCESS_TOKEN_SECRET, oauthAccessTokenSecret));
   }
 }

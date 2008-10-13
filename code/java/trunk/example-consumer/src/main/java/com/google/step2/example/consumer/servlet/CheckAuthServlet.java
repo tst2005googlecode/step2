@@ -22,6 +22,7 @@ import com.google.step2.AuthResponseHelper;
 import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
 import com.google.step2.VerificationException;
+import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.hybrid.HybridOauthResponse;
 import com.google.step2.servlet.InjectableServlet;
 
@@ -75,17 +76,31 @@ public class CheckAuthServlet extends InjectableServlet {
       Identifier claimedId = authResponse.getClaimedId();
       String email = authResponse.getAxAttributeValue("email");
       String country = authResponse.getAxAttributeValue("country");
-      String token = "";
+      String requestToken = "";
+      String accessToken = "";
+      String accessTokenSecret = "";
       if (authResponse.hasHybridOauthExtension()) {
-        HybridOauthResponse hybridResp = authResponse.getHybridOauthResponse();
-        token = hybridResp.getParameter("request_token");        
+        HybridOauthMessage hybridResp =
+          authResponse.getHybridOauthMessage(HybridOauthMessage.class);
+        requestToken = hybridResp.getParameter("request_token");
+        /*
+        accessToken = hybridResp.getParameter("access_token");
+        accessTokenSecret = hybridResp.getParameter("access_token_secret");
+        */
       }
       session.setAttribute("user",
           (claimedId == null) ? "unknown" : claimedId.getIdentifier());
       session.setAttribute("email", (email == null) ? "unknown" : email);
       session.setAttribute("country", (country == null) ? "unknown" : country);
-      session.setAttribute("token", (token == null) ? "None" : token);
-
+      session.setAttribute("request_token",
+          (requestToken == null) ? "None" : requestToken);
+      /*
+          session.setAttribute("access_token",
+       
+          (accessToken == null) ? "None" : accessToken);
+      session.setAttribute("access_token_secret",
+          (accessToken == null) ? "None" : accessTokenSecret);
+      */
     } catch (MessageException e) {
       throw new ServletException(e);
     } catch (DiscoveryException e) {

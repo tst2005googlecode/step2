@@ -1,3 +1,4 @@
+<%@ page contentType="text/css"%>
 body {
   font-family: sans-serif;
   text-align: justify;
@@ -11,5 +12,5 @@ body {
 }
 
 div {
-	padding: 5px;
+  padding: 5px;
 }

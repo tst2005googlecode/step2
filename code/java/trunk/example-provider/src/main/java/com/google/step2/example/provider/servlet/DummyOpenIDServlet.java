@@ -1,6 +1,7 @@
 package com.google.step2.example.provider.servlet;
 
 import com.google.step2.Step2;
+import com.google.step2.hybrid.HybridOauthAccessResponse;
 import com.google.step2.hybrid.HybridOauthResponse;
 import com.google.step2.openid.ax2.FetchResponse2;
 import com.google.step2.servlet.InjectableServlet;
@@ -99,16 +100,36 @@ public class DummyOpenIDServlet extends InjectableServlet {
           throw new ServletException(e);
         }
         
-        String oauthToken = (String) session.getAttribute("oauth_token");
-        if (oauthToken != null) {
+        String oauthRequestToken =
+          (String) session.getAttribute("oauth_request_token");
+        if (oauthRequestToken != null) {
+          // This is a request token response
           HybridOauthResponse hybridResponse = new HybridOauthResponse();
-          hybridResponse.setReqToken(oauthToken);
+          hybridResponse.setReqToken(oauthRequestToken);
           try {
             responseMessage.addExtension(hybridResponse);
           } catch (MessageException e) {
             throw new ServletException(e);
           }
+        }/* else {
+          // Request token is null. It might be an access response.
+          String oauthAccessToken =
+            (String) session.getAttribute("oauth_access_token");
+          String oauthAccessTokenSecret =
+            (String) session.getAttribute("oauth_access_token_secret");
+          if (oauthAccessToken != null && oauthAccessTokenSecret != null) {
+            HybridOauthAccessResponse hybridAccessResponse =
+              new HybridOauthAccessResponse();
+            hybridAccessResponse.setAccessToken(oauthAccessToken, oauthAccessTokenSecret);
+            try {
+              responseMessage.addExtension(hybridAccessResponse);
+            } catch (MessageException e) {
+              throw new ServletException(e);
+            }
+          }
+          */
         }
+
         
         httpResp.sendRedirect(
             ((AuthSuccess) responseMessage).getDestinationUrl(true));
