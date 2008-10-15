@@ -14,6 +14,14 @@
   </servlet>
   
   <servlet>
+    <servlet-name>AccessTokenServlet</servlet-name>
+    <servlet-class>
+      com.google.step2.example.provider.servlet.OAuthAccessTokenServlet
+    </servlet-class>
+  </servlet>
+  
+  
+  <servlet>
     <servlet-name>TestAuthServlet</servlet-name>
     <servlet-class>
       com.google.step2.example.provider.servlet.TestAuthorizedServlet
@@ -47,6 +55,11 @@
     <url-pattern>/request_token</url-pattern>
   </servlet-mapping>
   
+  <servlet-mapping>
+    <servlet-name>AccessTokenServlet</servlet-name>
+    <url-pattern>/access_token</url-pattern>
+  </servlet-mapping>
+
   <servlet-mapping>
     <servlet-name>TestAuthServlet</servlet-name>
     <url-pattern>/test_auth</url-pattern>

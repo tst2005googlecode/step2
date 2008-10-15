@@ -111,26 +111,8 @@ public class DummyOpenIDServlet extends InjectableServlet {
           } catch (MessageException e) {
             throw new ServletException(e);
           }
-        }/* else {
-          // Request token is null. It might be an access response.
-          String oauthAccessToken =
-            (String) session.getAttribute("oauth_access_token");
-          String oauthAccessTokenSecret =
-            (String) session.getAttribute("oauth_access_token_secret");
-          if (oauthAccessToken != null && oauthAccessTokenSecret != null) {
-            HybridOauthAccessResponse hybridAccessResponse =
-              new HybridOauthAccessResponse();
-            hybridAccessResponse.setAccessToken(oauthAccessToken, oauthAccessTokenSecret);
-            try {
-              responseMessage.addExtension(hybridAccessResponse);
-            } catch (MessageException e) {
-              throw new ServletException(e);
-            }
-          }
-          */
         }
 
-        
         httpResp.sendRedirect(
             ((AuthSuccess) responseMessage).getDestinationUrl(true));
         return;
