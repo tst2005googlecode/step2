@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
+ * Example Servlet to display results from OpenID Authentication
  * 
  * @author Dirk Balfanz (dirk.balfanz@gmail.com)
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)

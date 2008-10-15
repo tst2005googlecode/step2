@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
+ * Example Servlet to handle and check the response from IDP authentication  
  * 
  * @author Dirk Balfanz (dirk.balfanz@gmail.com)
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
@@ -64,43 +65,27 @@ public class CheckAuthServlet extends InjectableServlet {
       throws ServletException, IOException {
 
     HttpSession session = req.getSession();
-
+    ParameterList openidResp = Step2.getParameterList(req);
+    String receivingUrl = Step2.getUrlWithQueryString(req);
+    DiscoveryInformation discovered =
+      (DiscoveryInformation) session.getAttribute("discovered");
+    
+    // Try to get the OpenId, AX, and OAuth values from the auth response
+    Identifier claimedId = null;
+    String email = "unknown";
+    String country = "unknown";
+    String requestToken = "None";
     try {
-      ParameterList openidResp = Step2.getParameterList(req);
-      String receivingUrl = Step2.getUrlWithQueryString(req);
-      DiscoveryInformation discovered =
-        (DiscoveryInformation) session.getAttribute("discovered");
-      AuthResponseHelper authResponse = helper.verify(receivingUrl, openidResp,
-          discovered);
+      AuthResponseHelper authResponse =
+        helper.verify(receivingUrl, openidResp, discovered);
+      claimedId = authResponse.getClaimedId();
+      email = authResponse.getAxAttributeValue("email");
+      country = authResponse.getAxAttributeValue("country");
 
-      Identifier claimedId = authResponse.getClaimedId();
-      String email = authResponse.getAxAttributeValue("email");
-      String country = authResponse.getAxAttributeValue("country");
-      String requestToken = "";
-      String accessToken = "";
-      String accessTokenSecret = "";
       if (authResponse.hasHybridOauthExtension()) {
-        HybridOauthMessage hybridResp =
-          authResponse.getHybridOauthMessage(HybridOauthMessage.class);
-        requestToken = hybridResp.getParameter("request_token");
-        /*
-        accessToken = hybridResp.getParameter("access_token");
-        accessTokenSecret = hybridResp.getParameter("access_token_secret");
-        */
+        requestToken =
+          authResponse.getHybridOauthResponse().getParameter("request_token");
       }
-      session.setAttribute("user",
-          (claimedId == null) ? "unknown" : claimedId.getIdentifier());
-      session.setAttribute("email", (email == null) ? "unknown" : email);
-      session.setAttribute("country", (country == null) ? "unknown" : country);
-      session.setAttribute("request_token",
-          (requestToken == null) ? "None" : requestToken);
-      /*
-          session.setAttribute("access_token",
-       
-          (accessToken == null) ? "None" : accessToken);
-      session.setAttribute("access_token_secret",
-          (accessToken == null) ? "None" : accessTokenSecret);
-      */
     } catch (MessageException e) {
       throw new ServletException(e);
     } catch (DiscoveryException e) {
@@ -110,6 +95,12 @@ public class CheckAuthServlet extends InjectableServlet {
     } catch (VerificationException e) {
       throw new ServletException(e);
     }
+
+    session.setAttribute("user",
+        (claimedId == null) ? "unknown" : claimedId.getIdentifier());
+    session.setAttribute("email", email);
+    session.setAttribute("country", country);
+    session.setAttribute("request_token", requestToken);
     resp.sendRedirect(req.getRequestURI().replaceAll("/checkauth$", "/hello"));
   }
 }

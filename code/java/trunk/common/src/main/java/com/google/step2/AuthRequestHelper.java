@@ -41,7 +41,8 @@ import java.util.List;
  *   ConsumerHelper consumerHelper = ... // recommendation: inject with Guice
  *   String user_supplied_id = ... // id supplied by the user, or perhaps IdP
  *   String returnToUrl = ... // where should IdP send AuthResponse?
- *
+ *   String oAuthRequestToken = ... // Optional unauthorized OAuth Request token
+ *   
  *   AuthRequestHelper helper =
  *       consumerHelper.getAuthRequestHelper(user_supplied_id, returnToUrl);
  *
@@ -116,6 +117,7 @@ public class AuthRequestHelper {
   }
   
   public AuthRequestHelper requestOauthAuthorization() {
+    log.info("Requesting OauthAuthorization");
     if (axFetchRequest == null) {
       hybridOauthRequest = new HybridOauthRequest();
     }
@@ -135,7 +137,7 @@ public class AuthRequestHelper {
    */
   public AuthRequestHelper requestAxAttribute(String alias, String typeUri,
       boolean required) {
-    log.info("Alias: " + alias);
+    log.info("Request AX Attribute Alias: " + alias);
     return requestAxAttribute(alias, typeUri, required, 1);
   }
 
@@ -154,6 +156,7 @@ public class AuthRequestHelper {
    */
   public AuthRequestHelper requestAxAttribute(String alias, String typeUri,
       boolean required, int count) {
+    log.info("Request AX Attribute Alias: " + alias);
     if (axFetchRequest == null) {
       axFetchRequest = new FetchRequest2();
     }

@@ -28,12 +28,12 @@ import java.util.List;
  * 
  * @author steveweis@google.com (Steve Weis)
  */
-public class HybridOauthAccessResponse extends HybridOauthMessage {
+public class HybridOauthAccessResponse extends HybridOauthResponse {
   
-  protected final static List<String> requiredFields = 
+  private final static List<String> requiredFields = 
     Arrays.asList(new String[] {ACCESS_TOKEN, ACCESS_TOKEN_SECRET});
   
-  protected final static List<String> optionalFields = 
+  private final static List<String> optionalFields = 
     Arrays.asList(new String[0]);
   
   public HybridOauthAccessResponse(ParameterList parameters) {
@@ -44,6 +44,7 @@ public class HybridOauthAccessResponse extends HybridOauthMessage {
     super();
   }
 
+  @Override
   boolean isValid() {
     return isValid(requiredFields, optionalFields);
   }

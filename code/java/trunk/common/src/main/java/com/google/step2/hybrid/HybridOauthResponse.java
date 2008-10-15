@@ -31,10 +31,10 @@ import java.util.List;
  */
 public class HybridOauthResponse extends HybridOauthMessage {
   
-  protected final static List<String> requiredFields = 
+  private final static List<String> requiredFields = 
     Arrays.asList(new String[] {REQUEST_TOKEN});
   
-  protected final static List<String> optionalFields = 
+  private final static List<String> optionalFields = 
     Arrays.asList(new String[] {RESPONSE_TOKEN});
 
   HybridOauthResponse(ParameterList parameters) throws MessageException {

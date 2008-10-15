@@ -21,12 +21,12 @@ import com.google.inject.Inject;
 import com.google.step2.AuthRequestHelper;
 import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
+import com.google.step2.example.consumer.OAuthConsumerPropertiesUtil;
 import com.google.step2.servlet.InjectableServlet;
 
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthConsumer;
 import net.oauth.OAuthException;
-import net.oauth.OAuthServiceProvider;
 import net.oauth.client.HttpClientPool;
 import net.oauth.client.OAuthHttpClient;
 
@@ -38,8 +38,10 @@ import org.openid4java.message.AuthRequest;
 import org.openid4java.message.MessageException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Properties;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -48,6 +50,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
+ * Example Servlet that redirects to an IDP login page
  * 
  * @author Dirk Balfanz (dirk.balfanz@gmail.com)
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
@@ -60,6 +63,26 @@ public class LoginServlet extends InjectableServlet {
 
   private ConsumerHelper consumerHelper;
   private static final String YES_STRING = "yes";
+  private final static String OAUTH_PROPERTIES_FILE = "/" +
+    LoginServlet.class.getPackage().getName().replace(".", "/")
+    + "/consumer.properties";
+  
+  private final static Properties PROPERTIES = new Properties();
+  static {
+    try {
+      ClassLoader loader = LoginServlet.class.getClassLoader();
+      InputStream stream = loader.getResourceAsStream(OAUTH_PROPERTIES_FILE);
+      PROPERTIES.load(stream);
+      
+    } catch (IOException e) {
+      // If an exception occurs, then no Oauth service provider properties will
+      // be read from disk. This will cause an exception below, but won't
+      // affect the OpenID authentication
+    }
+  }
+  
+  private final static OAuthConsumerPropertiesUtil OAUTH_UTIL =
+    new OAuthConsumerPropertiesUtil("sample", PROPERTIES);
 
   @Inject
   public void setConsumerHelper(ConsumerHelper helper) {
@@ -69,7 +92,6 @@ public class LoginServlet extends InjectableServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws IOException, ServletException {
-
     RequestDispatcher d = req.getRequestDispatcher(TEMPLATE_FILE);
     d.forward(req, resp);
   }
@@ -78,6 +100,8 @@ public class LoginServlet extends InjectableServlet {
   protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     log.info("Login Servlet Post");
+
+    // Construct a string for the realm that we're on
     StringBuffer realm = new StringBuffer(req.getScheme());
     realm.append("://").append(req.getServerName());
     realm.append(":").append(req.getServerPort());
@@ -90,38 +114,26 @@ public class LoginServlet extends InjectableServlet {
     
     if (YES_STRING.equals(req.getParameter("oauth"))) {
       log.info("Oauth Request");
-      // TODO(sweis): This is just for testing. Will have to discover the 
-      // token_request URL.
-      String dummyProvider = req.getScheme() + "://" + req.getServerName() +
-        ":8081" + "/step2-example-provider";
-      OAuthServiceProvider provider = new OAuthServiceProvider(
-          dummyProvider + "/request_token",
-          dummyProvider + "/authorize",
-          dummyProvider + "/access_token");
-
-      OAuthConsumer consumer = new OAuthConsumer("",  // No Callback
-          "DummyConsumer", "DummySecret", provider);
+      OAuthConsumer consumer = OAUTH_UTIL.getConsumer();      
       OAuthAccessor accessor = new OAuthAccessor(consumer);
-    
+      OAuthHttpClient client = new OAuthHttpClient(
+          new HttpClientPool() {
+            // This trivial 'pool' simply allocates a new client every time.
+            // More efficient implementations are possible.
+            public HttpClient getHttpClient(URL server) {
+              return new HttpClient();
+            }}
+          );
+
       try {
-        OAuthHttpClient client = new OAuthHttpClient(
-            new HttpClientPool() {
-              // This trivial 'pool' simply allocates a new client every time.
-              // More efficient implementations are possible.
-              public HttpClient getHttpClient(URL server) {
-                return new HttpClient();
-              }}
-            );
         client.getRequestToken(accessor);
         log.info("Successful Oauth token request: " + accessor.toString());
       } catch (OAuthException e) {
-        //throw new ServletException(e);
         e.printStackTrace();  // Continue
       } catch (URISyntaxException e) {
-        //throw new ServletException(e);
         e.printStackTrace();  // Continue
       }
-   
+
       if (accessor.requestToken != null) { 
         oauthRequestToken = accessor.requestToken;
       }
@@ -142,11 +154,10 @@ public class LoginServlet extends InjectableServlet {
       helper.requestAxAttribute("country", Step2.AX_COUNTRY_SCHEMA, true);
     }
 
+    HttpSession session = req.getSession();
     try {
       AuthRequest authReq = helper.generateRequest();
       authReq.setRealm(realm + "/step2-example-consumer/checkauth");
-
-      HttpSession session = req.getSession();
       session.setAttribute("discovered", helper.getDiscoveryInformation());
 
       if (YES_STRING.equals(req.getParameter("usePost"))) {

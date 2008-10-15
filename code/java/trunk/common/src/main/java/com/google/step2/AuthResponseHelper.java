@@ -149,16 +149,16 @@ public class AuthResponseHelper {
   }
   
   /**
-   * Returns the a HybirdOauthMessage
+   * Returns a HybridOauthResponse if available
    * 
-   * @return a FetchResponse object
+   * @return a HybridOauthResponse object
    *
    * @throws MessageException If the hybrid message parameters were not included
    * in this message
    */
-  public <T extends HybridOauthMessage> T getHybridOauthMessage(
-      Class<T> hybridType) throws MessageException {
-    return getExtension(hybridType, HybridOauthMessage.OPENID_NS_OAUTH);
+  public HybridOauthResponse getHybridOauthResponse() throws MessageException {
+    return getExtension(HybridOauthResponse.class,
+        HybridOauthMessage.OPENID_NS_OAUTH);
   }
 
   /**

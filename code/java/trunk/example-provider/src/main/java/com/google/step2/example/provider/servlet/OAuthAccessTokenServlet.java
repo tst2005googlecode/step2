@@ -23,6 +23,7 @@ import com.google.step2.servlet.InjectableServlet;
 import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthConsumer;
+import net.oauth.OAuthException;
 import net.oauth.OAuthMessage;
 import net.oauth.OAuthProblemException;
 import net.oauth.SimpleOAuthValidator;
@@ -74,7 +75,11 @@ public class OAuthAccessTokenServlet extends InjectableServlet {
           new OAuthProblemException("permission_denied"));
     }
     
-    Step2OAuthProvider.generateAccessToken(requestToken);
+    try {
+      Step2OAuthProvider.generateAccessToken(requestToken);
+    } catch (OAuthException e) {
+      throw new ServletException(e);
+    }
     
     response.setContentType("text/plain");
     OutputStream out = response.getOutputStream();
