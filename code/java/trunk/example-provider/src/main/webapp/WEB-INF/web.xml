@@ -9,14 +9,14 @@
   <servlet>
     <servlet-name>RequestTokenServlet</servlet-name>
     <servlet-class>
-      com.google.step2.example.provider.servlet.OAuthRequestTokenServlet
+      com.google.step2.example.provider.servlet.DummyOAuthRequestTokenServlet
     </servlet-class>
   </servlet>
   
   <servlet>
     <servlet-name>AccessTokenServlet</servlet-name>
     <servlet-class>
-      com.google.step2.example.provider.servlet.OAuthAccessTokenServlet
+      com.google.step2.example.provider.servlet.DummyOAuthAccessTokenServlet
     </servlet-class>
   </servlet>
   

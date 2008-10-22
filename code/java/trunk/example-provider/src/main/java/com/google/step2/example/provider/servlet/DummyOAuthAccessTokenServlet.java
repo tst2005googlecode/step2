@@ -17,32 +17,30 @@
 
 package com.google.step2.example.provider.servlet;
 
-import com.google.step2.example.provider.Step2OAuthProvider;
+import com.google.step2.example.provider.DummyOAuthProvider;
 import com.google.step2.servlet.InjectableServlet;
 
 import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
-import net.oauth.OAuthConsumer;
+import net.oauth.OAuthException;
 import net.oauth.OAuthMessage;
+import net.oauth.OAuthProblemException;
 import net.oauth.SimpleOAuthValidator;
 import net.oauth.server.OAuthServlet;
-
-import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * A simple OAuth Request Token Servlet
+ * A simple OAuth Access Token Servlet
  * 
  * @author steveweis@gmail.com (Steve Weis)
  */
-public class OAuthRequestTokenServlet extends InjectableServlet {
+public class DummyOAuthAccessTokenServlet extends InjectableServlet {
   private static final SimpleOAuthValidator validator =
     new SimpleOAuthValidator();
   
@@ -57,21 +55,36 @@ public class OAuthRequestTokenServlet extends InjectableServlet {
       throws IOException, ServletException {
     
     OAuthMessage requestMessage = OAuthServlet.getMessage(request, null);
-    String consumerKey = requestMessage.getConsumerKey();
-    OAuthConsumer consumer = Step2OAuthProvider.getConsumer(consumerKey);
-    OAuthAccessor accessor = new OAuthAccessor(consumer);
+    String requestToken = requestMessage.getToken();
+    OAuthAccessor accessor = DummyOAuthProvider.getAccessor(requestToken);
+    boolean valid = false;
+    
     try {
       validator.validateMessage(requestMessage, accessor);
+      valid = true;
     } catch (Exception e) {
       OAuthServlet.handleException(response, e, request.getLocalName());
     }
 
-    Step2OAuthProvider.generateRequestToken(accessor);
     response.setContentType("text/plain");
     OutputStream out = response.getOutputStream();
-    
-    OAuth.formEncode(OAuth.newList("oauth_token", accessor.requestToken,
-        "oauth_token_secret", accessor.tokenSecret), out);
+    if (valid) {
+      // Check that the request token has been authorized
+      if (!Boolean.TRUE.equals(accessor.getProperty("authorized"))) {
+        OAuthServlet.handleException(response,
+            new OAuthProblemException("permission_denied"),
+            request.getLocalName());
+      } else {
+        try {
+          DummyOAuthProvider.generateAccessToken(requestToken);
+          OAuth.formEncode(OAuth.newList("oauth_token", accessor.accessToken,
+              "oauth_token_secret", accessor.tokenSecret), out);
+        } catch (OAuthException e) {
+          OAuthServlet.handleException(response, e, request.getLocalName());
+        }     
+      }
+    }
+
     out.close();
   }
 }

@@ -17,26 +17,17 @@
 
 package com.google.step2.example.provider.servlet;
 
-import com.google.step2.example.provider.Step2OAuthProvider;
+import com.google.step2.example.provider.DummyOAuthProvider;
 import com.google.step2.servlet.InjectableServlet;
 
 import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
-import net.oauth.OAuthConsumer;
-import net.oauth.OAuthException;
 import net.oauth.OAuthMessage;
-import net.oauth.OAuthProblemException;
-import net.oauth.SimpleOAuthValidator;
 import net.oauth.server.OAuthServlet;
-
-import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URISyntaxException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -58,7 +49,7 @@ public class TestAuthorizedServlet extends InjectableServlet {
       throws IOException {
     OAuthMessage requestMessage = OAuthServlet.getMessage(request, null);
     OAuthAccessor accessor =
-      Step2OAuthProvider.getAccessor(requestMessage.getToken());
+      DummyOAuthProvider.getAccessor(requestMessage.getToken());
     String authorized = "false";
     String requestToken = "none";
     String accessToken = "none";

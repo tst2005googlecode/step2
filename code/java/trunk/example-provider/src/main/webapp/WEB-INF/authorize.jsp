@@ -6,9 +6,8 @@
                  org.openid4java.message.Parameter,
                  com.google.step2.openid.ax2.AxMessage2,
                  com.google.step2.hybrid.HybridOauthMessage,
-                 com.google.step2.example.provider.Step2OAuthProvider,
-                 net.oauth.OAuthAccessor,
-                 java.util.Set" %>
+                 com.google.step2.example.provider.DummyOAuthProvider,
+                 net.oauth.OAuthAccessor,java.util.Set" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
@@ -42,7 +41,7 @@
   for (Object p : requestParams.getParameters()) {
     String value = p.toString();
 %>
-  <li><%= value %></li>
+  <li><%=value%></li>
 <%
   }
 %>
@@ -55,39 +54,42 @@
 %>
 <div>
   <b>ClaimedID:</b>
-  <pre><%= claimedId%></pre>
+  <pre><%=claimedId%></pre>
 </div>
 
 <div>
   <b>Identity:</b>
-  <pre><%= identity %></pre
+  <pre><%=identity%></pre
 </div>
 
 <div>
   <b>Site:</b>
-  <pre><%= site %></pre
+  <pre><%=site%></pre
 </div>
 
-<% if (username != null && username.length() > 0) { %>
+<%
+  if (username != null && username.length() > 0) {
+%>
 <div>
-  <b>Username:</b> <%= username %><br/><br/>
+  <b>Username:</b> <%=username%><br/><br/>
 </div>
-<% } %>
+<%
+  }
+%>
 
 <form action="?action=authorized" method="post">
 <%
   if (message.hasExtension(AxMessage2.OPENID_NS_AX_FINAL)) {
     MessageExtension axMessage =
       message.getExtension(AxMessage2.OPENID_NS_AX_FINAL);
-    
     if (axMessage.getParameters().hasParameter("type.email")) {
 %>  
 <div>
   <input type="checkbox" name="email" value="yes" checked />
   Approve email request.
 </div>
-<% 
-    }  // End check for email request
+<%
+  }  // End check for email request
     
     if (axMessage.getParameters().hasParameter("type.country")) {
 %>
@@ -109,13 +111,8 @@
 <div>
   <input type="checkbox" name="oauth_request" value="yes" checked />
   Authorize OAuth Request Token
-<input type="hidden" name="request_token" value="<%= requestToken %>" />
+<input type="hidden" name="request_token" value="<%=requestToken%>" />
 </div>
-<!--  <div>
-  <input type="checkbox" name="oauth_access" value="yes" />
-  Return OAuth Access Token
-</div>
- -->
 </div>
 <%
     }  // End request_token block  
@@ -126,39 +123,30 @@
 </div>
 </form>
 <%
-  } else {
+  } else {  // if action != null
     String allowEmail = request.getParameter("email");        
     if ("yes".equals(allowEmail)) {
       session.setAttribute("email", "foo@bar.com");      
     }
-      
     String allowCountry = request.getParameter("country");
     if ("yes".equals(allowCountry)) {
       session.setAttribute("country", "us");
     }
     String requestToken = request.getParameter("request_token");
     String allowOauthRequest = request.getParameter("oauth_request");
-    if (requestToken != null) {
-      if ("yes".equals(allowOauthRequest)) {
+    if (requestToken != null && "yes".equals(allowOauthRequest)) {
+      OAuthAccessor accessor = DummyOAuthProvider.getAccessor(requestToken);
+      if (accessor != null && accessor.consumer != null &&
+          accessor.consumer.consumerSecret != null &&
+          accessor.consumer.consumerKey.equals("DummyConsumer")) {
         // Authorize this user's request token
-        Step2OAuthProvider.authorizeAccessor(requestToken);
-        /*
-        String allowOauthAccess = request.getParameter("oauth_access");
-        
-        if ("yes".equals(allowOauthAccess)) {
-          // Return an access token
-          OAuthAccessor accessor = Step2OAuthProvider.generateAccessToken(requestToken);
-          session.removeAttribute("oauth_request_token");
-          session.setAttribute("oauth_access_token", accessor.accessToken);
-          session.setAttribute("oauth_access_token_secret", accessor.tokenSecret);
-        } else {
-          // Just return an authorized request token
-          */
-          session.setAttribute("oauth_request_token", requestToken);
-        //}
+        DummyOAuthProvider.authorizeAccessor(requestToken);
+      } else {
+        // Given an unrecognized token. Regulary we'd ignore it and do nothing
+        // but return it for testing purposes now.
       }
+      session.setAttribute("oauth_request_token", requestToken);
     }
-    
     session.setAttribute("authenticatedAndApproved", Boolean.TRUE);
     response.sendRedirect("openid?_action=complete");
   }

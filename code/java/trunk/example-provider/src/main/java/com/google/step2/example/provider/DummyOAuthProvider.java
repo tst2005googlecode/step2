@@ -6,11 +6,9 @@ import net.oauth.OAuthException;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Step2OAuthProvider {
+public class DummyOAuthProvider {
   private static final OAuthConsumer CONSUMER =
     new OAuthConsumer(null, "DummyConsumer", "DummySecret", null);
 

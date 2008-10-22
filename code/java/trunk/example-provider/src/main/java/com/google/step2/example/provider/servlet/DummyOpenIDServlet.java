@@ -1,7 +1,6 @@
 package com.google.step2.example.provider.servlet;
 
 import com.google.step2.Step2;
-import com.google.step2.hybrid.HybridOauthAccessResponse;
 import com.google.step2.hybrid.HybridOauthResponse;
 import com.google.step2.openid.ax2.FetchResponse2;
 import com.google.step2.servlet.InjectableServlet;
@@ -10,14 +9,12 @@ import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.Message;
 import org.openid4java.message.MessageException;
 import org.openid4java.message.ParameterList;
-import org.openid4java.message.ax.FetchResponse;
 import org.openid4java.server.ServerManager;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
