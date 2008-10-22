@@ -45,9 +45,7 @@ public class DummyOAuthProvider {
     putAccessor(token, accessor);
   }
   
-  public static synchronized void generateRequestToken(OAuthAccessor accessor)
-
-  {
+  public static void generateRequestToken(OAuthAccessor accessor) {
     // Request Token is Sha1(consumerKey || current time)
     String consumer_key = (String) accessor.consumer.getProperty("name");
     // generate token and secret based on consumer_key
@@ -64,7 +62,7 @@ public class DummyOAuthProvider {
     putAccessor(accessor.requestToken, accessor);
   }
   
-  public static synchronized OAuthAccessor generateAccessToken(String requestToken)
+  public static OAuthAccessor generateAccessToken(String requestToken)
       throws OAuthException {
     if (requestToken == null) {
       throw new OAuthException("Null token");

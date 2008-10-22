@@ -127,7 +127,7 @@ public class OAuthConsumerUtil {
   }
     
   public OAuthAccessor getAccessToken(String requestToken) {
-    OAuthAccessor accessor = ACCESSORS.get(requestToken);
+    OAuthAccessor accessor = ACCESSORS.remove(requestToken);
     if (accessor != null) {
       try {
         OAuthMessage response = getClient().invoke(accessor,
@@ -137,6 +137,7 @@ public class OAuthConsumerUtil {
         accessor.requestToken = null;
         accessor.accessToken = response.getParameter("oauth_token");
         accessor.tokenSecret = response.getParameter("oauth_token_secret");
+        ACCESSORS.putIfAbsent(accessor.accessToken, accessor);
         return accessor;
       } catch (OAuthException e) {
         e.printStackTrace();  // Continue
@@ -145,6 +146,7 @@ public class OAuthConsumerUtil {
       } catch (URISyntaxException e) {
         e.printStackTrace();  // Continue
       }
+      ACCESSORS.putIfAbsent(requestToken, accessor);
     }
     return null;
   }
