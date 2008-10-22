@@ -21,16 +21,9 @@ import com.google.inject.Inject;
 import com.google.step2.AuthRequestHelper;
 import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
-import com.google.step2.example.consumer.OAuthConsumerPropertiesUtil;
+import com.google.step2.example.consumer.OAuthConsumerUtil;
 import com.google.step2.servlet.InjectableServlet;
 
-import net.oauth.OAuthAccessor;
-import net.oauth.OAuthConsumer;
-import net.oauth.OAuthException;
-import net.oauth.client.HttpClientPool;
-import net.oauth.client.OAuthHttpClient;
-
-import org.apache.commons.httpclient.HttpClient;
 import org.apache.log4j.Logger;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.discovery.DiscoveryException;
@@ -38,10 +31,6 @@ import org.openid4java.message.AuthRequest;
 import org.openid4java.message.MessageException;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Properties;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -63,26 +52,6 @@ public class LoginServlet extends InjectableServlet {
 
   private ConsumerHelper consumerHelper;
   private static final String YES_STRING = "yes";
-  private final static String OAUTH_PROPERTIES_FILE = "/" +
-    LoginServlet.class.getPackage().getName().replace(".", "/")
-    + "/consumer.properties";
-  
-  private final static Properties PROPERTIES = new Properties();
-  static {
-    try {
-      ClassLoader loader = LoginServlet.class.getClassLoader();
-      InputStream stream = loader.getResourceAsStream(OAUTH_PROPERTIES_FILE);
-      PROPERTIES.load(stream);
-      
-    } catch (IOException e) {
-      // If an exception occurs, then no Oauth service provider properties will
-      // be read from disk. This will cause an exception below, but won't
-      // affect the OpenID authentication
-    }
-  }
-  
-  private final static OAuthConsumerPropertiesUtil OAUTH_UTIL =
-    new OAuthConsumerPropertiesUtil("sample", PROPERTIES);
 
   @Inject
   public void setConsumerHelper(ConsumerHelper helper) {
@@ -114,35 +83,15 @@ public class LoginServlet extends InjectableServlet {
     
     if (YES_STRING.equals(req.getParameter("oauth"))) {
       log.info("Oauth Request");
-      OAuthConsumer consumer = OAUTH_UTIL.getConsumer();      
-      OAuthAccessor accessor = new OAuthAccessor(consumer);
-      OAuthHttpClient client = new OAuthHttpClient(
-          new HttpClientPool() {
-            // This trivial 'pool' simply allocates a new client every time.
-            // More efficient implementations are possible.
-            public HttpClient getHttpClient(URL server) {
-              return new HttpClient();
-            }}
-          );
-
-      try {
-        client.getRequestToken(accessor);
-        log.info("Successful Oauth token request: " + accessor.toString());
-      } catch (OAuthException e) {
-        e.printStackTrace();  // Continue
-      } catch (URISyntaxException e) {
-        e.printStackTrace();  // Continue
-      }
-
-      if (accessor.requestToken != null) { 
-        oauthRequestToken = accessor.requestToken;
-      }
+      oauthRequestToken =
+        OAuthConsumerUtil.DEFAULT.getUnauthorizedRequestToken();
     }
 
     AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(
         openId, returnToUrl, oauthRequestToken);
     
-    if (YES_STRING.equals(req.getParameter("oauth"))) {
+    if (YES_STRING.equals(req.getParameter("oauth")) &&
+        oauthRequestToken != null) {
       helper.requestOauthAuthorization();
     }
 
@@ -155,27 +104,37 @@ public class LoginServlet extends InjectableServlet {
     }
 
     HttpSession session = req.getSession();
+    AuthRequest authReq = null;
     try {
-      AuthRequest authReq = helper.generateRequest();
+      authReq = helper.generateRequest();
       authReq.setRealm(realm + "/step2-example-consumer/checkauth");
       session.setAttribute("discovered", helper.getDiscoveryInformation());
-
-      if (YES_STRING.equals(req.getParameter("usePost"))) {
-        // using POST
-        req.setAttribute("message", authReq);
-        RequestDispatcher d =
-          req.getRequestDispatcher("/WEB-INF/formredirection.jsp");
-        d.forward(req, resp);
-      } else {
-        // using GET
-        resp.sendRedirect(authReq.getDestinationUrl(true));
-      }
     } catch (DiscoveryException e) {
-      throw new ServletException(e);
+      StringBuffer errorMessage =
+        new StringBuffer("Could not discover OpenID endpoint.");
+      errorMessage.append("\n\n").append("Check if URL is valid: ");
+      errorMessage.append(openId).append("\n\n");
+      errorMessage.append("Stack Trace:\n");
+      for (StackTraceElement s : e.getStackTrace()) {
+        errorMessage.append(s.toString()).append('\n');
+      }
+      resp.sendError(400, errorMessage.toString());
+      return;
     } catch (MessageException e) {
       throw new ServletException(e);
     } catch (ConsumerException e) {
       throw new ServletException(e);
+    } 
+    if (YES_STRING.equals(req.getParameter("usePost"))) {
+      // using POST
+      req.setAttribute("message", authReq);
+      RequestDispatcher d =
+        req.getRequestDispatcher("/WEB-INF/formredirection.jsp");
+      d.forward(req, resp);
+    } else {
+      // using GET
+      resp.sendRedirect(authReq.getDestinationUrl(true));
     }
+
   }
 }

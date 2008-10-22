@@ -22,9 +22,10 @@ import com.google.step2.AuthResponseHelper;
 import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
 import com.google.step2.VerificationException;
-import com.google.step2.hybrid.HybridOauthMessage;
-import com.google.step2.hybrid.HybridOauthResponse;
+import com.google.step2.example.consumer.OAuthConsumerUtil;
 import com.google.step2.servlet.InjectableServlet;
+
+import net.oauth.OAuthAccessor;
 
 import org.openid4java.association.AssociationException;
 import org.openid4java.discovery.DiscoveryException;
@@ -48,6 +49,8 @@ import javax.servlet.http.HttpSession;
  */
 public class CheckAuthServlet extends InjectableServlet {
   private ConsumerHelper helper;
+  private static final String NO_TOKEN = "None";
+  private static final String UNKNOWN = "Unknown";
 
   @Inject
   public void setConsumerHelper(ConsumerHelper helper) {
@@ -72,9 +75,9 @@ public class CheckAuthServlet extends InjectableServlet {
     
     // Try to get the OpenId, AX, and OAuth values from the auth response
     Identifier claimedId = null;
-    String email = "unknown";
-    String country = "unknown";
-    String requestToken = "None";
+    String email = UNKNOWN;
+    String country = UNKNOWN;
+    String requestToken = NO_TOKEN;
     try {
       AuthResponseHelper authResponse =
         helper.verify(receivingUrl, openidResp, discovered);
@@ -95,12 +98,26 @@ public class CheckAuthServlet extends InjectableServlet {
     } catch (VerificationException e) {
       throw new ServletException(e);
     }
+    
+    String accessToken = NO_TOKEN;
+    String accessTokenSecret = NO_TOKEN;
+    if (!NO_TOKEN.equals(requestToken)) {
+      // Try getting an acess token from this request token.
+      OAuthAccessor accessor =
+        OAuthConsumerUtil.DEFAULT.getAccessToken(requestToken);
+      if (accessor != null) {
+        accessToken = accessor.accessToken;
+        accessTokenSecret = accessor.tokenSecret;
+      }
+    }
 
     session.setAttribute("user",
-        (claimedId == null) ? "unknown" : claimedId.getIdentifier());
+        (claimedId == null) ? UNKNOWN : claimedId.getIdentifier());
     session.setAttribute("email", email);
     session.setAttribute("country", country);
     session.setAttribute("request_token", requestToken);
+    session.setAttribute("access_token", accessToken);
+    session.setAttribute("access_token_secret", accessTokenSecret);
     resp.sendRedirect(req.getRequestURI().replaceAll("/checkauth$", "/hello"));
   }
 }

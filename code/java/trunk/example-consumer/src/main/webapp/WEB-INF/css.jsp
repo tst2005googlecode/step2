@@ -1,7 +1,6 @@
 <%@ page contentType="text/css"%>
 body {
   font-family: sans-serif;
-  text-align: justify;
   background: #ffffff;
 }
 
