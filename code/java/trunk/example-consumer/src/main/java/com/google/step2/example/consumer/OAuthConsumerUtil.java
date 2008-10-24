@@ -14,6 +14,14 @@ import net.oauth.client.OAuthHttpClient;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.log4j.Logger;
+import org.openid4java.discovery.Discovery;
+import org.openid4java.yadis.YadisResolver;
+import org.openid4java.yadis.YadisResult;
+import org.openxri.xml.SEPType;
+import org.openxri.xml.SEPUri;
+import org.openxri.xml.Service;
+import org.openxri.xml.XRD;
+import org.openxri.xml.XRDS;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +29,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -30,140 +40,153 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author sweis@google.com (Steve Weis)
  */
 public class OAuthConsumerUtil {
-  private Logger log = Logger.getLogger(OAuthConsumerUtil.class);
+  private static Logger log = Logger.getLogger(OAuthConsumerUtil.class);
   
-  private static final String BASE_URL = "baseURL";
+  private static final String REQUEST_XRDS =
+    "http://oauth.net/core/1.0/endpoint/request";
+  private static final String AUTHORIZE_XRDS =
+    "http://oauth.net/core/1.0/endpoint/authorize";
+  private static final String ACCESS_XRDS =
+    "http://oauth.net/core/1.0/endpoint/access"; 
+  
   private static final String SERVICE_PROVIDER = "serviceProvider";
-  private static final String AUTH_URL = "userAuthorizationURL";
-  private static final String REQUEST_TOKEN_URL = "requestTokenURL";
-  private static final String ACCESS_TOKEN_URL = "accessTokenURL";
-  private static final String AUTHORIZE_URL = "userAuthorizationURL";
   private static final String CONSUMER_KEY = "consumerKey";
   private static final String CONSUMER_SECRET = "consumerSecret";
   private static final String SCOPE = "scope";
   
-  private final String baseUrl;
-  private final String requestTokenUrlSuffix;
-  private final String accessTokenUrlSuffix;
-  private final String authorizeUrlSuffix;
-  private final String consumerKey;
-  private final String consumerSecret;
-  private final String scope;
-    
-  private final OAuthServiceProvider provider;
-  private final OAuthConsumer consumer;
+  private static String consumerKey;
+  private static String consumerSecret;
+  private static String scope;
+
+  private OAuthServiceProvider provider;
+  
+  private final YadisResolver yadisResolver = new YadisResolver();
   
   private static final ConcurrentHashMap<String, OAuthAccessor>
-  ACCESSORS = new ConcurrentHashMap<String, OAuthAccessor>();
-  
-  private final static String OAUTH_PROPERTIES_FILE = "/" +
-  LoginServlet.class.getPackage().getName().replace(".", "/")
-  + "/consumer.properties";
-
-  private final static Properties PROPERTIES = new Properties();
+    ACCESSORS = new ConcurrentHashMap<String, OAuthAccessor>();
   
   static {
     try {
       ClassLoader loader = LoginServlet.class.getClassLoader();
-      InputStream stream = loader.getResourceAsStream(OAUTH_PROPERTIES_FILE);
-      PROPERTIES.load(stream);
+      String propertiesFile = "/" +
+        LoginServlet.class.getPackage().getName().replace(".", "/")
+        + "/consumer.properties";
+      InputStream stream = loader.getResourceAsStream(propertiesFile);
+      Properties properties = new Properties();
+      properties.load(stream);
+      String consumerName = properties.getProperty("serviceProvider");
+      log.info("Setting up OAuth consumer: " + consumerName);
+      String serviceProvider = consumerName + "." + SERVICE_PROVIDER;
+      consumerKey = properties.getProperty(consumerName + "." + CONSUMER_KEY);
+      consumerSecret =
+        properties.getProperty(consumerName + "." + CONSUMER_SECRET);
+      scope = properties.getProperty(consumerName + "." + SCOPE);
+
     } catch (IOException e) {
       // If an exception occurs, then no Oauth service provider properties will
       // be read from disk. This will cause an exception below, but won't
       // affect the OpenID authentication
+    }    
+  }
+    
+  public static ConcurrentHashMap<String, OAuthServiceProvider> CACHED_DISCOVERED =
+    new ConcurrentHashMap<String, OAuthServiceProvider>();
+  
+  public OAuthConsumerUtil(String url) {
+    provider = CACHED_DISCOVERED.get(url);
+    if (provider == null) {
+      String requestTokenUrl = null;
+      String authorizeUrl = null;
+      String accessTokenUrl = null;
+      
+      YadisResult yadisResult = yadisResolver.discover(url);
+      if (YadisResult.OK == yadisResult.getStatus()) {
+        XRD xrd = yadisResult.getXrds().getFinalXRD();
+        Service requestService = xrd.getFirstServiceByType(REQUEST_XRDS);
+        if (requestService != null && requestService.getNumURIs() > 0) {
+          requestTokenUrl =
+            requestService.getURIAt(0).getURI().toASCIIString();
+        }
+
+        Service authorizeService = xrd.getFirstServiceByType(AUTHORIZE_XRDS);
+        if (authorizeService != null && authorizeService.getNumURIs() > 0) {
+          authorizeUrl =
+            authorizeService.getURIAt(0).getURI().toASCIIString();
+        }
+      
+        Service accessService = xrd.getFirstServiceByType(ACCESS_XRDS);
+        if (accessService != null && accessService.getNumURIs() > 0) {
+          accessTokenUrl = accessService.getURIAt(0).getURI().toASCIIString();
+        }
+      }
+      provider = new OAuthServiceProvider(
+          requestTokenUrl, authorizeUrl, accessTokenUrl);
+      CACHED_DISCOVERED.putIfAbsent(url, provider);
     }
   }
-
-  public final static OAuthConsumerUtil DEFAULT = new OAuthConsumerUtil(
-      PROPERTIES.getProperty("serviceProvider"), PROPERTIES);
-
-  public OAuthConsumerUtil(String consumerName, Properties properties) {
-    log.info("Setting up OAuth consumer: " + consumerName);
-    String serviceProvider = consumerName + "." + SERVICE_PROVIDER;
-    baseUrl = properties.getProperty(serviceProvider + "." + BASE_URL);
-    requestTokenUrlSuffix =
-      properties.getProperty(serviceProvider + "." + REQUEST_TOKEN_URL);
-    accessTokenUrlSuffix =
-      properties.getProperty(serviceProvider + "." + ACCESS_TOKEN_URL);
-    authorizeUrlSuffix = 
-      properties.getProperty(serviceProvider + "." + AUTHORIZE_URL);
-    consumerKey = properties.getProperty(consumerName + "." + CONSUMER_KEY);
-    consumerSecret =
-      properties.getProperty(consumerName + "." + CONSUMER_SECRET);
-    scope = properties.getProperty(consumerName + "." + SCOPE);
-    
-    provider = new OAuthServiceProvider(
-        baseUrl + "/" + requestTokenUrlSuffix,
-        baseUrl + "/" + authorizeUrlSuffix,
-        baseUrl + "/" + accessTokenUrlSuffix);    
-    consumer = new OAuthConsumer("", // No Callback,
-        consumerKey, consumerSecret, provider);
-  }
-    
+      
   public String getUnauthorizedRequestToken() {
     OAuthAccessor accessor = getAccessor();
     Collection<OAuth.Parameter> parameters = null;
-    if (scope != null) {
-      parameters = new ArrayList<OAuth.Parameter>();
-      parameters.add(new Parameter(SCOPE, scope));
-    }
 
-    try {
-      OAuthMessage response = 
-        getClient().invoke(accessor, provider.requestTokenURL, parameters);
-      log.info("Successfully got OAuth request token");
-      accessor.requestToken = response.getParameter("oauth_token");
-      accessor.tokenSecret = response.getParameter("oauth_token_secret");
-      ACCESSORS.put(accessor.requestToken, accessor);
-      return response.getToken();
-    } catch (OAuthException e) {
-      e.printStackTrace();  // Continue
-    } catch (URISyntaxException e) {
-      e.printStackTrace();  // Continue
-    } catch (IOException e) {
-      e.printStackTrace();  // Continue
+    if (provider.requestTokenURL != null) {
+      try {
+        OAuthMessage response = 
+          getClient().invoke(accessor, provider.requestTokenURL, parameters);
+        log.info("Successfully got OAuth request token");
+        accessor.requestToken = response.getParameter("oauth_token");
+        accessor.tokenSecret = response.getParameter("oauth_token_secret");
+        ACCESSORS.put(accessor.requestToken, accessor);
+        return response.getToken();
+      } catch (OAuthException e) {
+        e.printStackTrace();  // Continue
+      } catch (URISyntaxException e) {
+        e.printStackTrace();  // Continue
+      } catch (IOException e) {
+        e.printStackTrace();  // Continue
+      }
     }
     return null;
   }
     
   public OAuthAccessor getAccessToken(String requestToken) {
-    OAuthAccessor accessor = ACCESSORS.remove(requestToken);
-    if (accessor != null) {
-      try {
-        OAuthMessage response = getClient().invoke(accessor,
-            consumer.serviceProvider.accessTokenURL,
-            OAuth.newList("oauth_token", requestToken)); 
-        log.info("Successfully got OAuth access token");
-        accessor.requestToken = null;
-        accessor.accessToken = response.getParameter("oauth_token");
-        accessor.tokenSecret = response.getParameter("oauth_token_secret");
-        ACCESSORS.putIfAbsent(accessor.accessToken, accessor);
-        return accessor;
-      } catch (OAuthException e) {
-        e.printStackTrace();  // Continue
-      } catch (IOException e) {
-        e.printStackTrace();  // Continue
-      } catch (URISyntaxException e) {
-        e.printStackTrace();  // Continue
+    if (provider.accessTokenURL != null) {
+      OAuthAccessor accessor = ACCESSORS.remove(requestToken);
+      if (accessor != null) {
+        try {
+          OAuthMessage response = getClient().invoke(accessor,
+              provider.accessTokenURL,
+              OAuth.newList("oauth_token", requestToken)); 
+          log.info("Successfully got OAuth access token");
+          accessor.requestToken = null;
+          accessor.accessToken = response.getParameter("oauth_token");
+          accessor.tokenSecret = response.getParameter("oauth_token_secret");
+          ACCESSORS.putIfAbsent(accessor.accessToken, accessor);
+          return accessor;
+        } catch (OAuthException e) {
+          e.printStackTrace();  // Continue
+        } catch (IOException e) {
+          e.printStackTrace();  // Continue
+        } catch (URISyntaxException e) {
+          e.printStackTrace();  // Continue
+        }
+        ACCESSORS.putIfAbsent(requestToken, accessor);
       }
-      ACCESSORS.putIfAbsent(requestToken, accessor);
     }
     return null;
   }
   
   public OAuthServiceProvider getProvider() {
-    return new OAuthServiceProvider(
-        baseUrl + "/" + requestTokenUrlSuffix,
-        baseUrl + "/" + authorizeUrlSuffix,
-        baseUrl + "/" + accessTokenUrlSuffix);
+    return provider;
   }
   
   private OAuthConsumer getConsumer() {
-    return consumer;
+    return new OAuthConsumer(null,  // no callback
+        consumerKey, consumerSecret, provider);
   }
   
   private OAuthAccessor getAccessor() {
-    return new OAuthAccessor(consumer);
+    return new OAuthAccessor(getConsumer());
   }    
 
   private OAuthHttpClient getClient() {

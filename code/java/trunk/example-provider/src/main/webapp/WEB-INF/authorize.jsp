@@ -138,7 +138,7 @@
       OAuthAccessor accessor = DummyOAuthProvider.getAccessor(requestToken);
       if (accessor != null && accessor.consumer != null &&
           accessor.consumer.consumerSecret != null &&
-          accessor.consumer.consumerKey.equals("DummyConsumer")) {
+          accessor.consumer.consumerKey.equals("key")) {
         // Authorize this user's request token
         DummyOAuthProvider.authorizeAccessor(requestToken);
       } else {

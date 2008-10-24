@@ -103,8 +103,9 @@ public class CheckAuthServlet extends InjectableServlet {
     String accessTokenSecret = NO_TOKEN;
     if (!NO_TOKEN.equals(requestToken)) {
       // Try getting an acess token from this request token.
-      OAuthAccessor accessor =
-        OAuthConsumerUtil.DEFAULT.getAccessToken(requestToken);
+      OAuthConsumerUtil util =
+        new OAuthConsumerUtil(discovered.getClaimedIdentifier().toString());
+      OAuthAccessor accessor = util.getAccessToken(requestToken);
       if (accessor != null) {
         accessToken = accessor.accessToken;
         accessTokenSecret = accessor.tokenSecret;

@@ -20,11 +20,6 @@ This example form will authenticate a user though an identity provider and
 optionally request user email and country attributes.
 </p>
 
-<p>This will attempt to fetch an unauthorized OAuth request token from the
-provider defined in the example consumer.properties file:<br/>
-<%= OAuthConsumerUtil.DEFAULT.getProvider().requestTokenURL %><br/>
-</p>
-
 <%
   ParameterList requestParams =
     (ParameterList) session.getAttribute("parameterlist");

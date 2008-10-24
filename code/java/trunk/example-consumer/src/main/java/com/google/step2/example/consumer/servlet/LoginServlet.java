@@ -26,11 +26,20 @@ import com.google.step2.servlet.InjectableServlet;
 
 import org.apache.log4j.Logger;
 import org.openid4java.consumer.ConsumerException;
+import org.openid4java.discovery.Discovery;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.MessageException;
+import org.openid4java.yadis.YadisResolver;
+import org.openid4java.yadis.YadisResult;
+import org.openxri.xml.SEPType;
+import org.openxri.xml.Service;
+import org.openxri.xml.XRD;
+import org.openxri.xml.XRDS;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -83,8 +92,8 @@ public class LoginServlet extends InjectableServlet {
     
     if (YES_STRING.equals(req.getParameter("oauth"))) {
       log.info("Oauth Request");
-      oauthRequestToken =
-        OAuthConsumerUtil.DEFAULT.getUnauthorizedRequestToken();
+      OAuthConsumerUtil util = new OAuthConsumerUtil(openId);
+      oauthRequestToken = util.getUnauthorizedRequestToken();
     }
 
     AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(
@@ -102,7 +111,7 @@ public class LoginServlet extends InjectableServlet {
     if (YES_STRING.equals(req.getParameter("country"))) {
       helper.requestAxAttribute("country", Step2.AX_COUNTRY_SCHEMA, true);
     }
-
+    
     HttpSession session = req.getSession();
     AuthRequest authReq = null;
     try {

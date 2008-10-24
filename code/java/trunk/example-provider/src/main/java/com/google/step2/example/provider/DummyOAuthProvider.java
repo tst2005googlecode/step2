@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DummyOAuthProvider {
   private static final OAuthConsumer CONSUMER =
-    new OAuthConsumer(null, "DummyConsumer", "DummySecret", null);
+    new OAuthConsumer(null, "key", "secret", null);
 
   private static final ConcurrentHashMap<String, OAuthAccessor>
     ACCESSORS = new ConcurrentHashMap<String, OAuthAccessor>();
