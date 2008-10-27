@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><metadata>
+  <groupId>com.google.step2</groupId>
+  <artifactId>step2-example-provider</artifactId>
+  <version>1-SNAPSHOT</version>
+  <versioning>
+    <versions>
+      <version>1-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20081027213014</lastUpdated>
+  </versioning>
+</metadata>
