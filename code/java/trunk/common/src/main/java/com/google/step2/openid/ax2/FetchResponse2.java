@@ -17,8 +17,14 @@
 
 package com.google.step2.openid.ax2;
 
+import org.openid4java.message.ParameterList;
 import org.openid4java.message.ax.FetchResponse;
 
+/**
+ * Temporary fix to enable more flexible request handling. 
+ *
+ * @author balfanz@google.com (Dirk Balfanz)
+ */
 public class FetchResponse2 extends FetchResponse {
   @Override
   public String getTypeUri() {
@@ -28,4 +34,28 @@ public class FetchResponse2 extends FetchResponse {
   public FetchResponse2() {
     super();
   }
+  
+  public FetchResponse2(ParameterList params) {
+    super(params);
+  }
+  
+  /**
+   * The openid4java library will only allow omission of the claimed_id and
+   * identity attributes from requests and responses if some other extension
+   * included in the message claims to provide an alternative "identifier".
+   */
+  @Override
+  public boolean providesIdentifier() {
+    // TODO(balfanz): provide a better implementation
+    return true;
+  }
+
+  public static FetchResponse2 createFetchResponse2(ParameterList params) {
+    FetchResponse2 resp = new FetchResponse2(params);
+
+    //TODO(balfanz): it would be nice if the FetchReponse.isValid() method was
+    // at least protected so we could validate the response. 
+    return resp;
+  }
+
 }

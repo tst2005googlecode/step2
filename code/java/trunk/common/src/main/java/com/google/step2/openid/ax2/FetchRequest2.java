@@ -17,9 +17,12 @@
 
 package com.google.step2.openid.ax2;
 
+import org.openid4java.message.MessageException;
+import org.openid4java.message.ParameterList;
 import org.openid4java.message.ax.FetchRequest;
 
 /**
+ * Temporary fix to enable more flexible request handling than openid4java
  * 
  * @author Dirk Balfanz (dirk.balfanz@gmail.com)
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
@@ -32,5 +35,48 @@ public class FetchRequest2 extends FetchRequest {
 
   public FetchRequest2() {
     super();
+  }
+  
+  public FetchRequest2(ParameterList params) {
+    super(params);
+  }
+
+  public static FetchRequest2 createFetchRequest2(ParameterList params)
+    throws MessageException {
+      FetchRequest2 req = new FetchRequest2(params);
+
+      if (!req.isValid()) {
+        throw new MessageException("Invalid parameters for a fetch request");
+      }
+
+      return req;
+  }
+
+  // This is
+  private static final String COUNT = "count.";
+
+  /**
+   * Need to override this since there is a bug in the openid4java
+   * implementation as of 11/3/08:
+   * http://code.google.com/p/openid4java/issues/detail?id=73
+   */
+  @Override
+  public int getCount(String alias) {
+    if ("unlimited".equals(_parameters.getParameterValue(COUNT + alias))) {
+      // 0 means unlimited
+      return 0;
+    } else if (_parameters.hasParameter(COUNT + alias)) {
+      try {
+        return Integer.parseInt(_parameters.getParameterValue(COUNT + alias));
+      } catch (NumberFormatException e) {
+        // we'll treat malformed count parameters the same as absent parameters,
+        // returning at most one value
+        return 1;
+      }
+    } else {
+      // according to spec, an absent count parameter means to return at most
+      // one value
+      return 1;
+    }
   }
 }
