@@ -77,56 +77,119 @@
       </t>
     </section>
 
-    <section title ="Overview"> 
-      <t>The OpenID OAuth Extension describes how to make
-        the OpenID Authentication and
-        OAuth Core specifications work well together. In its current form,
-        it addresses the use case where the OpenID Provider and
-        OAuth Service Provider are the same service. To provide
-        good user experience, it is important to present a
-        combined authentication and authorization screen
-        for the two protocols.
+    <section title ="Purpose of this Specification"> 
+      <t>The OpenID OAuth Extension describes how to make the OpenID
+        Authentication and OAuth Core specifications work well
+        together. In its current form, it addresses the use case where
+        the OpenID Provider and OAuth Service Provider are the same
+        service. To provide good user experience, it is important to
+        present, to the user, a combined authentication and
+        authorization screen for the two protocols.
       </t>
-      <t>This extension describes how to embed an OAuth approval request into
-       an OpenID authentication request to permit combined user approval.
-       For security reasons, the OAuth access token is not returned in the URL.
-       Instead a mechanism to obtain the access token is provided.
+      <t>This extension describes how to embed an OAuth approval
+       request into an OpenID authentication request to permit
+       combined user approval.  For security reasons, the OAuth access
+       token is not returned in the URL.  Instead a mechanism to
+       obtain the access token is provided.
      </t>
-     <t>The specific mechanisms proposed are extensions to the
-       OpenID authentication request and response, and also to the assertion
-       verification mechanism, found in Sections 9, 10, and 11
-       of <xref target="OpenID"/>.
+     <t>The specific mechanisms proposed are extensions to the OpenID
+       authentication request and response, and also to the
+       association session mechanism, found in Sections 8, 9, and 10 of
+       <xref target="OpenID"/>.
      </t>
    </section>
 
-    <section title="Before Requesting Authentication">
-      <t>The Combined Consumer must, prior to issuing an OpenID authentication
-        request, have obtained an unauthorized OAuth request token
-        (Section 6.1 of <xref target="OAuth"/>). It must also have performed
-        OpenID discovery and
-        (optionally) created an association with the OP as indicated
-        in the preamble to Section 9 of <xref target="OpenID" />.
+    <section title="Overview">
+      <t>Unlike standard OAuth (<xref target="OAuth"/>), the OpenID
+        OAuth extension does not provision request tokens in a
+        server-to-server request from the Combined Consumer to the
+        request token endpoint at the Combined Provider. Instead, the
+        Combined Provider returns an already-approved request token to
+        the Combined Consumer as part of the OpenID authentication
+        response.
+      </t>
+
+      <t>
+	The Combined Consumer then exchanges the request token for an
+        access token at the access token endpoint of the Combined 
+        Provider, following standard OAuth practice. The Combined
+        Provider, when issuing the access token, not only checks that
+        the request token has been approved by an authorized user
+        (which is standard OAuth practice), but also that the Combined
+        Consumer is authorized to use the OpenID realm to which
+        the request token was issued (which is a new requirement
+        introduced by this specification). 
+      </t>
+    </section>
+
+    <section anchor='Registered' title="Before Requesting Authentication - Registered Consumers">
+      <t>The Combined Consumer and the Combined Provider agree on a
+      consumer key and consumer secret (see <xref target="OAuth"/>).
+      </t>
+      <t>The Combined Provider SHOULD in addition obtain, from the
+      Combined Provider, a list of valid OpenID realms that the
+      Combined Consumer may use in subsequent authentication
+      requests. The Combined Provider SHOULD verify that the Combined
+      Consumer is authorized to use those realms.
+      </t>
+    </section>
+
+    <section anchor='Unregistered' title="Before Requesting Authentication - Unregistered Consumers">
+      <t>If the Combined Consumer and Combined Provider have not set
+      up a consumer key and consumer secret, then the Combined
+      Consumer MUST establish an association with the Combined
+      Provider (see Section 8 of <xref target="OpenID"/>).
+      </t>
+
+      <t>The Combined Consumer MUST add an additional parameter
+      "openid.realm" to the association session request described in
+      Section 8.1 of <xref target="OpenID"/>. The value of this
+      parameter SHOULD be the same as that of the "openid.realm"
+      parameter used in subsequent authentication requests.
+      </t>
+
+      <t>The Combined Consumer and Combined Provider SHOULD use the
+      association MAC key obtained during the association session as
+      the OAuth Consumer secret when requesting an access token. The
+      Combined Consumer and Combined Provider SHOULD use the
+      association handle obtained during the association session as
+      the OAuth Consumer key when requesting an access token (see
+      <xref target="AuthTokenReq"/>).
       </t>
     </section>
 
     <section anchor='AuthReq' title="Requesting Authentication">
       <t>When Requesting OpenID Authentication via the protocol mode
-        "checkid_setup" or "checkid_immediate", this extension
-        can be used to request that the end user
-        authorize an OAuth token at the same time as their OpenID authorization.
-        This is done by sending the following parameters as part of
-        the OpenID request.
+        "checkid_setup" or "checkid_immediate", this extension can be
+        used to request that the end user authorize an OAuth token at
+        the same time as their OpenID authentication.  This is done by
+        sending the following parameters as part of the OpenID
+        request.
         <list style="hanging">
           <t hangText='openid.ns.oauth'>
             REQUIRED. Value: "http://specs.openid.net/extensions/oauth/1.0".</t>
-          <t hangText="openid.oauth.request_token">
-            REQUIRED. Value: The OAuth Unauthorized Request token the Consumer
-            wishes the end user to authorize. </t>
+          <t hangText="openid.oauth.scope">
+            OPTIONAL. Value: A string that encodes, in a way possibly specific to
+            the Combined Provider, one or more scopes for the OAuth
+            token expected in the authentication response.
+	  </t>
         </list>
       </t>
     </section>
 
-    <section title="Responding to Authentication Requests">
+    <section title="Authorizing the OAuth Request">
+      <t>If the OAuth Extension is present in the authentication
+	request, the Combined Provider SHOULD determine that
+	delegation of authorization from a user to the Combined
+	Provider has been requested.
+
+	The Combined Provider SHOULD not issue an approved request
+	token unless it has user consent to delegate such
+	authorization.
+      </t>
+    </section>
+
+    <section anchor='AuthResp' title="Responding to Authentication Requests">
       <t>If the OpenID authentication request cannot be fulfilled (either in
         failure mode "setup_needed" or "cancel" as in Sections 10.2.1 and 10.2.2
         of <xref target="OpenID"/>) then the OAuth request SHOULD be considered
@@ -137,12 +200,7 @@
         request in cases when the OpenID authentication response is a positive 
         assertion (Section 10.1 of <xref target="OpenID"/>).
       </t>
-      <t>If the request parameter "openid.oauth.request_token" is present and is
-        a valid Unauthorized Request Token, the Combined Provider
-        SHOULD determine that an authorized end user wishes to complete
-        the OAuth Authorization.
-      </t>
-      <t>If the end user does wish to grant access to the Consumer,
+      <t>If the end user does wish to delegate access to the Consumer,
         the Combined Provider MUST include and MUST sign
         the following parameters.
         <list style="hanging">
@@ -150,17 +208,14 @@
             REQUIRED. Identical value as defined in <xref target='AuthReq' />.
           </t>
           <t hangText='openid.oauth.request_token'>
-            REQUIRED. The value included in the request.
+            REQUIRED. A user-approved request token.
           </t>  
-          <t hangText='openid.oauth.response_token'>
-            OPTIONAL. The response token MUST be included
-            in the response if the Provider supports
-            the 'Unregistered Consumer' extension to OAuth,
-            (see <xref target="UnregisteredOAuth"/>), and the Consumer
-            is unregistered, as defined in that extension.
-            Response tokens are needed by an unregistered Combined Consumer to
-            obtain an OAuth access token.
-          </t> 
+          <t hangText='openid.oauth.scope'>
+            OPTIONAL.  A string that encodes, in a way possibly specific to
+            the Combined Provider, one or more scopes that the
+            returned request token is valid for. This will typically
+            indicate a subset of the scopes requested in <xref target="AuthReq"/>.
+          </t>  
         </list>
         To note that the OAuth Authorization was declined or not valid, 
         the Combined Provider SHALL only respond with the parameter
@@ -168,60 +223,45 @@
       </t>
     </section>
 
-    <section anchor="AuthTokenReq" title="Requesting the Access Token">
-      <t>To exchange the request token for an access token,
-        the Combined Consumer
-        follows Section 6.3 of <xref target="OAuth"/>, or Section x.x of 
-        <xref target="UnregisteredOAuth"/>, whichever is appropriate.
-        However, if the Combined Consumer cannot itself verify the signature
-        in the authentication response, it MAY use the optimization described in this Section.
+    <section anchor="AuthTokenReq" title="Obtaining the Access Token">
+      <t>To exchange the request token for an access token, the
+        Combined Consumer follows Section 6.3 of
+        <xref target="OAuth"/>, i.e., it sends an access token request
+        to the access token endpoint of the Combined Provider. It
+        SHALL use the following values to create the OAuth access
+        token request:
+        <list style="hanging">
+          <t hangText='consumer key'>
+	    Registered consumers use the consumer key they established
+	    with the Combined Provider in
+	    <xref target='Registered'/>. Unregistered consumers use
+	    the association handle established in <xref target='Unregistered'/>.
+          </t>
+          <t hangText='consumer secret'>
+	    Registered consumers use the consumer secret they established
+	    with the Combined Provider in
+	    <xref target='Registered'/>. Unregistered consumers use
+	    the association MAC key established in <xref target='Unregistered'/>.
+          </t>  
+          <t hangText='OAuth token'>
+	    Registered and unregistered consumers use the request
+	    token obtained in <xref target="AuthResp"/>.
+          </t>  
+          <t hangText='OAuth token secret'>
+	    Registered and unregistered consumers use the empty string.
+          </t>  
+        </list>
       </t>
-      <section title ="Optimized Access Token Request for Non-Associated RPs">
-        <t>If the Combined Consumer cannot itself verify the signature in the
-          authentication response, it MUST 
-          construct a direct verification request, according
-          to section 11.4.2.1 of <xref target="OpenID"/>, including all
-          openid.* parameters that appeared in the response. 
-          The RP sends the OAuth access token request
-          parameters (section 6.3.1 of <xref target="OAuth"/>) either in the
-          HTTP Authorization header or in the query part of the URL
-          (as described in section 5.2 of the same document).
-          The third mechanism defined in the Section 5.2 of
-          <xref target="OAuth"/> cannot be used because the OpenID request
-          POST body has an incompatible Mime-type.
-        </t>
-      </section>
-      <section title="Responding to Access Token Requests">
-	<t>If the OpenID signature verification fails, the Combined Provider
-	  should not include any OAuth extension parameters in the response,
-	  and should proceed identically as in Section 11.4.2.2 of
-	  <xref target="OpenID" />.
-	</t>
-	<t>If the OpenID signature verification succeeds, the Provider
-	  verifies the
-	  OAuth signature, according to Section 9 of <xref target="OAuth"/>. 
-	</t>
-	<t>If the OAuth signature verification fails,
-	  the OpenID signature verification response proceeds identically
-	  as described in Section  11.4.2.2 of <xref target="OpenID" />.
-	</t>
-	<t>If the OAuth signature verification succeeds, the Provider constructs
-	  an OpenID signature verification response message with
-	  the following additional parameters:
-	  <list style="hanging">
-	    <t hangText="openid.ns.oauth">
-	      REQUIRED. Same value as in Section <xref target="AuthReq"/>.
-	    </t>
-	    <t hangText="openid.oauth.access_token">
-	      REQUIRED. The OAuth access token, encoded according to Section 5.1
-	      of <xref target="OAuth"/>.
-	    </t>
-	    <t hangText="openid.oauth.access_token_secret">
-	      REQUIRED. The OAuth access token secret, similarly encoded.
-	    </t>
-	  </list>
-	</t>
-      </section>
+      <t>
+	The Combined Provider SHOULD verify that the request token
+	presented in the access token request was issued to a realm
+	that the consumer identified by the consumer key is authorized
+	to use. If the request token was issued to a realm that the
+	Combined Consumer is not authorized to use, or if the request
+	otherwise fails verification, the Combined Provider SHOULD
+	respond with an appropriate response code according to Section
+	6.3 of <xref target="OAuth"/>.
+      </t>
     </section>
 
     <section title="General Considerations">
@@ -312,31 +352,6 @@
         <date day="4" month="December" year="2007"/>
       </front>
       <format type="HTML" target="http://oauth.net/core/1.0/"/>
-    </reference>
-    <reference anchor="UnregisteredOAuth" target="http://breno.demedeiros.googlepages.com/oauth-unregistered.html">
-      <front>
-        <title>OAuth Unregistered Consumer Extension</title>
-        <author initials = "D." surname="Balfanz" fullname = "Dirk Balfanz">
-          <organization>Google, Inc.</organization>
-          <address>
-            <email>balfanz@google.com</email>
-          </address>
-        </author>
-        <author initials = "B." surname="Eaton" fullname = "Brian Eaton">
-          <organization>Google, Inc.</organization>
-          <address>
-            <email>beaton@google.com</email>
-          </address>
-        </author>
-        <author initials = "B." surname="de Medeiros" fullname = "Breno de Medeiros">
-          <organization>Google, Inc.</organization>
-          <address>
-            <email>breno@google.com</email>
-          </address>
-        </author>
-        <date />
-      </front>
-      <format type='HTML' target="http://breno.demedeiros.googlepages.com/oauth-unregistered.html"/>
     </reference>
   </references>
 </back>

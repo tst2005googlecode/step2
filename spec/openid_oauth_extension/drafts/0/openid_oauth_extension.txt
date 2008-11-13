@@ -8,7 +8,7 @@ draft                                                         D. Balfanz
                                                                Six Apart
                                                                 J. Smarr
                                                                    Plaxo
-                                                      September 10, 2008
+                                                       November 12, 2008
 
 
                          OpenID OAuth Extension
@@ -54,7 +54,7 @@ draft                                                         D. Balfanz
 
 Balfanz, et al.                                                 [Page 1]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
 Abstract
@@ -67,18 +67,18 @@ Table of Contents
 
    1.  Requirements notation  . . . . . . . . . . . . . . . . . . . .  3
    2.  Terminology  . . . . . . . . . . . . . . . . . . . . . . . . .  4
-   3.  Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  5
-   4.  Before Requesting Authentication . . . . . . . . . . . . . . .  6
-   5.  Requesting Authentication  . . . . . . . . . . . . . . . . . .  7
-   6.  Responding to Authentication Requests  . . . . . . . . . . . .  8
-   7.  Requesting the Access Token  . . . . . . . . . . . . . . . . .  9
-     7.1.  Optimized Access Token Request for Non-Associated RPs  . .  9
-     7.2.  Responding to Access Token Requests  . . . . . . . . . . .  9
-   8.  General Considerations . . . . . . . . . . . . . . . . . . . . 10
-   9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 11
-   10. Normative References . . . . . . . . . . . . . . . . . . . . . 12
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 13
-
+   3.  Purpose of this Specification  . . . . . . . . . . . . . . . .  5
+   4.  Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  6
+   5.  Before Requesting Authentication - Registered Consumers  . . .  7
+   6.  Before Requesting Authentication - Unregistered Consumers  . .  8
+   7.  Requesting Authentication  . . . . . . . . . . . . . . . . . .  9
+   8.  Authorizing the OAuth Request  . . . . . . . . . . . . . . . . 10
+   9.  Responding to Authentication Requests  . . . . . . . . . . . . 11
+   10. Obtaining the Access Token . . . . . . . . . . . . . . . . . . 12
+   11. General Considerations . . . . . . . . . . . . . . . . . . . . 13
+   12. Security Considerations  . . . . . . . . . . . . . . . . . . . 14
+   13. Normative References . . . . . . . . . . . . . . . . . . . . . 15
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 16
 
 
 
@@ -110,7 +110,7 @@ Table of Contents
 
 Balfanz, et al.                                                 [Page 2]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
 1.  Requirements notation
@@ -166,7 +166,7 @@ Balfanz, et al.                                                 [Page 2]
 
 Balfanz, et al.                                                 [Page 3]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
 2.  Terminology
@@ -222,17 +222,17 @@ Balfanz, et al.                                                 [Page 3]
 
 Balfanz, et al.                                                 [Page 4]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
-3.  Overview
+3.  Purpose of this Specification
 
    The OpenID OAuth Extension describes how to make the OpenID
    Authentication and OAuth Core specifications work well together.  In
    its current form, it addresses the use case where the OpenID Provider
    and OAuth Service Provider are the same service.  To provide good
-   user experience, it is important to present a combined authentication
-   and authorization screen for the two protocols.
+   user experience, it is important to present, to the user, a combined
+   authentication and authorization screen for the two protocols.
 
    This extension describes how to embed an OAuth approval request into
    an OpenID authentication request to permit combined user approval.
@@ -240,8 +240,8 @@ Balfanz, et al.                                                 [Page 4]
    URL.  Instead a mechanism to obtain the access token is provided.
 
    The specific mechanisms proposed are extensions to the OpenID
-   authentication request and response, and also to the assertion
-   verification mechanism, found in Sections 9, 10, and 11 of [OpenID].
+   authentication request and response, and also to the association
+   session mechanism, found in Sections 8, 9, and 10 of [OpenID].
 
 
 
@@ -278,26 +278,26 @@ Balfanz, et al.                                                 [Page 4]
 
 Balfanz, et al.                                                 [Page 5]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
-4.  Before Requesting Authentication
+4.  Overview
 
-   The Combined Consumer must, prior to issuing an OpenID authentication
-   request, have obtained an unauthorized OAuth request token (Section
-   6.1 of [OAuth]).  It must also have performed OpenID discovery and
-   (optionally) created an association with the OP as indicated in the
-   preamble to Section 9 of [OpenID].
+   Unlike standard OAuth ([OAuth]), the OpenID OAuth extension does not
+   provision request tokens in a server-to-server request from the
+   Combined Consumer to the request token endpoint at the Combined
+   Provider.  Instead, the Combined Provider returns an already-approved
+   request token to the Combined Consumer as part of the OpenID
+   authentication response.
 
-
-
-
-
-
-
-
-
-
+   The Combined Consumer then exchanges the request token for an access
+   token at the access token endpoint of the Combined Provider,
+   following standard OAuth practice.  The Combined Provider, when
+   issuing the access token, not only checks that the request token has
+   been approved by an authorized user (which is standard OAuth
+   practice), but also that the Combined Consumer is authorized to use
+   the OpenID realm to which the request token was issued (which is a
+   new requirement introduced by this specification).
 
 
 
@@ -334,22 +334,22 @@ Balfanz, et al.                                                 [Page 5]
 
 Balfanz, et al.                                                 [Page 6]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
-5.  Requesting Authentication
+5.  Before Requesting Authentication - Registered Consumers
 
-   When Requesting OpenID Authentication via the protocol mode
-   "checkid_setup" or "checkid_immediate", this extension can be used to
-   request that the end user authorize an OAuth token at the same time
-   as their OpenID authorization.  This is done by sending the following
-   parameters as part of the OpenID request.
+   The Combined Consumer and the Combined Provider agree on a consumer
+   key and consumer secret (see [OAuth]).
 
-   openid.ns.oauth  REQUIRED.  Value:
-      "http://specs.openid.net/extensions/oauth/1.0".
+   The Combined Provider SHOULD in addition obtain, from the Combined
+   Provider, a list of valid OpenID realms that the Combined Consumer
+   may use in subsequent authentication requests.  The Combined Provider
+   SHOULD verify that the Combined Consumer is authorized to use those
+   realms.
 
-   openid.oauth.request_token  REQUIRED.  Value: The OAuth Unauthorized
-      Request token the Consumer wishes the end user to authorize.
+
+
 
 
 
@@ -390,10 +390,178 @@ Balfanz, et al.                                                 [Page 6]
 
 Balfanz, et al.                                                 [Page 7]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
-6.  Responding to Authentication Requests
+6.  Before Requesting Authentication - Unregistered Consumers
+
+   If the Combined Consumer and Combined Provider have not set up a
+   consumer key and consumer secret, then the Combined Consumer MUST
+   establish an association with the Combined Provider (see Section 8 of
+   [OpenID]).
+
+   The Combined Consumer MUST add an additional parameter "openid.realm"
+   to the association session request described in Section 8.1 of
+   [OpenID].  The value of this parameter SHOULD be the same as that of
+   the "openid.realm" parameter used in subsequent authentication
+   requests.
+
+   The Combined Consumer and Combined Provider SHOULD use the
+   association MAC key obtained during the association session as the
+   OAuth Consumer secret when requesting an access token.  The Combined
+   Consumer and Combined Provider SHOULD use the association handle
+   obtained during the association session as the OAuth Consumer key
+   when requesting an access token (see Section 10).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 8]
+
+                         OpenID OAuth Extension            November 2008
+
+
+7.  Requesting Authentication
+
+   When Requesting OpenID Authentication via the protocol mode
+   "checkid_setup" or "checkid_immediate", this extension can be used to
+   request that the end user authorize an OAuth token at the same time
+   as their OpenID authentication.  This is done by sending the
+   following parameters as part of the OpenID request.
+
+   openid.ns.oauth  REQUIRED.  Value:
+      "http://specs.openid.net/extensions/oauth/1.0".
+
+   openid.oauth.scope  OPTIONAL.  Value: A string that encodes, in a way
+      possibly specific to the Combined Provider, one or more scopes for
+      the OAuth token expected in the authentication response.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 9]
+
+                         OpenID OAuth Extension            November 2008
+
+
+8.  Authorizing the OAuth Request
+
+   If the OAuth Extension is present in the authentication request, the
+   Combined Provider SHOULD determine that delegation of authorization
+   from a user to the Combined Provider has been requested.  The
+   Combined Provider SHOULD not issue an approved request token unless
+   it has user consent to delegate such authorization.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                [Page 10]
+
+                         OpenID OAuth Extension            November 2008
+
+
+9.  Responding to Authentication Requests
 
    If the OpenID authentication request cannot be fulfilled (either in
    failure mode "setup_needed" or "cancel" as in Sections 10.2.1 and
@@ -405,26 +573,18 @@ Balfanz, et al.                                                 [Page 7]
    request in cases when the OpenID authentication response is a
    positive assertion (Section 10.1 of [OpenID]).
 
-   If the request parameter "openid.oauth.request_token" is present and
-   is a valid Unauthorized Request Token, the Combined Provider SHOULD
-   determine that an authorized end user wishes to complete the OAuth
-   Authorization.
-
-   If the end user does wish to grant access to the Consumer, the
+   If the end user does wish to delegate access to the Consumer, the
    Combined Provider MUST include and MUST sign the following
    parameters.
 
-   openid.ns.oauth  REQUIRED.  Identical value as defined in Section 5.
+   openid.ns.oauth  REQUIRED.  Identical value as defined in Section 7.
 
-   openid.oauth.request_token  REQUIRED.  The value included in the
-      request.
+   openid.oauth.request_token  REQUIRED.  A user-approved request token.
 
-   openid.oauth.response_token  OPTIONAL.  The response token MUST be
-      included in the response if the Provider supports the
-      'Unregistered Consumer' extension to OAuth, (see
-      [UnregisteredOAuth]), and the Consumer is unregistered, as defined
-      in that extension.  Response tokens are needed by an unregistered
-      Combined Consumer to obtain an OAuth access token.
+   openid.oauth.scope  OPTIONAL.  A string that encodes, in a way
+      possibly specific to the Combined Provider, one or more scopes
+      that the returned request token is valid for.  This will typically
+      indicate a subset of the scopes requested in Section 7.
 
    To note that the OAuth Authorization was declined or not valid, the
    Combined Provider SHALL only respond with the parameter
@@ -444,68 +604,76 @@ Balfanz, et al.                                                 [Page 7]
 
 
 
-Balfanz, et al.                                                 [Page 8]
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                [Page 11]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
-7.  Requesting the Access Token
+10.  Obtaining the Access Token
 
    To exchange the request token for an access token, the Combined
-   Consumer follows Section 6.3 of [OAuth], or Section x.x of
-   [UnregisteredOAuth], whichever is appropriate.  However, if the
-   Combined Consumer cannot itself verify the signature in the
-   authentication response, it MAY use the optimization described in
-   this Section.
+   Consumer follows Section 6.3 of [OAuth], i.e., it sends an access
+   token request to the access token endpoint of the Combined Provider.
+   It SHALL use the following values to create the OAuth access token
+   request:
 
-7.1.  Optimized Access Token Request for Non-Associated RPs
+   consumer key  Registered consumers use the consumer key they
+      established with the Combined Provider in Section 5.  Unregistered
+      consumers use the association handle established in Section 6.
 
-   If the Combined Consumer cannot itself verify the signature in the
-   authentication response, it MUST construct a direct verification
-   request, according to section 11.4.2.1 of [OpenID], including all
-   openid.* parameters that appeared in the response.  The RP sends the
-   OAuth access token request parameters (section 6.3.1 of [OAuth])
-   either in the HTTP Authorization header or in the query part of the
-   URL (as described in section 5.2 of the same document).  The third
-   mechanism defined in the Section 5.2 of [OAuth] cannot be used
-   because the OpenID request POST body has an incompatible Mime-type.
+   consumer secret  Registered consumers use the consumer secret they
+      established with the Combined Provider in Section 5.  Unregistered
+      consumers use the association MAC key established in Section 6.
 
-7.2.  Responding to Access Token Requests
+   OAuth token  Registered and unregistered consumers use the request
+      token obtained in Section 9.
 
-   If the OpenID signature verification fails, the Combined Provider
-   should not include any OAuth extension parameters in the response,
-   and should proceed identically as in Section 11.4.2.2 of [OpenID].
+   OAuth token secret  Registered and unregistered consumers use the
+      empty string.
 
-   If the OpenID signature verification succeeds, the Provider verifies
-   the OAuth signature, according to Section 9 of [OAuth].
-
-   If the OAuth signature verification fails, the OpenID signature
-   verification response proceeds identically as described in Section
-   11.4.2.2 of [OpenID].
-
-   If the OAuth signature verification succeeds, the Provider constructs
-   an OpenID signature verification response message with the following
-   additional parameters:
-
-   openid.ns.oauth  REQUIRED.  Same value as in Section Section 5.
-
-   openid.oauth.access_token  REQUIRED.  The OAuth access token, encoded
-      according to Section 5.1 of [OAuth].
-
-   openid.oauth.access_token_secret  REQUIRED.  The OAuth access token
-      secret, similarly encoded.
+   The Combined Provider SHOULD verify that the request token presented
+   in the access token request was issued to a realm that the consumer
+   identified by the consumer key is authorized to use.  If the request
+   token was issued to a realm that the Combined Consumer is not
+   authorized to use, or if the request otherwise fails verification,
+   the Combined Provider SHOULD respond with an appropriate response
+   code according to Section 6.3 of [OAuth].
 
 
 
 
 
 
-Balfanz, et al.                                                 [Page 9]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                [Page 12]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
-8.  General Considerations
+11.  General Considerations
 
    The proposal takes the approach to insulate each protocol from the
    other, both for backwards compatibility as well as to enable OpenID
@@ -556,12 +724,12 @@ Balfanz, et al.                                                 [Page 9]
 
 
 
-Balfanz, et al.                                                [Page 10]
+Balfanz, et al.                                                [Page 13]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
-9.  Security Considerations
+12.  Security Considerations
 
    This proposal composes protocols that provide security services
    (authentication in the case of OpenID, authorization in the case of
@@ -612,12 +780,12 @@ Balfanz, et al.                                                [Page 10]
 
 
 
-Balfanz, et al.                                                [Page 11]
+Balfanz, et al.                                                [Page 14]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
-10.  Normative References
+13.  Normative References
 
    [OAuth]    OAuth Core Workgroup, "OAuth Core 1.0", December 2007,
               <http://oauth.net/core/1.0/>.
@@ -629,10 +797,6 @@ Balfanz, et al.                                                [Page 11]
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
 
-   [UnregisteredOAuth]
-              Balfanz, D., Eaton, B., and B. de Medeiros, "OAuth
-              Unregistered Consumer Extension", <http://
-              breno.demedeiros.googlepages.com/oauth-unregistered.html>.
 
 
 
@@ -668,9 +832,13 @@ Balfanz, et al.                                                [Page 11]
 
 
 
-Balfanz, et al.                                                [Page 12]
+
+
+
+
+Balfanz, et al.                                                [Page 15]
 
-                         OpenID OAuth Extension           September 2008
+                         OpenID OAuth Extension            November 2008
 
 
 Authors' Addresses
@@ -724,5 +892,5 @@ Authors' Addresses
 
 
 
-Balfanz, et al.                                                [Page 13]
+Balfanz, et al.                                                [Page 16]
 
