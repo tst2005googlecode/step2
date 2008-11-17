@@ -22,7 +22,7 @@ import javax.servlet.http.HttpSession;
 public class DummyOpenIDServlet extends InjectableServlet {
   // instantiate a ServerManager object
   ServerManager manager = new ServerManager();
-  
+
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
   throws IOException, ServletException {
@@ -40,11 +40,11 @@ public class DummyOpenIDServlet extends InjectableServlet {
     // extract the parameters from the request
     ParameterList requestParams;
     if ("complete".equals(httpReq.getParameter("_action"))) {
-      requestParams = (ParameterList) session.getAttribute("parameterlist"); 
+      requestParams = (ParameterList) session.getAttribute("parameterlist");
     } else {
       requestParams = new ParameterList(httpReq.getParameterMap());
     }
-    
+
     String mode = requestParams.getParameterValue("openid.mode");
     StringBuffer responseText = new StringBuffer();
     Message responseMessage;
@@ -61,26 +61,26 @@ public class DummyOpenIDServlet extends InjectableServlet {
         authenticatedAndApproved =
           (Boolean) session.getAttribute("authenticatedAndApproved");
       }
-      
+
       if (!authenticatedAndApproved) {
         // Interact with the user and obtain data needed to continue
         session.setAttribute("parameterlist", requestParams);
         httpResp.sendRedirect("authorize");
         return;
       }
-      
+
       String userId = (String) session.getAttribute("openid.claimed_id");
       String userClaimedId = (String) session.getAttribute("openid.identity");
       // Remove the parameterlist so this provider can accept any request
       session.removeAttribute("parameterlist");
       // Makes you authorize each and every time
-      session.setAttribute("authenticatedAndApproved", Boolean.FALSE); 
+      session.setAttribute("authenticatedAndApproved", Boolean.FALSE);
 
       // Process an authorization event
       responseMessage = manager.authResponse(requestParams, userId,
           userClaimedId, authenticatedAndApproved.booleanValue());
 
-      if (responseMessage instanceof AuthSuccess) {        
+      if (responseMessage instanceof AuthSuccess) {
         FetchResponse2 fetchResponse = new FetchResponse2();
         String email = (String) session.getAttribute("email");
         if (email != null) {
@@ -96,13 +96,13 @@ public class DummyOpenIDServlet extends InjectableServlet {
         } catch (MessageException e) {
           throw new ServletException(e);
         }
-        
+
         String oauthRequestToken =
           (String) session.getAttribute("oauth_request_token");
         if (oauthRequestToken != null) {
           // This is a request token response
-          HybridOauthResponse hybridResponse = new HybridOauthResponse();
-          hybridResponse.setReqToken(oauthRequestToken);
+          HybridOauthResponse hybridResponse =
+              new HybridOauthResponse(oauthRequestToken, "");
           try {
             responseMessage.addExtension(hybridResponse);
           } catch (MessageException e) {

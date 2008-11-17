@@ -4,15 +4,15 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.google.step2;
@@ -33,7 +33,7 @@ import org.openid4java.message.ParameterList;
  * Class that lets you generate AuthRequestHelpers. This class is basically
  * a wrapper around a ConsumerManager (which can handle associations,
  * discovery, and standard claimed_id-carrying auth requests).
- * 
+ *
  * @author Dirk Balfanz (dirk.balfanz@gmail.com)
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
@@ -63,10 +63,9 @@ public class ConsumerHelper {
    * @return an AuthRequestHelper object
    */
   public AuthRequestHelper getAuthRequestHelper(String openId,
-      String returnToUrl, String oauthRequestToken) {
+      String returnToUrl) {
     log.info("OpenId: " + openId + " Return URL: " + returnToUrl);
-    return new AuthRequestHelper(consumerManager, openId, returnToUrl,
-        oauthRequestToken);
+    return new AuthRequestHelper(consumerManager, openId, returnToUrl);
   }
 
   /**

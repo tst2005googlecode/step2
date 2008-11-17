@@ -4,15 +4,15 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.google.step2;
@@ -41,8 +41,7 @@ import java.util.List;
  *   ConsumerHelper consumerHelper = ... // recommendation: inject with Guice
  *   String user_supplied_id = ... // id supplied by the user, or perhaps IdP
  *   String returnToUrl = ... // where should IdP send AuthResponse?
- *   String oAuthRequestToken = ... // Optional unauthorized OAuth Request token
- *   
+ *
  *   AuthRequestHelper helper =
  *       consumerHelper.getAuthRequestHelper(user_supplied_id, returnToUrl);
  *
@@ -61,20 +60,20 @@ import java.util.List;
  *   }
  * }
  * </pre>
- * 
+ *
  * @author Dirk Balfanz (dirk.balfanz@gmail.com)
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class AuthRequestHelper {
   private static Log log = LogFactory.getLog(AuthRequestHelper.class);
-  
+
   // For doing associations, and for generating requests that include
   // OpenID identity requests
   private final ConsumerManager consumerManager;
 
-  // An unauthorized oauthRequestToken
-  private final String oauthRequestToken;
-  
+  // Request OAuth scope(s)
+  private String oauthScope;
+
   // The user-supplied identifier
   private final String openId;
 
@@ -83,7 +82,7 @@ public class AuthRequestHelper {
 
   // If AX attributes are specified, this object will hold them.
   private FetchRequest2 axFetchRequest = null;
-  
+
   // If a Hybrid Oauth extension is specified, this object will hold it
   private HybridOauthRequest hybridOauthRequest = null;
 
@@ -91,12 +90,11 @@ public class AuthRequestHelper {
   private DiscoveryInformation discovered = null;
 
   AuthRequestHelper(ConsumerManager consumerManager, String openId,
-      String returnToUrl, String oauthRequestToken) {
+      String returnToUrl) {
     log.info("OpenId: " + openId + " ReturnToUrl: " + returnToUrl);
     this.consumerManager = consumerManager;
     this.openId = openId.trim();
     this.returnToUrl = returnToUrl;
-    this.oauthRequestToken = oauthRequestToken;
   }
 
   /**
@@ -115,11 +113,11 @@ public class AuthRequestHelper {
 
     return discovered;
   }
-  
-  public AuthRequestHelper requestOauthAuthorization() {
+
+  public AuthRequestHelper requestOauthAuthorization(String scope) {
     log.info("Requesting OauthAuthorization");
     if (axFetchRequest == null) {
-      hybridOauthRequest = new HybridOauthRequest();
+      hybridOauthRequest = new HybridOauthRequest(scope);
     }
     return this;
   }
@@ -180,9 +178,6 @@ public class AuthRequestHelper {
     }
 
     if (hybridOauthRequest != null) {
-      if (oauthRequestToken != null) {
-        hybridOauthRequest.setReqToken(oauthRequestToken);
-      }
       authReq.addExtension(hybridOauthRequest);
     }
 
