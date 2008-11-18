@@ -112,17 +112,11 @@
       <t>
 	The Combined Consumer then exchanges the request token for an
         access token at the access token endpoint of the Combined 
-        Provider, following standard OAuth practice. The Combined
-        Provider, when issuing the access token, not only checks that
-        the request token has been approved by an authorized user
-        (which is standard OAuth practice), but also that the Combined
-        Consumer is authorized to use the OpenID realm to which
-        the request token was issued (which is a new requirement
-        introduced by this specification). 
+        Provider, following standard OAuth practice. 
       </t>
     </section>
 
-    <section anchor='Registered' title="Before Requesting Authentication - Registered Consumers">
+    <section anchor='Registered' title="Before Requesting Authentication - Registration">
       <t>The Combined Consumer and the Combined Provider agree on a
       consumer key and consumer secret (see <xref target="OAuth"/>).
       </t>
@@ -131,30 +125,6 @@
       Combined Consumer may use in subsequent authentication
       requests. The Combined Provider SHOULD verify that the Combined
       Consumer is authorized to use those realms.
-      </t>
-    </section>
-
-    <section anchor='Unregistered' title="Before Requesting Authentication - Unregistered Consumers">
-      <t>If the Combined Consumer and Combined Provider have not set
-      up a consumer key and consumer secret, then the Combined
-      Consumer MUST establish an association with the Combined
-      Provider (see Section 8 of <xref target="OpenID"/>).
-      </t>
-
-      <t>The Combined Consumer MUST add an additional parameter
-      "openid.realm" to the association session request described in
-      Section 8.1 of <xref target="OpenID"/>. The value of this
-      parameter SHOULD be the same as that of the "openid.realm"
-      parameter used in subsequent authentication requests.
-      </t>
-
-      <t>The Combined Consumer and Combined Provider SHOULD use the
-      association MAC key obtained during the association session as
-      the OAuth Consumer secret when requesting an access token. The
-      Combined Consumer and Combined Provider SHOULD use the
-      association handle obtained during the association session as
-      the OAuth Consumer key when requesting an access token (see
-      <xref target="AuthTokenReq"/>).
       </t>
     </section>
 
@@ -168,6 +138,9 @@
         <list style="hanging">
           <t hangText='openid.ns.oauth'>
             REQUIRED. Value: "http://specs.openid.net/extensions/oauth/1.0".</t>
+          <t hangText="openid.oauth.consumer">
+            REQUIRED. Value: The consumer key agreed upon in <xref target="Registered"/>.
+	  </t>
           <t hangText="openid.oauth.scope">
             OPTIONAL. Value: A string that encodes, in a way possibly specific to
             the Combined Provider, one or more scopes for the OAuth
@@ -179,13 +152,17 @@
 
     <section title="Authorizing the OAuth Request">
       <t>If the OAuth Extension is present in the authentication
-	request, the Combined Provider SHOULD determine that
-	delegation of authorization from a user to the Combined
-	Provider has been requested.
+	request, the Combined Provider SHOULD verify that the consumer
+	key passed in the request is authorized to be used for the
+	realm passed in the request. If this verification fails, the
+	Combined Provider MAY send a negative assertion to the
+	Combined Consumer (see Section 10.2 of
+	<xref target="OpenID"/>). If this verification succeeds, the
+	Combined Provider SHOULD determine that delegation of access
+	from a user to the Combined Consumer has been requested.</t>
 
-	The Combined Provider SHOULD not issue an approved request
-	token unless it has user consent to delegate such
-	authorization.
+	<t>The Combined Provider SHOULD not issue an approved request
+	token unless it has user consent to perform such delegation.
       </t>
     </section>
 
@@ -207,6 +184,9 @@
           <t hangText='openid.ns.oauth'>
             REQUIRED. Identical value as defined in <xref target='AuthReq' />.
           </t>
+          <t hangText="openid.oauth.consumer">
+            REQUIRED. Value: The consumer key sent in the request.
+	  </t>
           <t hangText='openid.oauth.request_token'>
             REQUIRED. A user-approved request token.
           </t>  
@@ -225,42 +205,33 @@
 
     <section anchor="AuthTokenReq" title="Obtaining the Access Token">
       <t>To exchange the request token for an access token, the
-        Combined Consumer follows Section 6.3 of
+        Combined Consumer follows Section 6.3.1 of
         <xref target="OAuth"/>, i.e., it sends an access token request
         to the access token endpoint of the Combined Provider. It
         SHALL use the following values to create the OAuth access
         token request:
         <list style="hanging">
           <t hangText='consumer key'>
-	    Registered consumers use the consumer key they established
-	    with the Combined Provider in
-	    <xref target='Registered'/>. Unregistered consumers use
-	    the association handle established in <xref target='Unregistered'/>.
+	    Consumers use the consumer key they established with the
+	    Combined Provider in <xref target='Registered'/>.
           </t>
           <t hangText='consumer secret'>
-	    Registered consumers use the consumer secret they established
-	    with the Combined Provider in
-	    <xref target='Registered'/>. Unregistered consumers use
-	    the association MAC key established in <xref target='Unregistered'/>.
+	    Consumers use the consumer secret they established with
+	    the Combined Provider in <xref target='Registered'/>.
           </t>  
           <t hangText='OAuth token'>
-	    Registered and unregistered consumers use the request
-	    token obtained in <xref target="AuthResp"/>.
+	    Consumers use the request token obtained in
+	    <xref target="AuthResp"/>.
           </t>  
           <t hangText='OAuth token secret'>
-	    Registered and unregistered consumers use the empty string.
+	    Consumers use the empty string.
           </t>  
         </list>
       </t>
       <t>
-	The Combined Provider SHOULD verify that the request token
-	presented in the access token request was issued to a realm
-	that the consumer identified by the consumer key is authorized
-	to use. If the request token was issued to a realm that the
-	Combined Consumer is not authorized to use, or if the request
-	otherwise fails verification, the Combined Provider SHOULD
-	respond with an appropriate response code according to Section
-	6.3 of <xref target="OAuth"/>.
+	The Combined Provider follows Section 6.3.2 to verify the
+	request and either issue the access token or send an error
+	response. 
       </t>
     </section>
 

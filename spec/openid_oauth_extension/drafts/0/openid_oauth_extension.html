@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en"><head><title>draft: OpenID OAuth Extension</title>
-<meta http-equiv="Expires" content="Thu, 13 Nov 2008 02:05:00 +0000">
+<meta http-equiv="Expires" content="Tue, 18 Nov 2008 19:53:04 +0000">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="OpenID OAuth Extension">
 <meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
@@ -149,7 +149,7 @@
 <tr><td class="header">&nbsp;</td><td class="header">Six Apart</td></tr>
 <tr><td class="header">&nbsp;</td><td class="header">J. Smarr</td></tr>
 <tr><td class="header">&nbsp;</td><td class="header">Plaxo</td></tr>
-<tr><td class="header">&nbsp;</td><td class="header">November 12, 2008</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">November 18, 2008</td></tr>
 </table></td></tr></table>
 <h1><br />OpenID OAuth Extension</h1>
 
@@ -170,22 +170,20 @@ Purpose of this Specification<br />
 <a href="#anchor4">4.</a>&nbsp;
 Overview<br />
 <a href="#Registered">5.</a>&nbsp;
-Before Requesting Authentication - Registered Consumers<br />
-<a href="#Unregistered">6.</a>&nbsp;
-Before Requesting Authentication - Unregistered Consumers<br />
-<a href="#AuthReq">7.</a>&nbsp;
+Before Requesting Authentication - Registration<br />
+<a href="#AuthReq">6.</a>&nbsp;
 Requesting Authentication<br />
-<a href="#anchor5">8.</a>&nbsp;
+<a href="#anchor5">7.</a>&nbsp;
 Authorizing the OAuth Request<br />
-<a href="#AuthResp">9.</a>&nbsp;
+<a href="#AuthResp">8.</a>&nbsp;
 Responding to Authentication Requests<br />
-<a href="#AuthTokenReq">10.</a>&nbsp;
+<a href="#AuthTokenReq">9.</a>&nbsp;
 Obtaining the Access Token<br />
-<a href="#anchor6">11.</a>&nbsp;
+<a href="#anchor6">10.</a>&nbsp;
 General Considerations<br />
-<a href="#anchor7">12.</a>&nbsp;
+<a href="#anchor7">11.</a>&nbsp;
 Security Considerations<br />
-<a href="#rfc.references1">13.</a>&nbsp;
+<a href="#rfc.references1">12.</a>&nbsp;
 Normative References<br />
 <a href="#rfc.authors">&#167;</a>&nbsp;
 Authors' Addresses<br />
@@ -273,19 +271,13 @@ Overview</h3>
 <p>
 	The Combined Consumer then exchanges the request token for an
         access token at the access token endpoint of the Combined 
-        Provider, following standard OAuth practice. The Combined
-        Provider, when issuing the access token, not only checks that
-        the request token has been approved by an authorized user
-        (which is standard OAuth practice), but also that the Combined
-        Consumer is authorized to use the OpenID realm to which
-        the request token was issued (which is a new requirement
-        introduced by this specification). 
+        Provider, following standard OAuth practice. 
       
 </p>
 <a name="Registered"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.5"></a><h3>5.&nbsp;
-Before Requesting Authentication - Registered Consumers</h3>
+Before Requesting Authentication - Registration</h3>
 
 <p>The Combined Consumer and the Combined Provider agree on a
       consumer key and consumer secret (see <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>).
@@ -298,36 +290,9 @@ Before Requesting Authentication - Registered Consumers</h3>
       Consumer is authorized to use those realms.
       
 </p>
-<a name="Unregistered"></a><br /><hr />
-<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6"></a><h3>6.&nbsp;
-Before Requesting Authentication - Unregistered Consumers</h3>
-
-<p>If the Combined Consumer and Combined Provider have not set
-      up a consumer key and consumer secret, then the Combined
-      Consumer MUST establish an association with the Combined
-      Provider (see Section 8 of <a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>).
-      
-</p>
-<p>The Combined Consumer MUST add an additional parameter
-      "openid.realm" to the association session request described in
-      Section 8.1 of <a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>. The value of this
-      parameter SHOULD be the same as that of the "openid.realm"
-      parameter used in subsequent authentication requests.
-      
-</p>
-<p>The Combined Consumer and Combined Provider SHOULD use the
-      association MAC key obtained during the association session as
-      the OAuth Consumer secret when requesting an access token. The
-      Combined Consumer and Combined Provider SHOULD use the
-      association handle obtained during the association session as
-      the OAuth Consumer key when requesting an access token (see
-      <a class='info' href='#AuthTokenReq'>Section&nbsp;10<span> (</span><span class='info'>Obtaining the Access Token</span><span>)</span></a>).
-      
-</p>
 <a name="AuthReq"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.7"></a><h3>7.&nbsp;
+<a name="rfc.section.6"></a><h3>6.&nbsp;
 Requesting Authentication</h3>
 
 <p>When Requesting OpenID Authentication via the protocol mode
@@ -342,6 +307,11 @@ Requesting Authentication</h3>
 <dd>
             REQUIRED. Value: "http://specs.openid.net/extensions/oauth/1.0".
 </dd>
+<dt>openid.oauth.consumer</dt>
+<dd>
+            REQUIRED. Value: The consumer key agreed upon in <a class='info' href='#Registered'>Section&nbsp;5<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
+	  
+</dd>
 <dt>openid.oauth.scope</dt>
 <dd>
             OPTIONAL. Value: A string that encodes, in a way possibly specific to
@@ -354,22 +324,26 @@ Requesting Authentication</h3>
 </p>
 <a name="anchor5"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8"></a><h3>8.&nbsp;
+<a name="rfc.section.7"></a><h3>7.&nbsp;
 Authorizing the OAuth Request</h3>
 
 <p>If the OAuth Extension is present in the authentication
-	request, the Combined Provider SHOULD determine that
-	delegation of authorization from a user to the Combined
-	Provider has been requested.
-
-	The Combined Provider SHOULD not issue an approved request
-	token unless it has user consent to delegate such
-	authorization.
+	request, the Combined Provider SHOULD verify that the consumer
+	key passed in the request is authorized to be used for the
+	realm passed in the request. If this verification fails, the
+	Combined Provider MAY send a negative assertion to the
+	Combined Consumer (see Section 10.2 of
+	<a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>). If this verification succeeds, the
+	Combined Provider SHOULD determine that delegation of access
+	from a user to the Combined Consumer has been requested.
+</p>
+<p>The Combined Provider SHOULD not issue an approved request
+	token unless it has user consent to perform such delegation.
       
 </p>
 <a name="AuthResp"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.9"></a><h3>9.&nbsp;
+<a name="rfc.section.8"></a><h3>8.&nbsp;
 Responding to Authentication Requests</h3>
 
 <p>If the OpenID authentication request cannot be fulfilled (either in
@@ -391,8 +365,13 @@ Responding to Authentication Requests</h3>
 <blockquote class="text"><dl>
 <dt>openid.ns.oauth</dt>
 <dd>
-            REQUIRED. Identical value as defined in <a class='info' href='#AuthReq'>Section&nbsp;7<span> (</span><span class='info'>Requesting Authentication</span><span>)</span></a>.
+            REQUIRED. Identical value as defined in <a class='info' href='#AuthReq'>Section&nbsp;6<span> (</span><span class='info'>Requesting Authentication</span><span>)</span></a>.
           
+</dd>
+<dt>openid.oauth.consumer</dt>
+<dd>
+            REQUIRED. Value: The consumer key sent in the request.
+	  
 </dd>
 <dt>openid.oauth.request_token</dt>
 <dd>
@@ -404,7 +383,7 @@ Responding to Authentication Requests</h3>
             OPTIONAL.  A string that encodes, in a way possibly specific to
             the Combined Provider, one or more scopes that the
             returned request token is valid for. This will typically
-            indicate a subset of the scopes requested in <a class='info' href='#AuthReq'>Section&nbsp;7<span> (</span><span class='info'>Requesting Authentication</span><span>)</span></a>.
+            indicate a subset of the scopes requested in <a class='info' href='#AuthReq'>Section&nbsp;6<span> (</span><span class='info'>Requesting Authentication</span><span>)</span></a>.
           
 </dd>
 </dl></blockquote><p>
@@ -415,11 +394,11 @@ Responding to Authentication Requests</h3>
 </p>
 <a name="AuthTokenReq"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.10"></a><h3>10.&nbsp;
+<a name="rfc.section.9"></a><h3>9.&nbsp;
 Obtaining the Access Token</h3>
 
 <p>To exchange the request token for an access token, the
-        Combined Consumer follows Section 6.3 of
+        Combined Consumer follows Section 6.3.1 of
         <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>, i.e., it sends an access token request
         to the access token endpoint of the Combined Provider. It
         SHALL use the following values to create the OAuth access
@@ -428,48 +407,39 @@ Obtaining the Access Token</h3>
 <blockquote class="text"><dl>
 <dt>consumer key</dt>
 <dd>
-	    Registered consumers use the consumer key they established
-	    with the Combined Provider in
-	    <a class='info' href='#Registered'>Section&nbsp;5<span> (</span><span class='info'>Before Requesting Authentication - Registered Consumers</span><span>)</span></a>. Unregistered consumers use
-	    the association handle established in <a class='info' href='#Unregistered'>Section&nbsp;6<span> (</span><span class='info'>Before Requesting Authentication - Unregistered Consumers</span><span>)</span></a>.
+	    Consumers use the consumer key they established with the
+	    Combined Provider in <a class='info' href='#Registered'>Section&nbsp;5<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
           
 </dd>
 <dt>consumer secret</dt>
 <dd>
-	    Registered consumers use the consumer secret they established
-	    with the Combined Provider in
-	    <a class='info' href='#Registered'>Section&nbsp;5<span> (</span><span class='info'>Before Requesting Authentication - Registered Consumers</span><span>)</span></a>. Unregistered consumers use
-	    the association MAC key established in <a class='info' href='#Unregistered'>Section&nbsp;6<span> (</span><span class='info'>Before Requesting Authentication - Unregistered Consumers</span><span>)</span></a>.
+	    Consumers use the consumer secret they established with
+	    the Combined Provider in <a class='info' href='#Registered'>Section&nbsp;5<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
           
 </dd>
 <dt>OAuth token</dt>
 <dd>
-	    Registered and unregistered consumers use the request
-	    token obtained in <a class='info' href='#AuthResp'>Section&nbsp;9<span> (</span><span class='info'>Responding to Authentication Requests</span><span>)</span></a>.
+	    Consumers use the request token obtained in
+	    <a class='info' href='#AuthResp'>Section&nbsp;8<span> (</span><span class='info'>Responding to Authentication Requests</span><span>)</span></a>.
           
 </dd>
 <dt>OAuth token secret</dt>
 <dd>
-	    Registered and unregistered consumers use the empty string.
+	    Consumers use the empty string.
           
 </dd>
 </dl></blockquote><p>
       
 </p>
 <p>
-	The Combined Provider SHOULD verify that the request token
-	presented in the access token request was issued to a realm
-	that the consumer identified by the consumer key is authorized
-	to use. If the request token was issued to a realm that the
-	Combined Consumer is not authorized to use, or if the request
-	otherwise fails verification, the Combined Provider SHOULD
-	respond with an appropriate response code according to Section
-	6.3 of <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>.
+	The Combined Provider follows Section 6.3.2 to verify the
+	request and either issue the access token or send an error
+	response. 
       
 </p>
 <a name="anchor6"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.11"></a><h3>11.&nbsp;
+<a name="rfc.section.10"></a><h3>10.&nbsp;
 General Considerations</h3>
 
 <p>The proposal takes the approach to insulate each protocol
@@ -503,7 +473,7 @@ General Considerations</h3>
 </p>
 <a name="anchor7"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.12"></a><h3>12.&nbsp;
+<a name="rfc.section.11"></a><h3>11.&nbsp;
 Security Considerations</h3>
 
 <p>This proposal composes protocols that provide
@@ -542,7 +512,7 @@ Security Considerations</h3>
 </p>
 <a name="rfc.references1"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<h3>13.&nbsp;Normative References</h3>
+<h3>12.&nbsp;Normative References</h3>
 <table width="99%" border="0">
 <tr><td class="author-text" valign="top"><a name="OAuth">[OAuth]</a></td>
 <td class="author-text"><a href="mailto:spec@oauth.net">OAuth Core Workgroup</a>, &ldquo;<a href="http://oauth.net/core/1.0/">OAuth Core 1.0</a>,&rdquo; December&nbsp;2007 (<a href="http://oauth.net/core/1.0/">HTML</a>).</td></tr>
