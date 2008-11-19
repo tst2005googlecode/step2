@@ -21,25 +21,19 @@ import com.google.inject.Inject;
 import com.google.step2.AuthRequestHelper;
 import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
-import com.google.step2.example.consumer.OAuthConsumerUtil;
+import com.google.step2.consumer.OAuthProviderInfoStore;
+import com.google.step2.consumer.ProviderInfoNotFoundException;
 import com.google.step2.servlet.InjectableServlet;
+
+import net.oauth.OAuthAccessor;
 
 import org.apache.log4j.Logger;
 import org.openid4java.consumer.ConsumerException;
-import org.openid4java.discovery.Discovery;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.MessageException;
-import org.openid4java.yadis.YadisResolver;
-import org.openid4java.yadis.YadisResult;
-import org.openxri.xml.SEPType;
-import org.openxri.xml.Service;
-import org.openxri.xml.XRD;
-import org.openxri.xml.XRDS;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -60,11 +54,17 @@ public class LoginServlet extends InjectableServlet {
   private static final String REDIRECT_PATH = "/checkauth";
 
   private ConsumerHelper consumerHelper;
+  private OAuthProviderInfoStore providerStore;
   private static final String YES_STRING = "yes";
 
   @Inject
   public void setConsumerHelper(ConsumerHelper helper) {
     this.consumerHelper = helper;
+  }
+
+  @Inject
+  public void setProviderInfoStore(OAuthProviderInfoStore providerStore) {
+    this.providerStore = providerStore;
   }
 
   @Override
@@ -91,8 +91,18 @@ public class LoginServlet extends InjectableServlet {
     AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(
         openId, returnToUrl);
 
+    // this is magic - normally this would also fall out of the discovery:
+    OAuthAccessor accessor;
+    try {
+      accessor = providerStore.getOAuthAccessor("google");
+    } catch (ProviderInfoNotFoundException e1) {
+      throw new ServletException(e1);
+    }
+
     if (YES_STRING.equals(req.getParameter("oauth"))) {
-      helper.requestOauthAuthorization("http://www.google.com/calendar/feeds/");
+      helper.requestOauthAuthorization(
+          accessor.consumer.consumerKey,
+          (String) accessor.consumer.getProperty("scope"));
     }
 
     if (YES_STRING.equals(req.getParameter("email"))) {

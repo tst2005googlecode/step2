@@ -21,7 +21,6 @@ import org.openid4java.message.Parameter;
 import org.openid4java.message.ParameterList;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,6 +29,9 @@ import java.util.List;
  * @author steveweis@google.com (Steve Weis)
  */
 public class HybridOauthRequest extends HybridOauthMessage {
+
+  protected final static List<String> requiredFields =
+    Arrays.asList(new String[] {CONSUMER_KEY});
 
   protected final static List<String> optionalFields =
     Arrays.asList(new String[] {SCOPE});
@@ -48,15 +50,20 @@ public class HybridOauthRequest extends HybridOauthMessage {
    * specific ways. Pass null to not request any specific scope (it's provider-
    * specific what that means).
    */
-  public HybridOauthRequest(String scope) {
+  public HybridOauthRequest(String consumerKey, String scope) {
     super();
+    if (consumerKey == null || consumerKey.trim().length() == 0) {
+      throw new IllegalArgumentException("consumer key is required");
+    } else {
+      parameters.set(new Parameter(CONSUMER_KEY, consumerKey));
+    }
+
     if (scope != null && scope.trim().length() > 0) {
       parameters.set(new Parameter(SCOPE, scope));
     }
   }
 
   boolean isValid() {
-    List<String> emptyList = Collections.emptyList();
-    return isValid(emptyList, optionalFields);
+    return isValid(requiredFields, optionalFields);
   }
 }

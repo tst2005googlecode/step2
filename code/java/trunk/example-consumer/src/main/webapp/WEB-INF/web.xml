@@ -11,6 +11,15 @@
     <listener-class>com.google.step2.servlet.GuiceServletContextListener</listener-class>
   </listener>
 
+  <!-- configuration -->
+  <!-- If you have your own Guice module(s), put them here as a comma-separated list. -->
+  <context-param>
+    <param-name>guice-modules</param-name>
+    <param-value>
+      com.google.step2.example.consumer.GuiceModule
+    </param-value>
+  </context-param>
+
   <servlet>
     <servlet-name>LoginServlet</servlet-name>
     <servlet-class>com.google.step2.example.consumer.servlet.LoginServlet</servlet-class>
@@ -30,7 +39,7 @@
     <servlet-name>Css</servlet-name>
     <jsp-file>/WEB-INF/css.jsp</jsp-file>
   </servlet>
- 
+
   <servlet-mapping>
     <servlet-name>LoginServlet</servlet-name>
     <url-pattern>/</url-pattern>
@@ -45,11 +54,11 @@
     <servlet-name>HelloServlet</servlet-name>
     <url-pattern>/hello</url-pattern>
   </servlet-mapping>
-  
+
   <servlet-mapping>
     <servlet-name>Css</servlet-name>
     <url-pattern>/style.css</url-pattern>
   </servlet-mapping>
-  
+
 
 </web-app>

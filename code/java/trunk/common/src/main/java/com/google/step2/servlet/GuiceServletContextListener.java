@@ -4,31 +4,37 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.google.step2.servlet;
 
 import com.google.inject.Guice;
+import com.google.inject.Module;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 /**
- * 
+ *
  * @author Dirk Balfanz (dirk.balfanz@gmail.com)
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class GuiceServletContextListener implements ServletContextListener {
+
+  public static final String MODULES_ATTRIBUTE = "guice-modules";
   public static final String INJECTOR_ATTRIBUTE = "guice-injector";
 
   public void contextDestroyed(ServletContextEvent event) {
@@ -37,8 +43,25 @@ public class GuiceServletContextListener implements ServletContextListener {
   }
 
   public void contextInitialized(ServletContextEvent event) {
+
     ServletContext context = event.getServletContext();
-    context.setAttribute(INJECTOR_ATTRIBUTE,
-        Guice.createInjector(new GuiceModule()));
+
+    List<Module> modules = new ArrayList<Module>();
+    String moduleNames = context.getInitParameter(MODULES_ATTRIBUTE);
+    if (moduleNames != null) {
+      for (String moduleName : moduleNames.split(",")) {
+        try {
+          modules.add((Module)Class.forName(moduleName.trim()).newInstance());
+        } catch (InstantiationException e) {
+          throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+          throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+
+    context.setAttribute(INJECTOR_ATTRIBUTE, Guice.createInjector(modules));
   }
 }

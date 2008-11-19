@@ -22,7 +22,6 @@ import org.openid4java.message.Parameter;
 import org.openid4java.message.ParameterList;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,7 +31,8 @@ import java.util.List;
  */
 public class HybridOauthResponse extends HybridOauthMessage {
 
-  private final static List<String> requiredFields = Collections.emptyList();
+  private final static List<String> requiredFields =
+    Arrays.asList(new String[] {CONSUMER_KEY});
 
   private final static List<String> optionalFields =
     Arrays.asList(new String[] {SCOPE, OAUTH_TOKEN});
@@ -44,13 +44,23 @@ public class HybridOauthResponse extends HybridOauthMessage {
     }
   }
 
-  public HybridOauthResponse(String requestToken, String scope) {
+  public HybridOauthResponse(String consumerKey, String requestToken,
+      String scope) {
+    if (consumerKey == null || consumerKey.trim().length() == 0) {
+      throw new IllegalArgumentException("consumer key is required");
+    } else {
+      parameters.set(new Parameter(CONSUMER_KEY, consumerKey));
+    }
     if (scope != null && scope.trim().length() > 0) {
       parameters.set(new Parameter(SCOPE, scope.trim()));
     }
     if (requestToken != null && requestToken.trim().length() > 0) {
       parameters.set(new Parameter(OAUTH_TOKEN, requestToken.trim()));
     }
+  }
+
+  public String getRequestToken() {
+    return getParameter(OAUTH_TOKEN);
   }
 
   boolean isValid() {

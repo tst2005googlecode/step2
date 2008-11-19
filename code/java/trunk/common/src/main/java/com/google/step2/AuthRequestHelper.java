@@ -114,11 +114,10 @@ public class AuthRequestHelper {
     return discovered;
   }
 
-  public AuthRequestHelper requestOauthAuthorization(String scope) {
+  public AuthRequestHelper requestOauthAuthorization(String consumerKey,
+      String scope) {
     log.info("Requesting OauthAuthorization");
-    if (axFetchRequest == null) {
-      hybridOauthRequest = new HybridOauthRequest(scope);
-    }
+    hybridOauthRequest = new HybridOauthRequest(consumerKey, scope);
     return this;
   }
 
