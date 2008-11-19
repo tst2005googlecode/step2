@@ -111,6 +111,16 @@
       </t>
     </section>
 
+    <section title="Discovery">
+      <t>Discovery of the OAuth extension is achieved via the
+      mechanism described in <xref target="OpenID"/>. The OAuth
+      extension namespace
+      "http://specs.openid.net/extensions/oauth/1.0" SHOULD be listed
+      as an &lt;xrd:Type&gt; child element of the &lt;xrd:Service&gt;
+      element in the XRDS discovery document.
+      </t>
+    </section>
+
     <section anchor='Registered' title="Before Requesting Authentication - Registration">
       <t>The Combined Consumer and the Combined Provider agree on a
       consumer key and consumer secret (see <xref target="OAuth"/>).
@@ -149,10 +159,7 @@
       <t>If the OAuth Extension is present in the authentication
 	request, the Combined Provider SHOULD verify that the consumer
 	key passed in the request is authorized to be used for the
-	realm passed in the request. If this verification fails, the
-	Combined Provider MAY send a negative assertion to the
-	Combined Consumer (see Section 10.2 of
-	<xref target="OpenID"/>). If this verification succeeds, the
+	realm passed in the request. If this verification succeeds, the
 	Combined Provider SHOULD determine that delegation of access
 	from a user to the Combined Consumer has been requested.</t>
 

@@ -8,7 +8,7 @@ draft                                                         D. Balfanz
                                                                Six Apart
                                                                 J. Smarr
                                                                    Plaxo
-                                                       November 18, 2008
+                                                       November 19, 2008
 
 
                          OpenID OAuth Extension
@@ -69,16 +69,16 @@ Table of Contents
    2.  Terminology  . . . . . . . . . . . . . . . . . . . . . . . . .  4
    3.  Purpose of this Specification  . . . . . . . . . . . . . . . .  5
    4.  Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  6
-   5.  Before Requesting Authentication - Registration  . . . . . . .  7
-   6.  Requesting Authentication  . . . . . . . . . . . . . . . . . .  8
-   7.  Authorizing the OAuth Request  . . . . . . . . . . . . . . . .  9
-   8.  Responding to Authentication Requests  . . . . . . . . . . . . 10
-   9.  Obtaining the Access Token . . . . . . . . . . . . . . . . . . 11
-   10. General Considerations . . . . . . . . . . . . . . . . . . . . 12
-   11. Security Considerations  . . . . . . . . . . . . . . . . . . . 13
-   12. Normative References . . . . . . . . . . . . . . . . . . . . . 14
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 15
-
+   5.  Discovery  . . . . . . . . . . . . . . . . . . . . . . . . . .  7
+   6.  Before Requesting Authentication - Registration  . . . . . . .  8
+   7.  Requesting Authentication  . . . . . . . . . . . . . . . . . .  9
+   8.  Authorizing the OAuth Request  . . . . . . . . . . . . . . . . 10
+   9.  Responding to Authentication Requests  . . . . . . . . . . . . 11
+   10. Obtaining the Access Token . . . . . . . . . . . . . . . . . . 12
+   11. General Considerations . . . . . . . . . . . . . . . . . . . . 13
+   12. Security Considerations  . . . . . . . . . . . . . . . . . . . 14
+   13. Normative References . . . . . . . . . . . . . . . . . . . . . 15
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 16
 
 
 
@@ -337,7 +337,63 @@ Balfanz, et al.                                                 [Page 6]
                          OpenID OAuth Extension            November 2008
 
 
-5.  Before Requesting Authentication - Registration
+5.  Discovery
+
+   Discovery of the OAuth extension is achieved via the mechanism
+   described in [OpenID].  The OAuth extension namespace
+   "http://specs.openid.net/extensions/oauth/1.0" SHOULD be listed as an
+   <xrd:Type> child element of the <xrd:Service> element in the XRDS
+   discovery document.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 7]
+
+                         OpenID OAuth Extension            November 2008
+
+
+6.  Before Requesting Authentication - Registration
 
    The Combined Consumer and the Combined Provider agree on a consumer
    key and consumer secret (see [OAuth]).
@@ -388,12 +444,12 @@ Balfanz, et al.                                                 [Page 6]
 
 
 
-Balfanz, et al.                                                 [Page 7]
+Balfanz, et al.                                                 [Page 8]
 
                          OpenID OAuth Extension            November 2008
 
 
-6.  Requesting Authentication
+7.  Requesting Authentication
 
    When Requesting OpenID Authentication via the protocol mode
    "checkid_setup" or "checkid_immediate", this extension can be used to
@@ -405,7 +461,7 @@ Balfanz, et al.                                                 [Page 7]
       "http://specs.openid.net/extensions/oauth/1.0".
 
    openid.oauth.consumer  REQUIRED.  Value: The consumer key agreed upon
-      in Section 5.
+      in Section 6.
 
    openid.oauth.scope  OPTIONAL.  Value: A string that encodes, in a way
       possibly specific to the Combined Provider, one or more scopes for
@@ -444,18 +500,16 @@ Balfanz, et al.                                                 [Page 7]
 
 
 
-Balfanz, et al.                                                 [Page 8]
+Balfanz, et al.                                                 [Page 9]
 
                          OpenID OAuth Extension            November 2008
 
 
-7.  Authorizing the OAuth Request
+8.  Authorizing the OAuth Request
 
    If the OAuth Extension is present in the authentication request, the
    Combined Provider SHOULD verify that the consumer key passed in the
    request is authorized to be used for the realm passed in the request.
-   If this verification fails, the Combined Provider MAY send a negative
-   assertion to the Combined Consumer (see Section 10.2 of [OpenID]).
    If this verification succeeds, the Combined Provider SHOULD determine
    that delegation of access from a user to the Combined Consumer has
    been requested.
@@ -500,12 +554,14 @@ Balfanz, et al.                                                 [Page 8]
 
 
 
-Balfanz, et al.                                                 [Page 9]
+
+
+Balfanz, et al.                                                [Page 10]
 
                          OpenID OAuth Extension            November 2008
 
 
-8.  Responding to Authentication Requests
+9.  Responding to Authentication Requests
 
    If the OpenID authentication request cannot be fulfilled (either in
    failure mode "setup_needed" or "cancel" as in Sections 10.2.1 and
@@ -521,7 +577,7 @@ Balfanz, et al.                                                 [Page 9]
    Combined Provider MUST include and MUST sign the following
    parameters.
 
-   openid.ns.oauth  REQUIRED.  Identical value as defined in Section 6.
+   openid.ns.oauth  REQUIRED.  Identical value as defined in Section 7.
 
    openid.oauth.consumer  REQUIRED.  Value: The consumer key sent in the
       request.
@@ -531,7 +587,7 @@ Balfanz, et al.                                                 [Page 9]
    openid.oauth.scope  OPTIONAL.  A string that encodes, in a way
       possibly specific to the Combined Provider, one or more scopes
       that the returned request token is valid for.  This will typically
-      indicate a subset of the scopes requested in Section 6.
+      indicate a subset of the scopes requested in Section 7.
 
    To note that the OAuth Authorization was declined or not valid, the
    Combined Provider SHALL only respond with the parameter
@@ -556,12 +612,12 @@ Balfanz, et al.                                                 [Page 9]
 
 
 
-Balfanz, et al.                                                [Page 10]
+Balfanz, et al.                                                [Page 11]
 
                          OpenID OAuth Extension            November 2008
 
 
-9.  Obtaining the Access Token
+10.  Obtaining the Access Token
 
    To exchange the request token for an access token, the Combined
    Consumer follows Section 6.3.1 of [OAuth], i.e., it sends an access
@@ -570,12 +626,12 @@ Balfanz, et al.                                                [Page 10]
    request:
 
    consumer key  Consumers use the consumer key they established with
-      the Combined Provider in Section 5.
+      the Combined Provider in Section 6.
 
    consumer secret  Consumers use the consumer secret they established
-      with the Combined Provider in Section 5.
+      with the Combined Provider in Section 6.
 
-   OAuth token  Consumers use the request token obtained in Section 8.
+   OAuth token  Consumers use the request token obtained in Section 9.
 
    OAuth token secret  Consumers use the empty string.
 
@@ -612,12 +668,12 @@ Balfanz, et al.                                                [Page 10]
 
 
 
-Balfanz, et al.                                                [Page 11]
+Balfanz, et al.                                                [Page 12]
 
                          OpenID OAuth Extension            November 2008
 
 
-10.  General Considerations
+11.  General Considerations
 
    The proposal takes the approach to insulate each protocol from the
    other, both for backwards compatibility as well as to enable OpenID
@@ -668,12 +724,12 @@ Balfanz, et al.                                                [Page 11]
 
 
 
-Balfanz, et al.                                                [Page 12]
+Balfanz, et al.                                                [Page 13]
 
                          OpenID OAuth Extension            November 2008
 
 
-11.  Security Considerations
+12.  Security Considerations
 
    This proposal composes protocols that provide security services
    (authentication in the case of OpenID, authorization in the case of
@@ -724,12 +780,12 @@ Balfanz, et al.                                                [Page 12]
 
 
 
-Balfanz, et al.                                                [Page 13]
+Balfanz, et al.                                                [Page 14]
 
                          OpenID OAuth Extension            November 2008
 
 
-12.  Normative References
+13.  Normative References
 
    [OAuth]    OAuth Core Workgroup, "OAuth Core 1.0", December 2007,
               <http://oauth.net/core/1.0/>.
@@ -780,7 +836,7 @@ Balfanz, et al.                                                [Page 13]
 
 
 
-Balfanz, et al.                                                [Page 14]
+Balfanz, et al.                                                [Page 15]
 
                          OpenID OAuth Extension            November 2008
 
@@ -836,5 +892,5 @@ Authors' Addresses
 
 
 
-Balfanz, et al.                                                [Page 15]
+Balfanz, et al.                                                [Page 16]
 
