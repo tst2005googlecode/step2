@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en"><head><title>draft: OpenID OAuth Extension</title>
-<meta http-equiv="Expires" content="Tue, 18 Nov 2008 19:53:04 +0000">
+<meta http-equiv="Expires" content="Wed, 19 Nov 2008 06:21:37 +0000">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="OpenID OAuth Extension">
 <meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
@@ -246,12 +246,6 @@ Purpose of this Specification</h3>
        combined user approval.  For security reasons, the OAuth access
        token is not returned in the URL.  Instead a mechanism to
        obtain the access token is provided.
-     
-</p>
-<p>The specific mechanisms proposed are extensions to the OpenID
-       authentication request and response, and also to the
-       association session mechanism, found in Sections 8, 9, and 10 of
-       <a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>.
      
 </p>
 <a name="anchor4"></a><br /><hr />
@@ -505,6 +499,25 @@ Security Considerations</h3>
             for higher-value secrets and tokens. In this protocol, the use of
             response_token preserves this feature of the OAuth protocol even with
             unregistered consumers.
+          
+</dd>
+<dt>Imposters cannot retrieve the OAuth access token</dt>
+<dd>
+	    While it is possible for a malicious party to fake an
+	    OpenID request, including an OpenID request that includes
+	    the OAuth extension (the request is not signed, and
+	    knowledge of the consumer key and realm is sufficient
+	    to cause the Combined Provider to display an authorization
+	    page for that realm/consumer), that malicious party would
+	    have to have knowledge of the consumer secret to exchange
+	    the request token for an access token. Note that while
+	    secure under reasonable threat models, this is different
+	    from standard OAuth: In standard OAuth, one needs
+	    knowledge of both the consumer key and consumer secret
+	    (or, alternatively, of a request token obtained through
+	    knowledge of the consumer key and secret) to cause the
+	    Service Provider to display an authorization page for that
+	    consumer. 
           
 </dd>
 </dl></blockquote><p>

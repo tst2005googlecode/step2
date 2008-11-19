@@ -92,11 +92,6 @@
        token is not returned in the URL.  Instead a mechanism to
        obtain the access token is provided.
      </t>
-     <t>The specific mechanisms proposed are extensions to the OpenID
-       authentication request and response, and also to the
-       association session mechanism, found in Sections 8, 9, and 10 of
-       <xref target="OpenID"/>.
-     </t>
    </section>
 
     <section title="Overview">
@@ -288,6 +283,23 @@
             for higher-value secrets and tokens. In this protocol, the use of
             response_token preserves this feature of the OAuth protocol even with
             unregistered consumers.
+          </t>
+          <t hangText="Imposters cannot retrieve the OAuth access token">
+	    While it is possible for a malicious party to fake an
+	    OpenID request, including an OpenID request that includes
+	    the OAuth extension (the request is not signed, and
+	    knowledge of the consumer key and realm is sufficient
+	    to cause the Combined Provider to display an authorization
+	    page for that realm/consumer), that malicious party would
+	    have to have knowledge of the consumer secret to exchange
+	    the request token for an access token. Note that while
+	    secure under reasonable threat models, this is different
+	    from standard OAuth: In standard OAuth, one needs
+	    knowledge of both the consumer key and consumer secret
+	    (or, alternatively, of a request token obtained through
+	    knowledge of the consumer key and secret) to cause the
+	    Service Provider to display an authorization page for that
+	    consumer. 
           </t>
         </list>
       </t>
