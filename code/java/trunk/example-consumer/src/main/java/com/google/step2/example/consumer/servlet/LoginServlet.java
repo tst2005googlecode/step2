@@ -112,6 +112,18 @@ public class LoginServlet extends InjectableServlet {
     if (YES_STRING.equals(req.getParameter("country"))) {
       helper.requestAxAttribute("country", Step2.AX_COUNTRY_SCHEMA, true);
     }
+    
+    String emailMode = req.getParameter("emailmode");
+    if (emailMode != null) {
+      if (emailMode.equals("request")) {
+        helper.requestAxAttribute("email", Step2.AX_EMAIL_SCHEMA, true);
+      } else if (emailMode.equals("validate")) {
+        String emailValidate = req.getParameter("emailval");
+        if (emailValidate != null) {
+          helper.validateAxAttribute("email", Step2.AX_EMAIL_SCHEMA, emailValidate);
+        }   
+      }
+    }
 
     HttpSession session = req.getSession();
     AuthRequest authReq = null;

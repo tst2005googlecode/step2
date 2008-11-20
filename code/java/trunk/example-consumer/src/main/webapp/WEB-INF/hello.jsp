@@ -14,8 +14,10 @@
 </ul>
 <h3>Attribute Exchange Results:</h3>
 <ul>
-<li>AX Email: ${email}.</li>
-<li>AX Country: ${country}</li>
+<li>AX Fetch Email Response : ${email}</li>
+<li>AX Fetch Country Response: ${country}</li>
+<li>AX Validated Email: ${emailval}</li>
+</c:if>
 </ul>
 
 <h3>OAuth Extension Results:</h3>

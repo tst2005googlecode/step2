@@ -39,7 +39,8 @@ optionally request user email and country attributes.
   OpenID URL: <input type="text" id="openid" name="openid" size="50" />
 </div>
 <div>
-  <input type="checkbox" name="email" value="yes" />Request email
+  <input type="radio" name="emailmode" value="validate">Email to Validate: <input type="text" id="emailval" name="emailval" size="50" /><br/>
+  <input type="radio" name="emailmode" value="request">Request email
 </div>
 <div>
   <input type="checkbox" name="country" value="yes" />Request home country
@@ -50,6 +51,7 @@ optionally request user email and country attributes.
 <div>
   <input type="checkbox" name="oauth" value="yes" />Authorize OAuth Request Token
 </div>
+
 <div>
   <input type="submit" title="Login" />
 </div>
