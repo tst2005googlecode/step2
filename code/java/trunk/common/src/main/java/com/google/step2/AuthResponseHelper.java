@@ -20,6 +20,7 @@ package com.google.step2;
 import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.hybrid.HybridOauthResponse;
 import com.google.step2.openid.ax2.AxMessage2;
+import com.google.step2.openid.ax2.ValidateResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,6 +32,7 @@ import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.Message;
 import org.openid4java.message.MessageException;
 import org.openid4java.message.MessageExtension;
+import org.openid4java.message.ax.AxMessage;
 import org.openid4java.message.ax.FetchResponse;
 
 import java.util.Collections;
@@ -160,6 +162,20 @@ public class AuthResponseHelper {
     return getExtension(HybridOauthResponse.class,
         HybridOauthMessage.OPENID_NS_OAUTH);
   }
+  
+  public Class<? extends AxMessage> getAxExtensionType() throws MessageException {
+    Message resp = getAuthResponse();
+    if (resp.hasExtension(AxMessage2.OPENID_NS_AX_FINAL)) {
+      MessageExtension extension = 
+        resp.getExtension(AxMessage2.OPENID_NS_AX_FINAL);
+      if (extension instanceof ValidateResponse) {
+        return ValidateResponse.class;
+      } else if (extension instanceof FetchResponse) {
+        return FetchResponse.class;
+      }
+    }
+    return null;
+  }
 
   /**
    * @return True if response message includes the Attribute Exchange extension. 
@@ -168,6 +184,19 @@ public class AuthResponseHelper {
     return getAuthResponse().hasExtension(AxMessage2.OPENID_NS_AX_FINAL);
   }
 
+  /**
+   * Returns the complete ValidateResponse object representing the result of a
+   * ValidateRequest
+   *
+   * @return a ValidateResponse object
+   *
+   * @throws MessageException if Attribute Extension parameters were not
+   *   included in the response, or if some other error occurred.
+   */
+  public ValidateResponse getAxValidateResponse() throws MessageException {
+    return getExtension(ValidateResponse.class, AxMessage2.OPENID_NS_AX_FINAL);
+  }
+  
   /**
    * Returns the complete FetchResponse object representing all the attributes
    * returned through the Attribute Extension.
@@ -189,8 +218,7 @@ public class AuthResponseHelper {
    * @return list of attribute values.
    *
    */
-  public List<String> getAxAttributeValues(String alias) {
-
+  public List<String> getAxFetchAttributeValues(String alias) {
     FetchResponse resp;
     try {
       resp = getAxFetchResponse();
@@ -215,8 +243,8 @@ public class AuthResponseHelper {
    * values returned, this method returns null.
    * @param alias the alias under which the attribute was requested.
    */
-  public String getAxAttributeValue(String alias) {
-    List<String> values = getAxAttributeValues(alias);
+  public String getAxFetchAttributeValue(String alias) {
+    List<String> values = getAxFetchAttributeValues(alias);
 
     if (values.isEmpty()) {
       return null;

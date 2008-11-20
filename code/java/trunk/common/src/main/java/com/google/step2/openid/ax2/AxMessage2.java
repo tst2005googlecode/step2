@@ -22,6 +22,10 @@ import org.openid4java.message.MessageException;
 import org.openid4java.message.MessageExtension;
 import org.openid4java.message.ParameterList;
 import org.openid4java.message.ax.AxMessage;
+import org.openid4java.message.ax.FetchRequest;
+import org.openid4java.message.ax.FetchResponse;
+import org.openid4java.message.ax.StoreRequest;
+import org.openid4java.message.ax.StoreResponse;
 
 /**
  * Temporary fix to enable more flexible request handling than openid4java
@@ -30,12 +34,11 @@ import org.openid4java.message.ax.AxMessage;
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class AxMessage2 extends AxMessage {
-  public static final String OPENID_NS_AX_FINAL =
-      "http://openid.net/srv/ax/1.0";
-
-  static {
-  }
+  static final String MODE = "mode";
   
+  public static final String OPENID_NS_AX_FINAL =
+    "http://openid.net/srv/ax/1.0";
+
   @Override
   public String getTypeUri() {
     return OPENID_NS_AX_FINAL;
@@ -58,24 +61,28 @@ public class AxMessage2 extends AxMessage {
   public boolean providesIdentifier() {
     return true;
   }
-
+  
   @Override
   public MessageExtension getExtension(ParameterList parameterList,
       boolean isRequest) throws MessageException {
-    String axMode = null;
-    if (parameterList.hasParameter("mode")) {
-      axMode = parameterList.getParameterValue("mode");
-
-      if ("fetch_request".equals(axMode)) {
+    if (parameterList.hasParameter(MODE)) {
+      String mode = parameterList.getParameterValue(MODE);
+      Mode modeEnum = Mode.getMode(mode); 
+      switch (modeEnum) {
+      case FETCH_REQUEST:
         return FetchRequest2.createFetchRequest2(parameterList);
-      } else if ("fetch_response".equals(axMode)) {
+      case FETCH_RESPONSE:
         return FetchResponse2.createFetchResponse2(parameterList);
-      } else {
+      case VALIDATE_REQUEST:
+        return ValidateRequest.createValidateRequest(parameterList);
+      case VALIDATE_RESPONSE_SUCCESS:
+        return ValidateResponse.createValidateResponse(true, parameterList);
+      case VALIDATE_RESPONSE_FAILURE:
+        return ValidateResponse.createValidateResponse(false, parameterList); 
+      default:
         return super.getExtension(parameterList, isRequest);
       }
     }
-
-    throw new MessageException("Invalid value for attribute exchange mode: "
-        + axMode);
+    throw new MessageException("Attribure exchange message is missing a mode.");
   }
 }

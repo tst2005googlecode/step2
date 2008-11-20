@@ -58,7 +58,6 @@ public class ConsumerHelper {
    *  is often just the name of an IdP against which discover is performed, but
    *  it could also be a URL that a user wants to claim ownership of, or an XRI.
    * @param returnToUrl the URL to which the AuthResponse should be sent.
-   * @param oauthRequestToken An unauthorized oauthRequestToken
    *
    * @return an AuthRequestHelper object
    */

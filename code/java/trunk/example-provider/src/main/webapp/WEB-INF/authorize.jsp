@@ -5,6 +5,8 @@
                  org.openid4java.message.MessageExtensionFactory,
                  org.openid4java.message.Parameter,
                  com.google.step2.openid.ax2.AxMessage2,
+                 com.google.step2.openid.ax2.FetchRequest2,
+                 com.google.step2.openid.ax2.ValidateRequest,
                  com.google.step2.hybrid.HybridOauthMessage,
                  com.google.step2.example.provider.DummyOAuthProvider,
                  net.oauth.OAuthAccessor,java.util.Set" %>
@@ -83,12 +85,25 @@
     MessageExtension axMessage =
       message.getExtension(AxMessage2.OPENID_NS_AX_FINAL);
     if (axMessage.getParameters().hasParameter("type.email")) {
+      
+      if (axMessage instanceof ValidateRequest) {
+        String email =
+          axMessage.getParameters().getParameterValue("value.email");
+%>  
+<div>
+  <input type="hidden" name="emailval" value = "yes" />
+  <input type="checkbox" name="emailvalapprove" value="yes" checked />
+  Validate ownership of email: <%=email%>
+</div>
+<%
+      } else if (axMessage instanceof FetchRequest2) {
 %>  
 <div>
   <input type="checkbox" name="email" value="yes" checked />
-  Approve email request.
+  Approve returning default email: foo@bar.org
 </div>
 <%
+      }
   }  // End check for email request
     
     if (axMessage.getParameters().hasParameter("type.country")) {
@@ -124,10 +139,23 @@
 </form>
 <%
   } else {  // if action != null
-    String allowEmail = request.getParameter("email");        
-    if ("yes".equals(allowEmail)) {
-      session.setAttribute("email", "foo@bar.com");      
+    String emailVal = request.getParameter("emailval");
+    String allowEmail = request.getParameter("email");
+    if ("yes".equals(emailVal)) {
+      if ("yes".equals(request.getParameter("emailvalapprove"))) {
+        session.setAttribute("emailval", "true");
+      } else {
+        session.setAttribute("emailval", "false");
+      }
+      // Clean up in case there is stale session state
+      session.removeAttribute("email");
+      session.removeAttribute("country");
+    } else if ("yes".equals(allowEmail)) {
+      session.setAttribute("email", "foo@bar.org");
+      // Clean up in case there is stale session state
+      session.removeAttribute("emailval");
     }
+
     String allowCountry = request.getParameter("country");
     if ("yes".equals(allowCountry)) {
       session.setAttribute("country", "us");

@@ -51,8 +51,7 @@ public class FetchRequest2 extends FetchRequest {
 
       return req;
   }
-
-  // This is
+  
   private static final String COUNT = "count.";
 
   /**
