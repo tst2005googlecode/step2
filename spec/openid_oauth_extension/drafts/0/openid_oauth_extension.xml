@@ -126,7 +126,7 @@
       consumer key and consumer secret (see <xref target="OAuth"/>).
       </t>
       <t>The Combined Provider SHOULD in addition obtain, from the
-      Combined Provider, a list of valid OpenID realms that the
+      Combined Consumer, a list of valid OpenID realms that the
       Combined Consumer may use in subsequent authentication
       requests. The Combined Provider SHOULD verify that the Combined
       Consumer is authorized to use those realms.
