@@ -13,12 +13,14 @@
     <Service priority="0">
       <Type>http://oauth.net/core/1.0/endpoint/request</Type>
       <Type>http://oauth.net/core/1.0/parameters/post-body</Type>
+      <Type>http://oauth.net/core/1.0/parameters/uri-query</Type>
       <Type>http://oauth.net/core/1.0/signature/HMAC-SHA1</Type>
       <URI><%= uriPrefix %>/step2-example-provider/request_token</URI>
     </Service>
     <Service priority="0">
       <Type>http://oauth.net/core/1.0/endpoint/access</Type>
       <Type>http://oauth.net/core/1.0/parameters/post-body</Type>
+      <Type>http://oauth.net/core/1.0/parameters/uri-query</Type>
       <Type>http://oauth.net/core/1.0/signature/HMAC-SHA1</Type>
       <URI><%= uriPrefix %>/step2-example-provider/access_token</URI>
     </Service>
