@@ -1,0 +1,13 @@
+#summary A proposal to add a validate mode to OpenID Attribute Exchange extension.
+
+= Introduction =
+
+The OpenID Attribute Exchange extension allows relying parties to request values for user attributes from an OpenID provider. However, there is no mechanism for the providers to indicate the level of validation that was performed on the values released.
+
+The proposed extension both allows RPs to send values for validation, as well as to request validated values, indicating the level of validation required.
+
+
+= Details =
+
+For further reference, see:
+  * Proposed draft spec:[http://code.google.com/p/step2/source/browse/spec/attribute_exchange_validate/trunk/openid-attribute-exchange-validate-mode.html spec]
