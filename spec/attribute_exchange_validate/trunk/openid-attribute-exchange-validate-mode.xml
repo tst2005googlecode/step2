@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE rfc SYSTEM "../xml2rfc-1.33/rfc2629.dtd" [
+    <!ENTITY rfc2119 PUBLIC '' 
+      'http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml'>
+]>
+
+<rfc category="std" ipr="full3978" docName="openid-attribute-exchange-validate-mode-draft.txt">
+
+<?xml-stylesheet type='text/xsl' href='../xml2rfc-1.33/rfc2629xlst/rfc2629.xslt' ?>
+
+<?rfc toc="yes"?>
+<?rfc symrefs="yes" ?>
+<?rfc sortrefs="yes"?>
+<?rfc iprnotified="no" ?>
+<?rfc private="draft" ?>
+<?rfc strict="yes" ?>
+
+  <front>
+    <title>OpenID Attribute Exchange Validate Mode</title>
+    <author initials='B.' surname="de Medeiros" fullname='Breno de Medeiros (editor)'>
+      <organization abbrev='Google'>Google, Inc.</organization>
+      <address>
+        <email>breno@google.com</email>
+      </address>
+    </author>
+    <author initials='A.' surname="Tom" fullname='Allen Tom (editor)'>
+      <organization abbrev='Yahoo!'>Yahoo! Inc.</organization>
+      <address>
+        <email>atom@yahoo-inc.com</email>
+      </address>
+    </author>
+    <date year='2008'/>
+    <abstract>
+      <t>This draft describe a mechanism to use the Attribute Exchange extension to the OpenID
+        standard to request validation of user attributes.
+      </t>
+      <t>The proposal comprises two aspects. It proposes a new mode of operation for the Attribute Exchange
+        extension, namely the <spanx style="emph">validate mode.</spanx> It also describes a system of
+        annotations that is intended to convey information about the quality of an assertion of validation.
+      </t>
+      
+    </abstract>
+  </front>
+
+
+  <middle>
+    <section title="Requirements notation">
+      <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL",
+        "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
+        and "OPTIONAL" in this document are to be interpreted as
+        described in <xref target="RFC2119"/>.
+      </t>
+    </section>
+
+    <section title="Scope and Definitions">
+      <t>This draft is intended for inclusion in a future version of the OpenID Attribute Exchange
+        extension, and is not intended as a stand-alone document. It assumes that the reader is familiar with
+        the Attribute Exchange extension standard, described in <xref target="Attribute Exchange"/>. All terms used in
+	that standard are herein incorporated by reference.
+      </t>
+      <t><list style="hanging">
+        <t hangText="Namespace Declaration:">All OpenID Attribute Exchange messages MUST contain an
+          extension namespace declaration, as specified in the Extensions
+          section of the OpenID 2.0 spec <xref target="OpenID"/>:
+          <list style="hanging">
+            <t hangText='openid.ns.&lt;extension_alias&gt;'>
+              REQUIRED. Value: http://openid.net/srv/ax/1.1
+            </t>
+          </list>
+          The actual extension namespace alias should be determined on a per-
+          message basis by the party composing the messages, in such a manner
+          as to avoid conflicts between multiple extensions.  For the purposes
+          of this document, the extension namespace alias for the attribute
+          exchange service will be "ax".
+        </t>
+      </list>
+     </t>       
+    </section>
+
+    <section title="Overview">
+      <t>This modification of the Attribute Exchange extension defines an additional mode of operation: validate.
+        This mode allows for a relying party (RP) to request that an OpenID (OP) provider validate user attribute values,
+        asserting the quality of the information.
+      </t>
+      <t>Typically the RP forwards to the OP (via the user agent) values for the specified attributes, and annotations
+        about the minimum quality of the assertions it is willing to accept. The RP may also simply request values of user
+        attributes from the OP, indicating the quality of the assertions that it requires via annotations.
+      </t>
+      <t>The annotation mechanism is extensible, to accommodate for the fact that validation mechanisms applicable to particular
+        attribute depend on the nature of the attribute itself. For instance, if the attribute is an e-mail address, validation
+        mechanisms can include: user authentication (if the OP is the e-mail provider for that address domain), or sending an email
+        with URL tokens.
+      </t>
+    </section>
+  
+    <section title="Validate Message">
+      <t>The validate message is useful for the RP to request that the OP validate user-entered values at the RP. It can also be used
+        by the RP to indicate validation requirements while retrieving personal identity attributes from an OP.
+      </t>
+      <section title="Validate Request Format">
+        <t>The validate request message supplies user-entered information at the RP, or requests this information from the OP.
+          Each attribute is supplied with the assigned alias prefixed by "openid.ax.value." as the lvalue and the attribute value
+          as the rvalue.  Attribute types are also returned in the 'openid.ax.type.&lt;alias&gt;' parameters.  The supported length for
+          attribute aliases MUST be at least 32 characters.
+        </t>
+        <t>With the exception of "openid.ax.mode", all of the following request
+          fields are OPTIONAL, though any attribute value present in a
+          'openid.ax.value.&lt;alias&gt;' parameter MUST have an associated 'openid.ax.type.&lt;alias&gt;' parameter.
+          <list style="hanging">
+            <t hangText="openid.ax.mode">REQUIRED.  Value: "validate_request".
+            </t>
+            <t hangText='openid.ax.type.&lt;alias&gt;'>The value of this parameter specifies the type identifier URI
+	      for an attribute in the fetch response.  The '&lt;alias&gt;' will further be used to identify the attribute being exchanged.
+              Attribute aliases MUST NOT contain newline and colon characters, as specified in the Data Formats / Protocol
+              Messages section of <xref target="OpenID"/>; they also MUST NOT contain commas (",") and periods (".").
+            </t>
+            <t hangText="openid.ax.validation.&lt;alias&gt;">Annotates the type with the minimum level of validation that the RP
+              expects of all returned values from the OP of this type. The value of the parameter specifies the validation-type URI.
+            </t> 
+            <t hangText="openid.ax.count.&lt;alias&gt;"> The number of values for the specified, annotated attribute
+              type (indicated by "&lt;alias&gt;") that the RP is sending to the OpenID Provider for validation (or requesting that it be sent).
+              If present, the value MUST be greater than zero. If absent, exactly one value is being sent for validation (or requested).
+
+              RPs can send a few values for validation but request that additional, validated values be sent by the OP, if available.
+                In all cases, count refers to the maximum number of responses that the RP would like to receive from the OP. The special
+                value "unlimited" can be supplied by the RP to indicate that it would like to receive all values that the OP has for the user
+                (with the indicated level of validation).
+            </t>
+            <t hangText="openid.ax.value.&lt;alias&gt;">
+              Assigns a value to the attribute referred to as "&lt;alias&gt;".  This parameter format MUST be used if "openid.ax.count.&lt;alias&gt;" is
+              not sent (described below). It can also be the special value <spanx style="emph">attribute_select</spanx>, in which case
+              the RP is not sending values for the attribute, but would like the OP to assert it instead.
+            </t>
+            <t hangText="openid.ax.value.&lt;alias&gt;.&lt;number&gt;">
+              Assigns a value to the attribute referred to as "&lt;alias&gt;".  This
+              parameter format MUST be used if "openid.ax.count.&lt;alias&gt;" is sent.
+              The "&lt;number&gt;" uniquely identifies the index of the value, ranging from one to the value specified by
+              "openid.ax.count.&lt;alias&gt;".
+
+              The number of parameters MUST be at least one, and also MUST be smaller than or equal to
+                the value specified by "openid.ax.count.&lt;alias&gt;". If the number of parameters is smaller than the value specified by "openid.ax.count.&lt;alias&gt;"
+                then the value with largest index in the request MUST be the special value "attribute_select." The special value "attribute_select" MAY be present
+                of absent, but if present it MUST NOT appear more than once. If "attribute_select" is present it MUST have the largest index among values of
+                the corresponding type.
+            </t>
+            <t hangText="openid.ax.update_url"> This parameter has identical semantics as in the Attribute Exchange mode "fetch_request". See <xref target="Attribute Exchange"/>.
+            </t>
+          </list>
+        </t>
+      </section>
+      <section title="Validate Request Example" anchor="validate_request_example">
+        <t><figure>
+            <artwork><![CDATA[
+openid.ns.ax=http://openid.net/srv/ax/1.1
+openid.ax.mode=validate_request
+openid.ax.type.email=http://axschema.org/contact/email
+openid.ax.validation.email=http://example.org/validation/token_via_email
+openid.ax.count.email=unlimited
+openid.ax.value.email.1=user@example.org
+openid.ax.value.email.2=attribute_select
+openid.ax.type.dob=http://axschema.org/birthDate
+openid.ax.validation.dob=http://example.org/validation/claimed
+openid.ax.value.dob=attribute_select
+openid.ax.type.cell=http://axschema.org/contact/phone/cell
+openid.ax.value.cell=+1-888-888-1212
+openid.ax.validation.cell=http://example.org/pin_via_sms
+openid.ax.update_url=http://idconsumer.com/update?transaction_id=a6b5c41
+]]></artwork></figure>
+        </t>
+      </section>
+      <section title="Validate Response Format">
+        <t>The format for the validate_response message is very similar to validate_request, with the exception that the name of the mode is different, and that counts, if present,
+          must exactly match the number of values sent.
+        </t>
+        <t>With the exception of "openid.ax.mode", all of the following request
+          fields are OPTIONAL, though any attribute value present in a
+          'openid.ax.value.&lt;alias&gt;' parameter MUST have an associated 'openid.ax.type.&lt;alias&gt;' parameter.
+          <list style="hanging">
+            <t hangText="openid.ax.mode">REQUIRED.  Value: "validate_response".
+            </t>
+            <t hangText='openid.ax.type.&lt;alias&gt;'>Same semantics as in "validate_request". Each type is assigned an alias by the OP, and these aliases are not
+              required to match the aliases sent by the RP in the request.
+            </t>
+            <t hangText="openid.ax.validation.&lt;alias&gt;">Annotates the type with the minimum level of validation that is shared by all values
+              returned by the OP for that attribute type.
+            </t> 
+            <t hangText="openid.ax.count.&lt;alias&gt;"> The number of values for the specified, annotated attribute
+              type (indicated by "&lt;alias&gt;") that the OP is returning in the response.
+              If present, the value MUST be greater than zero. If absent, exactly one value is being sent for validation (or requested).
+            </t>
+            <t hangText="openid.ax.value.&lt;alias&gt;">
+              Assigns a value to the attribute referred to as "&lt;alias&gt;".  This parameter format MUST be used if "openid.ax.count.&lt;alias&gt;" is absent. Note that the
+              value MAY differ from the value sent by the RP.
+            </t>
+            <t hangText="openid.ax.validated_on.&lt;alias&gt;">If present, it indicates the date when the indicated validation of the attribute value was performed (if any).
+              This format for the parameter must be used if "openid.ax.count.&lt;alias&gt;" is absent. The value must be encoded according to <xref target="Date XML schema"/>.
+            </t>
+            <t hangText="openid.ax.value.&lt;alias&gt;.&lt;number&gt;">
+              Assigns a value to the attribute referred to as "&lt;alias&gt;".  This
+              parameter format MUST be used if "openid.ax.count.&lt;alias&gt;" is present.
+              The "&lt;number&gt;" uniquely identifies the index of the value, ranging from one to the value specified by
+              "openid.ax.count.&lt;alias&gt;".
+
+              The number of parameters MUST equal the value specified by "openid.ax.count.&lt;alias&gt;". Note that each value MAY differ from all values sent in the request. 
+            </t>
+            <t hangText="openid.ax.validated_on.&lt;alias&gt;.&lt;number&gt;">If present, it indicates the date when the indicated validation of the attribute value was performed.
+              This parameter format MUST be used if "openid.ax.count.&lt;alias&gt;" is present. The value must be encoded according to <xref target="Date XML schema"/>.</t>
+            <t hangText="openid.ax.update_url"> This parameter has identical semantics as in the Attribute Exchange mode "fetch_response". See <xref target="Attribute Exchange"/>.
+            </t>
+          </list>
+        </t>
+      </section>
+      <section title="Validate Response Example" anchor="validate_response_example">
+        <t>This example shows a possible valid response to the example request in Section <xref target="validate_request_example" />.
+          <figure>
+            <artwork><![CDATA[
+openid.ns.ax=http://openid.net/srv/ax/1.1
+openid.ax.mode=validate_response
+openid.ax.type.email=http://axschema.org/contact/email
+openid.ax.validation.email=http://example.org/validation/authoritative
+openid.ax.value.email=user@example.org
+openid.ax.type.dob=http://axschema.org/birthDate
+openid.ax.validation.dob=http://example.org/validation/claimed
+openid.ax.value.dob=1979-12-31
+openid.ax.type.cell=http://axschema.org/contact/phone/cell
+openid.ax.value.cell=+1-555-555-1212
+openid.ax.validation.cell=http://example.org/pin_via_sms
+openid.ax.validated_on.cell=2007-12-31
+openid.ax.update_url=http://idconsumer.com/update?transaction_id=a6b5c41
+]]></artwork></figure>
+        </t>
+      </section>
+    </section>
+  </middle>
+
+  <back>
+    <references title='Normative References'>&rfc2119;
+      <reference anchor="Date XML schema" target="http://www.w3.org/TR/xmlschema-2/#date">
+        <front>
+          <title>XML Schema Part 2: Datatypes Second Edition. Built-in datatypes: Date.</title>
+          <author initials="P. V." surname="Biron" fullname="Paul V. Biron">
+            <organization>Kaiser Permanente</organization>
+            <address>
+              <email>&lt;Paul.V.Biron@kp.org&gt;</email>
+            </address>
+          </author>
+          <author initials="A." surname="Malhotra" fullname="Ashok Malhotra">
+            <organization>Microsoft
+            </organization>
+            <address>
+              <email>&lt;ashokma@microsoft.com&gt;</email>
+            </address>
+          </author>
+        </front>
+        <format type='HTML' target="http://www.w3.org/TR/xmlschema-2/#date"/>
+      </reference>
+      <reference anchor="OpenID"
+        target="http://openid.net/specs/openid-authentication-2_0.html">
+        <front>
+          <title abbrev="OpenID">OpenID Authentication 2.0 - Final</title>
+          <author>
+            <organization>Openid.net</organization>
+            <address>
+              <email>specs@openid.net</email>
+            </address>
+          </author>
+          <date day="5" month="December" year="2007"/>
+        </front>
+        <format type='HTML' target="http://openid.net/specs/openid-authentication-2_0.html"/>
+        <format type='TXT' target="http://openid.net/specs/openid-authentication-2_0.txt"/>
+      </reference>
+      <reference anchor="Attribute Exchange" target="http://openid.net/specs/openid-attribute-exchange-1_0.html">
+        <front>
+          <title abbrev="Attribute Exchange">OpenID Attribute Exchange 1.0</title>
+          <author initials = "D." surname="Hardt" fullname = "Dick Hardt">
+            <organization>Sxip Identity</organization>
+            <address>
+              <email>dick@sxip.com</email>
+            </address>
+          </author>
+          <author initials = "J." surname="Bufu" fullname = "Johnny Bufu">
+            <organization>Sxip Identity</organization>
+            <address>
+              <email>johnny@sxip.com</email>
+            </address>
+          </author>
+          <author initials = "J." surname="Hoyt" fullname = "Josh Hoyt">
+            <organization>JanRain</organization>
+            <address>
+              <email>josh@janrain.com</email>
+            </address>
+          </author>
+        <date />
+      </front>
+      <format type='HTML' target="http://openid.net/specs/openid-attribute-exchange-1_0.html" />
+      <format type='TXT' target="http://openid.net/specs/openid-attribute-exchange-1_0.txt" />
+    </reference>
+  </references>
+</back>
+</rfc>
+
