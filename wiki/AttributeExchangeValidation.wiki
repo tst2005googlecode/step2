@@ -10,4 +10,4 @@ The proposed extension both allows RPs to send values for validation, as well as
 = Details =
 
 For further reference, see:
-  * Proposed draft spec:[http://code.google.com/p/step2/source/browse/spec/attribute_exchange_validate/trunk/openid-attribute-exchange-validate-mode.html spec]
+  * Proposed draft spec:<a href="http://code.google.com/p/step2/source/browse/spec/attribute_exchange_validate/trunk/openid-attribute-exchange-validate-mode.html">draft-spec</a>
