@@ -264,32 +264,29 @@
     </section>
 
     <section title="Security Considerations">
-      <t>This proposal composes protocols that provide
-        security services (authentication in the case of OpenID,
-        authorization in
-        the case of OAuth) with the intention that
-        the combined protocol provides
-        both services simultaneously. Since security is not a property generally
-        preserved by composition, the design takes the approach of encapsulating
-        the OAuth flow within OpenID in a modular way, and applies the general
-        rule-of-thumb of NOT introducing
-        reliance on the security properties of one protocol for
-        the correctness of
-        the other. Ultimately, only public scrutiny and review can
+      <t>This proposal composes protocols that provide security
+        services (authentication in the case of OpenID, authorization
+        in the case of OAuth) with the intention that the combined
+        protocol provides both services simultaneously. Since security
+        is not a property generally preserved by composition, the
+        design takes the approach of encapsulating the OAuth flow
+        within OpenID in a modular way, and applies the general
+        rule-of-thumb of NOT introducing reliance on the security
+        properties of one protocol for the correctness of the
+        other. Ultimately, only public scrutiny and review can
         incrementally provide confidence that the approach described
-        here is sound
-        from a security perspective.</t>
-      <t>The following security principles is reflected in this design:
+        here is sound from a security perspective.</t>
+      <t>The following security principles are reflected in this design:
         <list style="hanging">
           <t hangText="No long-term OAuth secrets hit the browser">
-            The OAuth protocol was designed so that browser-mediated communication
-            is not used to transfer long-term secrets or
-            capabilities to access data.
-            Instead, temporary approval tokens are exchanged through the browser
-            and then exchanged in authenticated server-to-server calls
-            for higher-value secrets and tokens. In this protocol, the use of
-            response_token preserves this feature of the OAuth protocol even with
-            unregistered consumers.
+            The OAuth protocol was designed so that browser-mediated
+            communication is not used to transfer long-term secrets or
+            capabilities to access data.(Instead, server-to-server
+            calls are used to exchange such secrets). Combined
+            Providers can preserve this property by making the
+            request_token short-lived, since the request token will be
+            exchanged for an access token and secret over a
+            server-to-server call.
           </t>
           <t hangText="Imposters cannot retrieve the OAuth access token">
 	    While it is possible for a malicious party to fake an

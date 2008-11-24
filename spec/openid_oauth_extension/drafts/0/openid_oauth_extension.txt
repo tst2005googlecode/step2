@@ -8,7 +8,7 @@ draft                                                         D. Balfanz
                                                                Six Apart
                                                                 J. Smarr
                                                                    Plaxo
-                                                       November 20, 2008
+                                                       November 24, 2008
 
 
                          OpenID OAuth Extension
@@ -743,16 +743,16 @@ Balfanz, et al.                                                [Page 13]
    confidence that the approach described here is sound from a security
    perspective.
 
-   The following security principles is reflected in this design:
+   The following security principles are reflected in this design:
 
    No long-term OAuth secrets hit the browser  The OAuth protocol was
       designed so that browser-mediated communication is not used to
-      transfer long-term secrets or capabilities to access data.
-      Instead, temporary approval tokens are exchanged through the
-      browser and then exchanged in authenticated server-to-server calls
-      for higher-value secrets and tokens.  In this protocol, the use of
-      response_token preserves this feature of the OAuth protocol even
-      with unregistered consumers.
+      transfer long-term secrets or capabilities to access
+      data.(Instead, server-to-server calls are used to exchange such
+      secrets).  Combined Providers can preserve this property by making
+      the request_token short-lived, since the request token will be
+      exchanged for an access token and secret over a server-to-server
+      call.
 
    Imposters cannot retrieve the OAuth access token  While it is
       possible for a malicious party to fake an OpenID request,

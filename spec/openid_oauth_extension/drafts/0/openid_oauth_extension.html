@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en"><head><title>draft: OpenID OAuth Extension</title>
-<meta http-equiv="Expires" content="Thu, 20 Nov 2008 16:52:50 +0000">
+<meta http-equiv="Expires" content="Mon, 24 Nov 2008 18:19:44 +0000">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="OpenID OAuth Extension">
 <meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
@@ -149,7 +149,7 @@
 <tr><td class="header">&nbsp;</td><td class="header">Six Apart</td></tr>
 <tr><td class="header">&nbsp;</td><td class="header">J. Smarr</td></tr>
 <tr><td class="header">&nbsp;</td><td class="header">Plaxo</td></tr>
-<tr><td class="header">&nbsp;</td><td class="header">November 20, 2008</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">November 24, 2008</td></tr>
 </table></td></tr></table>
 <h1><br />OpenID OAuth Extension</h1>
 
@@ -482,35 +482,32 @@ General Considerations</h3>
 <a name="rfc.section.12"></a><h3>12.&nbsp;
 Security Considerations</h3>
 
-<p>This proposal composes protocols that provide
-        security services (authentication in the case of OpenID,
-        authorization in
-        the case of OAuth) with the intention that
-        the combined protocol provides
-        both services simultaneously. Since security is not a property generally
-        preserved by composition, the design takes the approach of encapsulating
-        the OAuth flow within OpenID in a modular way, and applies the general
-        rule-of-thumb of NOT introducing
-        reliance on the security properties of one protocol for
-        the correctness of
-        the other. Ultimately, only public scrutiny and review can
+<p>This proposal composes protocols that provide security
+        services (authentication in the case of OpenID, authorization
+        in the case of OAuth) with the intention that the combined
+        protocol provides both services simultaneously. Since security
+        is not a property generally preserved by composition, the
+        design takes the approach of encapsulating the OAuth flow
+        within OpenID in a modular way, and applies the general
+        rule-of-thumb of NOT introducing reliance on the security
+        properties of one protocol for the correctness of the
+        other. Ultimately, only public scrutiny and review can
         incrementally provide confidence that the approach described
-        here is sound
-        from a security perspective.
+        here is sound from a security perspective.
 </p>
-<p>The following security principles is reflected in this design:
+<p>The following security principles are reflected in this design:
         </p>
 <blockquote class="text"><dl>
 <dt>No long-term OAuth secrets hit the browser</dt>
 <dd>
-            The OAuth protocol was designed so that browser-mediated communication
-            is not used to transfer long-term secrets or
-            capabilities to access data.
-            Instead, temporary approval tokens are exchanged through the browser
-            and then exchanged in authenticated server-to-server calls
-            for higher-value secrets and tokens. In this protocol, the use of
-            response_token preserves this feature of the OAuth protocol even with
-            unregistered consumers.
+            The OAuth protocol was designed so that browser-mediated
+            communication is not used to transfer long-term secrets or
+            capabilities to access data.(Instead, server-to-server
+            calls are used to exchange such secrets). Combined
+            Providers can preserve this property by making the
+            request_token short-lived, since the request token will be
+            exchanged for an access token and secret over a
+            server-to-server call.
           
 </dd>
 <dt>Imposters cannot retrieve the OAuth access token</dt>
