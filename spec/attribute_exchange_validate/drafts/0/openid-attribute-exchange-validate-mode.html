@@ -1,0 +1,484 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en"><head><title>draft: OpenID Attribute Exchange Validate Mode</title>
+<meta http-equiv="Expires" content="Mon, 24 Nov 2008 23:18:09 +0000">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="OpenID Attribute Exchange Validate Mode">
+<meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
+<style type='text/css'><!--
+        body {
+                font-family: verdana, charcoal, helvetica, arial, sans-serif;
+                font-size: small; color: #000; background-color: #FFF;
+                margin: 2em;
+        }
+        h1, h2, h3, h4, h5, h6 {
+                font-family: helvetica, monaco, "MS Sans Serif", arial, sans-serif;
+                font-weight: bold; font-style: normal;
+        }
+        h1 { color: #900; background-color: transparent; text-align: right; }
+        h3 { color: #333; background-color: transparent; }
+
+        td.RFCbug {
+                font-size: x-small; text-decoration: none;
+                width: 30px; height: 30px; padding-top: 2px;
+                text-align: justify; vertical-align: middle;
+                background-color: #000;
+        }
+        td.RFCbug span.RFC {
+                font-family: monaco, charcoal, geneva, "MS Sans Serif", helvetica, verdana, sans-serif;
+                font-weight: bold; color: #666;
+        }
+        td.RFCbug span.hotText {
+                font-family: charcoal, monaco, geneva, "MS Sans Serif", helvetica, verdana, sans-serif;
+                font-weight: normal; text-align: center; color: #FFF;
+        }
+
+        table.TOCbug { width: 30px; height: 15px; }
+        td.TOCbug {
+                text-align: center; width: 30px; height: 15px;
+                color: #FFF; background-color: #900;
+        }
+        td.TOCbug a {
+                font-family: monaco, charcoal, geneva, "MS Sans Serif", helvetica, sans-serif;
+                font-weight: bold; font-size: x-small; text-decoration: none;
+                color: #FFF; background-color: transparent;
+        }
+
+        td.header {
+                font-family: arial, helvetica, sans-serif; font-size: x-small;
+                vertical-align: top; width: 33%;
+                color: #FFF; background-color: #666;
+        }
+        td.author { font-weight: bold; font-size: x-small; margin-left: 4em; }
+        td.author-text { font-size: x-small; }
+
+        /* info code from SantaKlauss at http://www.madaboutstyle.com/tooltip2.html */
+        a.info {
+                /* This is the key. */
+                position: relative;
+                z-index: 24;
+                text-decoration: none;
+        }
+        a.info:hover {
+                z-index: 25;
+                color: #FFF; background-color: #900;
+        }
+        a.info span { display: none; }
+        a.info:hover span.info {
+                /* The span will display just on :hover state. */
+                display: block;
+                position: absolute;
+                font-size: smaller;
+                top: 2em; left: -5em; width: 15em;
+                padding: 2px; border: 1px solid #333;
+                color: #900; background-color: #EEE;
+                text-align: left;
+        }
+
+        a { font-weight: bold; }
+        a:link    { color: #900; background-color: transparent; }
+        a:visited { color: #633; background-color: transparent; }
+        a:active  { color: #633; background-color: transparent; }
+
+        p { margin-left: 2em; margin-right: 2em; }
+        p.copyright { font-size: x-small; }
+        p.toc { font-size: small; font-weight: bold; margin-left: 3em; }
+        table.toc { margin: 0 0 0 3em; padding: 0; border: 0; vertical-align: text-top; }
+        td.toc { font-size: small; font-weight: bold; vertical-align: text-top; }
+
+        ol.text { margin-left: 2em; margin-right: 2em; }
+        ul.text { margin-left: 2em; margin-right: 2em; }
+        li      { margin-left: 3em; }
+
+        /* RFC-2629 <spanx>s and <artwork>s. */
+        em     { font-style: italic; }
+        strong { font-weight: bold; }
+        dfn    { font-weight: bold; font-style: normal; }
+        cite   { font-weight: normal; font-style: normal; }
+        tt     { color: #036; }
+        tt, pre, pre dfn, pre em, pre cite, pre span {
+                font-family: "Courier New", Courier, monospace; font-size: small;
+        }
+        pre {
+                text-align: left; padding: 4px;
+                color: #000; background-color: #CCC;
+        }
+        pre dfn  { color: #900; }
+        pre em   { color: #66F; background-color: #FFC; font-weight: normal; }
+        pre .key { color: #33C; font-weight: bold; }
+        pre .id  { color: #900; }
+        pre .str { color: #000; background-color: #CFF; }
+        pre .val { color: #066; }
+        pre .rep { color: #909; }
+        pre .oth { color: #000; background-color: #FCF; }
+        pre .err { background-color: #FCC; }
+
+        /* RFC-2629 <texttable>s. */
+        table.all, table.full, table.headers, table.none {
+                font-size: small; text-align: center; border-width: 2px;
+                vertical-align: top; border-collapse: collapse;
+        }
+        table.all, table.full { border-style: solid; border-color: black; }
+        table.headers, table.none { border-style: none; }
+        th {
+                font-weight: bold; border-color: black;
+                border-width: 2px 2px 3px 2px;
+        }
+        table.all th, table.full th { border-style: solid; }
+        table.headers th { border-style: none none solid none; }
+        table.none th { border-style: none; }
+        table.all td {
+                border-style: solid; border-color: #333;
+                border-width: 1px 2px;
+        }
+        table.full td, table.headers td, table.none td { border-style: none; }
+
+        hr { height: 1px; }
+        hr.insert {
+                width: 80%; border-style: none; border-width: 0;
+                color: #CCC; background-color: #CCC;
+        }
+--></style>
+</head>
+<body>
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<table summary="layout" width="66%" border="0" cellpadding="0" cellspacing="0"><tr><td><table summary="layout" width="100%" border="0" cellpadding="2" cellspacing="1">
+<tr><td class="header">draft</td><td class="header">B. de Medeiros</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">Google</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">A. Tom</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">Yahoo!</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">November 24, 2008</td></tr>
+</table></td></tr></table>
+<h1><br />OpenID Attribute Exchange Validate Mode</h1>
+
+<h3>Abstract</h3>
+
+<p>This draft describe a mechanism to use the Attribute Exchange extension to the OpenID
+        standard to request validation of user attributes.
+      
+</p>
+<p>The proposal comprises two aspects. It proposes a new mode of operation for the Attribute Exchange
+        extension, namely the <em>validate mode.</em> It also describes a system of
+        annotations that is intended to convey information about the quality of an assertion of validation.
+      
+</p><a name="toc"></a><br /><hr />
+<h3>Table of Contents</h3>
+<p class="toc">
+<a href="#anchor1">1.</a>&nbsp;
+Requirements notation<br />
+<a href="#anchor2">2.</a>&nbsp;
+Scope and Definitions<br />
+<a href="#anchor3">3.</a>&nbsp;
+Overview<br />
+<a href="#anchor4">4.</a>&nbsp;
+Validate Message<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor5">4.1.</a>&nbsp;
+Validate Request Format<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#validate_request_example">4.2.</a>&nbsp;
+Validate Request Example<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor6">4.3.</a>&nbsp;
+Validate Response Format<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#validate_response_example">4.4.</a>&nbsp;
+Validate Response Example<br />
+<a href="#rfc.references1">5.</a>&nbsp;
+Normative References<br />
+<a href="#rfc.authors">&#167;</a>&nbsp;
+Authors' Addresses<br />
+</p>
+<br clear="all" />
+
+<a name="anchor1"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.1"></a><h3>1.&nbsp;
+Requirements notation</h3>
+
+<p>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL",
+        "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
+        and "OPTIONAL" in this document are to be interpreted as
+        described in <a class='info' href='#RFC2119'>[RFC2119]<span> (</span><span class='info'>Bradner, S., &ldquo;Key words for use in RFCs to Indicate Requirement Levels,&rdquo; March&nbsp;1997.</span><span>)</span></a>.
+      
+</p>
+<a name="anchor2"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2"></a><h3>2.&nbsp;
+Scope and Definitions</h3>
+
+<p>This draft is intended for inclusion in a future version of the OpenID Attribute Exchange
+        extension, and is not intended as a stand-alone document. It assumes that the reader is familiar with
+        the Attribute Exchange extension standard, described in <a class='info' href='#Attribute Exchange'>[Attribute Exchange]<span> (</span><span class='info'>Hardt, D., Bufu, J., and J. Hoyt, &ldquo;OpenID Attribute Exchange 1.0,&rdquo; .</span><span>)</span></a>. All terms used in
+	that standard are herein incorporated by reference.
+      
+</p>
+<p></p>
+<blockquote class="text"><dl>
+<dt>Namespace Declaration:</dt>
+<dd>All OpenID Attribute Exchange messages MUST contain an
+          extension namespace declaration, as specified in the Extensions
+          section of the OpenID 2.0 spec <a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>:
+          
+<blockquote class="text"><dl>
+<dt>openid.ns.&lt;extension_alias&gt;</dt>
+<dd>
+              REQUIRED. Value: http://openid.net/srv/ax/1.1
+            
+</dd>
+</dl></blockquote>
+          The actual extension namespace alias should be determined on a per-
+          message basis by the party composing the messages, in such a manner
+          as to avoid conflicts between multiple extensions.  For the purposes
+          of this document, the extension namespace alias for the attribute
+          exchange service will be "ax".
+        
+</dd>
+</dl></blockquote><p>
+     
+</p>
+<a name="anchor3"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.3"></a><h3>3.&nbsp;
+Overview</h3>
+
+<p>This modification of the Attribute Exchange extension defines an additional mode of operation: validate.
+        This mode allows for a relying party (RP) to request that an OpenID (OP) provider validate user attribute values,
+        asserting the quality of the information.
+      
+</p>
+<p>Typically the RP forwards to the OP (via the user agent) values for the specified attributes, and annotations
+        about the minimum quality of the assertions it is willing to accept. The RP may also simply request values of user
+        attributes from the OP, indicating the quality of the assertions that it requires via annotations.
+      
+</p>
+<p>The annotation mechanism is extensible, to accommodate for the fact that validation mechanisms applicable to particular
+        attribute depend on the nature of the attribute itself. For instance, if the attribute is an e-mail address, validation
+        mechanisms can include: user authentication (if the OP is the e-mail provider for that address domain), or sending an email
+        with URL tokens.
+      
+</p>
+<a name="anchor4"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.4"></a><h3>4.&nbsp;
+Validate Message</h3>
+
+<p>The validate message is useful for the RP to request that the OP validate user-entered values at the RP. It can also be used
+        by the RP to indicate validation requirements while retrieving personal identity attributes from an OP.
+      
+</p>
+<a name="anchor5"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.4.1"></a><h3>4.1.&nbsp;
+Validate Request Format</h3>
+
+<p>The validate request message supplies user-entered information at the RP, or requests this information from the OP.
+          Each attribute is supplied with the assigned alias prefixed by "openid.ax.value." as the lvalue and the attribute value
+          as the rvalue.  Attribute types are also returned in the 'openid.ax.type.&lt;alias&gt;' parameters.  The supported length for
+          attribute aliases MUST be at least 32 characters.
+        
+</p>
+<p>With the exception of "openid.ax.mode", all of the following request
+          fields are OPTIONAL, though any attribute value present in a
+          'openid.ax.value.&lt;alias&gt;' parameter MUST have an associated 'openid.ax.type.&lt;alias&gt;' parameter.
+          </p>
+<blockquote class="text"><dl>
+<dt>openid.ax.mode</dt>
+<dd>REQUIRED.  Value: "validate_request".
+            
+</dd>
+<dt>openid.ax.type.&lt;alias&gt;</dt>
+<dd>The value of this parameter specifies the type identifier URI
+	      for an attribute in the fetch response.  The '&lt;alias&gt;' will further be used to identify the attribute being exchanged.
+              Attribute aliases MUST NOT contain newline and colon characters, as specified in the Data Formats / Protocol
+              Messages section of <a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>; they also MUST NOT contain commas (",") and periods (".").
+            
+</dd>
+<dt>openid.ax.validation.&lt;alias&gt;</dt>
+<dd>Annotates the type with the minimum level of validation that the RP
+              expects of all returned values from the OP of this type. The value of the parameter specifies the validation-type URI.
+            
+</dd>
+<dt>openid.ax.count.&lt;alias&gt;</dt>
+<dd> The number of values for the specified, annotated attribute
+              type (indicated by "&lt;alias&gt;") that the RP is sending to the OpenID Provider for validation (or requesting that it be sent).
+              If present, the value MUST be greater than zero. If absent, exactly one value is being sent for validation (or requested).
+
+              RPs can send a few values for validation but request that additional, validated values be sent by the OP, if available.
+                In all cases, count refers to the maximum number of responses that the RP would like to receive from the OP. The special
+                value "unlimited" can be supplied by the RP to indicate that it would like to receive all values that the OP has for the user
+                (with the indicated level of validation).
+            
+</dd>
+<dt>openid.ax.value.&lt;alias&gt;</dt>
+<dd>
+              Assigns a value to the attribute referred to as "&lt;alias&gt;".  This parameter format MUST be used if "openid.ax.count.&lt;alias&gt;" is
+              not sent (described below). It can also be the special value <em>attribute_select</em>, in which case
+              the RP is not sending values for the attribute, but would like the OP to assert it instead.
+            
+</dd>
+<dt>openid.ax.value.&lt;alias&gt;.&lt;number&gt;</dt>
+<dd>
+              Assigns a value to the attribute referred to as "&lt;alias&gt;".  This
+              parameter format MUST be used if "openid.ax.count.&lt;alias&gt;" is sent.
+              The "&lt;number&gt;" uniquely identifies the index of the value, ranging from one to the value specified by
+              "openid.ax.count.&lt;alias&gt;".
+
+              The number of parameters MUST be at least one, and also MUST be smaller than or equal to
+                the value specified by "openid.ax.count.&lt;alias&gt;". If the number of parameters is smaller than the value specified by "openid.ax.count.&lt;alias&gt;"
+                then the value with largest index in the request MUST be the special value "attribute_select." The special value "attribute_select" MAY be present
+                of absent, but if present it MUST NOT appear more than once. If "attribute_select" is present it MUST have the largest index among values of
+                the corresponding type.
+            
+</dd>
+<dt>openid.ax.update_url</dt>
+<dd> This parameter has identical semantics as in the Attribute Exchange mode "fetch_request". See <a class='info' href='#Attribute Exchange'>[Attribute Exchange]<span> (</span><span class='info'>Hardt, D., Bufu, J., and J. Hoyt, &ldquo;OpenID Attribute Exchange 1.0,&rdquo; .</span><span>)</span></a>.
+            
+</dd>
+</dl></blockquote><p>
+        
+</p>
+<a name="validate_request_example"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.4.2"></a><h3>4.2.&nbsp;
+Validate Request Example</h3>
+
+<p></p>
+<div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+openid.ns.ax=http://openid.net/srv/ax/1.1
+openid.ax.mode=validate_request
+openid.ax.type.email=http://axschema.org/contact/email
+openid.ax.validation.email=http://example.org/validation/token_via_email
+openid.ax.count.email=unlimited
+openid.ax.value.email.1=user@example.org
+openid.ax.value.email.2=attribute_select
+openid.ax.type.dob=http://axschema.org/birthDate
+openid.ax.validation.dob=http://example.org/validation/claimed
+openid.ax.value.dob=attribute_select
+openid.ax.type.cell=http://axschema.org/contact/phone/cell
+openid.ax.value.cell=+1-888-888-1212
+openid.ax.validation.cell=http://example.org/pin_via_sms
+openid.ax.update_url=http://idconsumer.com/update?transaction_id=a6b5c41
+</pre></div><p>
+
+        
+</p>
+<a name="anchor6"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.4.3"></a><h3>4.3.&nbsp;
+Validate Response Format</h3>
+
+<p>The format for the validate_response message is very similar to validate_request, with the exception that the name of the mode is different, and that counts, if present,
+          must exactly match the number of values sent.
+        
+</p>
+<p>With the exception of "openid.ax.mode", all of the following request
+          fields are OPTIONAL, though any attribute value present in a
+          'openid.ax.value.&lt;alias&gt;' parameter MUST have an associated 'openid.ax.type.&lt;alias&gt;' parameter.
+          </p>
+<blockquote class="text"><dl>
+<dt>openid.ax.mode</dt>
+<dd>REQUIRED.  Value: "validate_response".
+            
+</dd>
+<dt>openid.ax.type.&lt;alias&gt;</dt>
+<dd>Same semantics as in "validate_request". Each type is assigned an alias by the OP, and these aliases are not
+              required to match the aliases sent by the RP in the request.
+            
+</dd>
+<dt>openid.ax.validation.&lt;alias&gt;</dt>
+<dd>Annotates the type with the minimum level of validation that is shared by all values
+              returned by the OP for that attribute type.
+            
+</dd>
+<dt>openid.ax.count.&lt;alias&gt;</dt>
+<dd> The number of values for the specified, annotated attribute
+              type (indicated by "&lt;alias&gt;") that the OP is returning in the response.
+              If present, the value MUST be greater than zero. If absent, exactly one value is being sent for validation (or requested).
+            
+</dd>
+<dt>openid.ax.value.&lt;alias&gt;</dt>
+<dd>
+              Assigns a value to the attribute referred to as "&lt;alias&gt;".  This parameter format MUST be used if "openid.ax.count.&lt;alias&gt;" is absent. Note that the
+              value MAY differ from the value sent by the RP.
+            
+</dd>
+<dt>openid.ax.validated_on.&lt;alias&gt;</dt>
+<dd>If present, it indicates the date when the indicated validation of the attribute value was performed (if any).
+              This format for the parameter must be used if "openid.ax.count.&lt;alias&gt;" is absent. The value must be encoded according to <a class='info' href='#Date XML schema'>[Date XML schema]<span> (</span><span class='info'>Biron, P. and A. Malhotra, &ldquo;XML Schema Part 2: Datatypes Second Edition. Built-in datatypes: Date.,&rdquo; .</span><span>)</span></a>.
+            
+</dd>
+<dt>openid.ax.value.&lt;alias&gt;.&lt;number&gt;</dt>
+<dd>
+              Assigns a value to the attribute referred to as "&lt;alias&gt;".  This
+              parameter format MUST be used if "openid.ax.count.&lt;alias&gt;" is present.
+              The "&lt;number&gt;" uniquely identifies the index of the value, ranging from one to the value specified by
+              "openid.ax.count.&lt;alias&gt;".
+
+              The number of parameters MUST equal the value specified by "openid.ax.count.&lt;alias&gt;". Note that each value MAY differ from all values sent in the request. 
+            
+</dd>
+<dt>openid.ax.validated_on.&lt;alias&gt;.&lt;number&gt;</dt>
+<dd>If present, it indicates the date when the indicated validation of the attribute value was performed.
+              This parameter format MUST be used if "openid.ax.count.&lt;alias&gt;" is present. The value must be encoded according to <a class='info' href='#Date XML schema'>[Date XML schema]<span> (</span><span class='info'>Biron, P. and A. Malhotra, &ldquo;XML Schema Part 2: Datatypes Second Edition. Built-in datatypes: Date.,&rdquo; .</span><span>)</span></a>.
+</dd>
+<dt>openid.ax.update_url</dt>
+<dd> This parameter has identical semantics as in the Attribute Exchange mode "fetch_response". See <a class='info' href='#Attribute Exchange'>[Attribute Exchange]<span> (</span><span class='info'>Hardt, D., Bufu, J., and J. Hoyt, &ldquo;OpenID Attribute Exchange 1.0,&rdquo; .</span><span>)</span></a>.
+            
+</dd>
+</dl></blockquote><p>
+        
+</p>
+<a name="validate_response_example"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.4.4"></a><h3>4.4.&nbsp;
+Validate Response Example</h3>
+
+<p>This example shows a possible valid response to the example request in Section <a class='info' href='#validate_request_example'>Section&nbsp;4.2<span> (</span><span class='info'>Validate Request Example</span><span>)</span></a>.
+          </p>
+<div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>
+openid.ns.ax=http://openid.net/srv/ax/1.1
+openid.ax.mode=validate_response
+openid.ax.type.email=http://axschema.org/contact/email
+openid.ax.validation.email=http://example.org/validation/authoritative
+openid.ax.value.email=user@example.org
+openid.ax.type.dob=http://axschema.org/birthDate
+openid.ax.validation.dob=http://example.org/validation/claimed
+openid.ax.value.dob=1979-12-31
+openid.ax.type.cell=http://axschema.org/contact/phone/cell
+openid.ax.value.cell=+1-555-555-1212
+openid.ax.validation.cell=http://example.org/pin_via_sms
+openid.ax.validated_on.cell=2007-12-31
+openid.ax.update_url=http://idconsumer.com/update?transaction_id=a6b5c41
+</pre></div><p>
+
+        
+</p>
+<a name="rfc.references1"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<h3>5.&nbsp;Normative References</h3>
+<table width="99%" border="0">
+<tr><td class="author-text" valign="top"><a name="Attribute Exchange">[Attribute Exchange]</a></td>
+<td class="author-text"><a href="mailto:dick@sxip.com">Hardt, D.</a>, <a href="mailto:johnny@sxip.com">Bufu, J.</a>, and <a href="mailto:josh@janrain.com">J. Hoyt</a>, &ldquo;<a href="http://openid.net/specs/openid-attribute-exchange-1_0.html">OpenID Attribute Exchange 1.0</a>&rdquo; (<a href="http://openid.net/specs/openid-attribute-exchange-1_0.html">HTML</a>, <a href="http://openid.net/specs/openid-attribute-exchange-1_0.txt">TXT</a>).</td></tr>
+<tr><td class="author-text" valign="top"><a name="Date XML schema">[Date XML schema]</a></td>
+<td class="author-text"><a href="mailto:&lt;Paul.V.Biron@kp.org&gt;">Biron, P.</a> and <a href="mailto:&lt;ashokma@microsoft.com&gt;">A. Malhotra</a>, &ldquo;<a href="http://www.w3.org/TR/xmlschema-2/#date">XML Schema Part 2: Datatypes Second Edition. Built-in datatypes: Date.</a>&rdquo; (<a href="http://www.w3.org/TR/xmlschema-2/#date">HTML</a>).</td></tr>
+<tr><td class="author-text" valign="top"><a name="OpenID">[OpenID]</a></td>
+<td class="author-text"><a href="mailto:specs@openid.net">Openid.net</a>, &ldquo;<a href="http://openid.net/specs/openid-authentication-2_0.html">OpenID Authentication 2.0 - Final</a>,&rdquo; December&nbsp;2007 (<a href="http://openid.net/specs/openid-authentication-2_0.html">HTML</a>, <a href="http://openid.net/specs/openid-authentication-2_0.txt">TXT</a>).</td></tr>
+<tr><td class="author-text" valign="top"><a name="RFC2119">[RFC2119]</a></td>
+<td class="author-text"><a href="mailto:sob@harvard.edu">Bradner, S.</a>, &ldquo;<a href="http://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>,&rdquo; BCP&nbsp;14, RFC&nbsp;2119, March&nbsp;1997 (<a href="ftp://ftp.isi.edu/in-notes/rfc2119.txt">TXT</a>, <a href="http://xml.resource.org/public/rfc/html/rfc2119.html">HTML</a>, <a href="http://xml.resource.org/public/rfc/xml/rfc2119.xml">XML</a>).</td></tr>
+</table>
+
+<a name="rfc.authors"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<h3>Authors' Addresses</h3>
+<table width="99%" border="0" cellpadding="0" cellspacing="0">
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Breno de Medeiros (editor)</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Google, Inc.</td></tr>
+<tr><td class="author" align="right">Email:&nbsp;</td>
+<td class="author-text"><a href="mailto:breno@google.com">breno@google.com</a></td></tr>
+<tr cellpadding="3"><td>&nbsp;</td><td>&nbsp;</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Allen Tom (editor)</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Yahoo! Inc.</td></tr>
+<tr><td class="author" align="right">Email:&nbsp;</td>
+<td class="author-text"><a href="mailto:atom@yahoo-inc.com">atom@yahoo-inc.com</a></td></tr>
+</table>
+</body></html>
