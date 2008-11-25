@@ -100,9 +100,10 @@ public class LoginServlet extends InjectableServlet {
     }
 
     if (YES_STRING.equals(req.getParameter("oauth"))) {
+      System.out.println("requesting scope : " + (String) accessor.consumer.getProperty("scope"));
       helper.requestOauthAuthorization(
           accessor.consumer.consumerKey,
-          (String) accessor.consumer.getProperty("scope"));
+          (String) accessor.getProperty("scope"));
     }
 
     if (YES_STRING.equals(req.getParameter("email"))) {
@@ -112,7 +113,7 @@ public class LoginServlet extends InjectableServlet {
     if (YES_STRING.equals(req.getParameter("country"))) {
       helper.requestAxAttribute("country", Step2.AX_COUNTRY_SCHEMA, true);
     }
-    
+
     String emailMode = req.getParameter("emailmode");
     if (emailMode != null) {
       if (emailMode.equals("request")) {
@@ -121,7 +122,7 @@ public class LoginServlet extends InjectableServlet {
         String emailValidate = req.getParameter("emailval");
         if (emailValidate != null) {
           helper.validateAxAttribute("email", Step2.AX_EMAIL_SCHEMA, emailValidate);
-        }   
+        }
       }
     }
 

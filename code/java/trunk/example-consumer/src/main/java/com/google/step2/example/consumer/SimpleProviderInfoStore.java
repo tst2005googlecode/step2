@@ -88,7 +88,9 @@ public class SimpleProviderInfoStore implements OAuthProviderInfoStore {
             accessor.consumer.consumerKey,
             accessor.consumer.consumerSecret,
             provider);
-        accessors.put(key, new OAuthAccessor(consumer));
+        OAuthAccessor newAccessor = new OAuthAccessor(consumer);
+        copyProperties(newAccessor, accessor);
+        accessors.put(key, newAccessor);
 
       } else if (parameter.equalsIgnoreCase(AUTH_URL)) {
         OAuthServiceProvider provider = new OAuthServiceProvider(
@@ -100,7 +102,9 @@ public class SimpleProviderInfoStore implements OAuthProviderInfoStore {
             accessor.consumer.consumerKey,
             accessor.consumer.consumerSecret,
             provider);
-        accessors.put(key, new OAuthAccessor(consumer));
+        OAuthAccessor newAccessor = new OAuthAccessor(consumer);
+        copyProperties(newAccessor, accessor);
+        accessors.put(key, newAccessor);
 
 
       } else if (parameter.equalsIgnoreCase(REQUEST_URL)) {
@@ -113,27 +117,42 @@ public class SimpleProviderInfoStore implements OAuthProviderInfoStore {
             accessor.consumer.consumerKey,
             accessor.consumer.consumerSecret,
             provider);
-        accessors.put(key, new OAuthAccessor(consumer));
+        OAuthAccessor newAccessor = new OAuthAccessor(consumer);
+        copyProperties(newAccessor, accessor);
+        accessors.put(key, newAccessor);
 
       } else if (parameter.equalsIgnoreCase(CONSUMER_KEY)) {
         OAuthConsumer consumer = new OAuthConsumer("",
             properties.getProperty(propertyName, "").trim(),
             accessor.consumer.consumerSecret,
             accessor.consumer.serviceProvider);
-        accessors.put(key, new OAuthAccessor(consumer));
+        OAuthAccessor newAccessor = new OAuthAccessor(consumer);
+        copyProperties(newAccessor, accessor);
+        accessors.put(key, newAccessor);
 
       } else if (parameter.equalsIgnoreCase(CONSUMER_SECRET)) {
         OAuthConsumer consumer = new OAuthConsumer("",
             accessor.consumer.consumerKey,
             properties.getProperty(propertyName, "").trim(),
             accessor.consumer.serviceProvider);
-        accessors.put(key, new OAuthAccessor(consumer));
+        OAuthAccessor newAccessor = new OAuthAccessor(consumer);
+        copyProperties(newAccessor, accessor);
+        accessors.put(key, newAccessor);
 
       } else if (parameter.equalsIgnoreCase(SCOPE)) {
-        accessor.consumer.setProperty(SCOPE,
+        accessor.setProperty(SCOPE,
             properties.getProperty(propertyName, "").trim());
       }
     }
+  }
+
+  /**
+   * Copies all properties from old accessor to new accessor
+   * @param newAccessor
+   * @param accessor
+   */
+  private void copyProperties(OAuthAccessor newAccessor, OAuthAccessor accessor) {
+    newAccessor.setProperty(SCOPE, accessor.getProperty(SCOPE));
   }
 
   public OAuthAccessor getOAuthAccessor(String providerKey)

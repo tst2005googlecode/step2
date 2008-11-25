@@ -22,11 +22,16 @@ import com.google.step2.AuthResponseHelper;
 import com.google.step2.Step2;
 import com.google.step2.VerificationException;
 import com.google.step2.ConsumerHelper;
-import com.google.step2.example.consumer.OAuthConsumerUtil;
+import com.google.step2.consumer.OAuthProviderInfoStore;
+import com.google.step2.consumer.ProviderInfoNotFoundException;
 import com.google.step2.openid.ax2.ValidateResponse;
 import com.google.step2.servlet.InjectableServlet;
 
+import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
+import net.oauth.OAuthException;
+import net.oauth.OAuthMessage;
+import net.oauth.client.OAuthHttpClient;
 
 import org.openid4java.association.AssociationException;
 import org.openid4java.discovery.DiscoveryException;
@@ -38,7 +43,7 @@ import org.openid4java.message.ax.AxMessage;
 import org.openid4java.message.ax.FetchResponse;
 
 import java.io.IOException;
-import java.util.List;
+import java.net.URISyntaxException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -53,12 +58,24 @@ import javax.servlet.http.HttpSession;
  */
 public class CheckAuthServlet extends InjectableServlet {
   private ConsumerHelper helper;
+  private OAuthProviderInfoStore providerStore;
+  private OAuthHttpClient httpClient;
   private static final String NO_TOKEN = "None";
   private static final String UNKNOWN = "Unknown";
 
   @Inject
   public void setConsumerHelper(ConsumerHelper helper) {
     this.helper = helper;
+  }
+
+  @Inject
+  public void setProviderInfoStore(OAuthProviderInfoStore store) {
+    this.providerStore = store;
+  }
+
+  @Inject
+  void setOAuthHttpClient(OAuthHttpClient client) {
+    this.httpClient = client;
   }
 
   @Override
@@ -77,20 +94,25 @@ public class CheckAuthServlet extends InjectableServlet {
     DiscoveryInformation discovered =
       (DiscoveryInformation) session.getAttribute("discovered");
 
+    String requestToken = NO_TOKEN;
+
     // Try to get the OpenId, AX, and OAuth values from the auth response
     try {
       AuthResponseHelper authResponse =
         helper.verify(receivingUrl, openidResp, discovered);
-      
+
       // Get Claimed Identifier
       Identifier claimedId = authResponse.getClaimedId();
       session.setAttribute("user",
           (claimedId == null) ? UNKNOWN : claimedId.getIdentifier());
 
-      // Clean up stale session state if any 
+      // Clean up stale session state if any
       session.removeAttribute("email");
       session.removeAttribute("country");
       session.removeAttribute("emailval");
+      session.removeAttribute("request_token");
+      session.removeAttribute("access_token");
+      session.removeAttribute("access_token_secret");
 
       Class<? extends AxMessage> axExtensionType =
         authResponse.getAxExtensionType();
@@ -103,7 +125,7 @@ public class CheckAuthServlet extends InjectableServlet {
             session.setAttribute("emailval", "Validation failed");
           }
         }
-        
+
         if (axExtensionType.equals(FetchResponse.class)) {
           session.setAttribute("email",
               authResponse.getAxFetchAttributeValue("email"));
@@ -111,10 +133,10 @@ public class CheckAuthServlet extends InjectableServlet {
               authResponse.getAxFetchAttributeValue("country"));
         }
       }
-      
+
       if (authResponse.hasHybridOauthExtension()) {
-        session.setAttribute("request_token",
-            authResponse.getHybridOauthResponse().getRequestToken());
+        requestToken = authResponse.getHybridOauthResponse().getRequestToken();
+        session.setAttribute("request_token", "yes (" + requestToken + ")");
       }
     } catch (MessageException e) {
       throw new ServletException(e);
@@ -126,25 +148,34 @@ public class CheckAuthServlet extends InjectableServlet {
       throw new ServletException(e);
     }
 
-    resp.sendRedirect(req.getRequestURI().replaceAll("/checkauth$", "/hello"));
-    
-    /*
-    // we'll implement this later...
     String accessToken = NO_TOKEN;
     String accessTokenSecret = NO_TOKEN;
     if (!NO_TOKEN.equals(requestToken)) {
       // Try getting an acess token from this request token.
-      OAuthConsumerUtil util =
-        new OAuthConsumerUtil(discovered.getClaimedIdentifier().toString());
-      OAuthAccessor accessor = util.getAccessToken(requestToken);
-      if (accessor != null) {
-        accessToken = accessor.accessToken;
-        accessTokenSecret = accessor.tokenSecret;
+      try {
+        OAuthAccessor accessor = providerStore.getOAuthAccessor("google");
+
+        OAuthMessage response = httpClient.invoke(accessor,
+            accessor.consumer.serviceProvider.accessTokenURL,
+            OAuth.newList(OAuth.OAUTH_TOKEN, requestToken));
+
+        if (response != null) {
+          accessToken = response.getParameter(OAuth.OAUTH_TOKEN);
+          accessTokenSecret = response.getParameter(OAuth.OAUTH_TOKEN_SECRET);
+
+          session.setAttribute("access_token", "yes (" + accessToken + ")");
+          session.setAttribute("access_token_secret",
+              "yes (" + accessTokenSecret + ")");
+        }
+      } catch (ProviderInfoNotFoundException e) {
+        e.printStackTrace();
+      } catch (OAuthException e) {
+        e.printStackTrace();
+      } catch (URISyntaxException e) {
+        e.printStackTrace();
       }
     }
-    session.setAttribute("access_token", accessToken);
-    session.setAttribute("access_token_secret", accessTokenSecret);
-    */
-    
+
+    resp.sendRedirect(req.getRequestURI().replaceAll("/checkauth$", "/hello"));
   }
 }

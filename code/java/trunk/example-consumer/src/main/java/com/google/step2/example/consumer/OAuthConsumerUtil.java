@@ -36,35 +36,35 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Utility class for reading OAuth consumer properties from a Properties object
- * 
+ *
  * @author sweis@google.com (Steve Weis)
  */
 public class OAuthConsumerUtil {
   private static Logger log = Logger.getLogger(OAuthConsumerUtil.class);
-  
+
   private static final String REQUEST_XRDS =
     "http://oauth.net/core/1.0/endpoint/request";
   private static final String AUTHORIZE_XRDS =
     "http://oauth.net/core/1.0/endpoint/authorize";
   private static final String ACCESS_XRDS =
-    "http://oauth.net/core/1.0/endpoint/access"; 
-  
+    "http://oauth.net/core/1.0/endpoint/access";
+
   private static final String SERVICE_PROVIDER = "serviceProvider";
   private static final String CONSUMER_KEY = "consumerKey";
   private static final String CONSUMER_SECRET = "consumerSecret";
   private static final String SCOPE = "scope";
-  
+
   private static String consumerKey;
   private static String consumerSecret;
   private static String scope;
 
   private OAuthServiceProvider provider;
-  
+
   private final YadisResolver yadisResolver = new YadisResolver();
-  
+
   private static final ConcurrentHashMap<String, OAuthAccessor>
     ACCESSORS = new ConcurrentHashMap<String, OAuthAccessor>();
-  
+
   static {
     try {
       ClassLoader loader = LoginServlet.class.getClassLoader();
@@ -86,19 +86,19 @@ public class OAuthConsumerUtil {
       // If an exception occurs, then no Oauth service provider properties will
       // be read from disk. This will cause an exception below, but won't
       // affect the OpenID authentication
-    }    
+    }
   }
-    
+
   public static ConcurrentHashMap<String, OAuthServiceProvider> CACHED_DISCOVERED =
     new ConcurrentHashMap<String, OAuthServiceProvider>();
-  
+
   public OAuthConsumerUtil(String url) {
     provider = CACHED_DISCOVERED.get(url);
     if (provider == null) {
       String requestTokenUrl = null;
       String authorizeUrl = null;
       String accessTokenUrl = null;
-      
+
       YadisResult yadisResult = yadisResolver.discover(url);
       if (YadisResult.OK == yadisResult.getStatus()) {
         XRD xrd = yadisResult.getXrds().getFinalXRD();
@@ -113,7 +113,7 @@ public class OAuthConsumerUtil {
           authorizeUrl =
             authorizeService.getURIAt(0).getURI().toASCIIString();
         }
-      
+
         Service accessService = xrd.getFirstServiceByType(ACCESS_XRDS);
         if (accessService != null && accessService.getNumURIs() > 0) {
           accessTokenUrl = accessService.getURIAt(0).getURI().toASCIIString();
@@ -124,31 +124,7 @@ public class OAuthConsumerUtil {
       CACHED_DISCOVERED.putIfAbsent(url, provider);
     }
   }
-      
-  public String getUnauthorizedRequestToken() {
-    OAuthAccessor accessor = getAccessor();
-    Collection<OAuth.Parameter> parameters = null;
 
-    if (provider.requestTokenURL != null) {
-      try {
-        OAuthMessage response = 
-          getClient().invoke(accessor, provider.requestTokenURL, parameters);
-        log.info("Successfully got OAuth request token");
-        accessor.requestToken = response.getParameter("oauth_token");
-        accessor.tokenSecret = response.getParameter("oauth_token_secret");
-        ACCESSORS.put(accessor.requestToken, accessor);
-        return response.getToken();
-      } catch (OAuthException e) {
-        e.printStackTrace();  // Continue
-      } catch (URISyntaxException e) {
-        e.printStackTrace();  // Continue
-      } catch (IOException e) {
-        e.printStackTrace();  // Continue
-      }
-    }
-    return null;
-  }
-    
   public OAuthAccessor getAccessToken(String requestToken) {
     if (provider.accessTokenURL != null) {
       OAuthAccessor accessor = ACCESSORS.remove(requestToken);
@@ -156,7 +132,7 @@ public class OAuthConsumerUtil {
         try {
           OAuthMessage response = getClient().invoke(accessor,
               provider.accessTokenURL,
-              OAuth.newList("oauth_token", requestToken)); 
+              OAuth.newList("oauth_token", requestToken));
           log.info("Successfully got OAuth access token");
           accessor.requestToken = null;
           accessor.accessToken = response.getParameter("oauth_token");
@@ -175,19 +151,19 @@ public class OAuthConsumerUtil {
     }
     return null;
   }
-  
+
   public OAuthServiceProvider getProvider() {
     return provider;
   }
-  
+
   private OAuthConsumer getConsumer() {
     return new OAuthConsumer(null,  // no callback
         consumerKey, consumerSecret, provider);
   }
-  
+
   private OAuthAccessor getAccessor() {
     return new OAuthAccessor(getConsumer());
-  }    
+  }
 
   private OAuthHttpClient getClient() {
     return new OAuthHttpClient(

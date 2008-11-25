@@ -25,6 +25,9 @@ import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.openid.ax2.AxMessage2;
 import com.google.step2.servlet.ConsumerManagerProvider;
 
+import net.oauth.client.HttpClientPool;
+import net.oauth.client.OAuthHttpClient;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.openid4java.consumer.ConsumerAssociationStore;
@@ -33,6 +36,8 @@ import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.message.Message;
 import org.openid4java.message.MessageException;
 import org.openid4java.util.HttpClientFactory;
+
+import java.net.URL;
 
 /**
  *
@@ -66,7 +71,20 @@ public class GuiceModule extends AbstractModule {
     bind(HttpClient.class).toInstance(HttpClientFactory.getInstance(0,
         Boolean.FALSE, 10000, 10000, CookiePolicy.IGNORE_COOKIES));
 
+    bind(OAuthHttpClient.class).toInstance(getOAuthHttpClient());
+
     bind(OAuthProviderInfoStore.class)
         .to(SimpleProviderInfoStore.class).in(Scopes.SINGLETON);
   }
+
+  private OAuthHttpClient getOAuthHttpClient() {
+    return new OAuthHttpClient(
+        new HttpClientPool() {
+          // This trivial 'pool' simply allocates a new client every time.
+          // More efficient implementations are possible.
+          public HttpClient getHttpClient(URL server) {
+            return new HttpClient();
+          }}
+        );
+    }
 }
