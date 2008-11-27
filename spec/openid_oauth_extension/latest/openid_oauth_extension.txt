@@ -8,7 +8,7 @@ draft                                                         D. Balfanz
                                                                Six Apart
                                                                 J. Smarr
                                                                    Plaxo
-                                                       November 24, 2008
+                                                       November 26, 2008
 
 
                          OpenID OAuth Extension
@@ -59,7 +59,7 @@ Balfanz, et al.                                                 [Page 1]
 
 Abstract
 
-   This draft describe a mechanism to combine an OpenID authentication
+   This draft describes a mechanism to combine an OpenID authentication
    request with the approval of an OAuth request token.
 
 
@@ -283,7 +283,7 @@ Balfanz, et al.                                                 [Page 5]
 
 4.  Overview
 
-   Unlike standard OAuth ([OAuth]), the OpenID OAuth extension does not
+   Unlike standard OAuth ([OAuth]), the OpenID OAuth Extension does not
    provision request tokens in a server-to-server request from the
    Combined Consumer to the request token endpoint at the Combined
    Provider.  Instead, the Combined Provider returns an already-approved
@@ -339,8 +339,8 @@ Balfanz, et al.                                                 [Page 6]
 
 5.  Discovery
 
-   Discovery of the OAuth extension is achieved via the mechanism
-   described in [OpenID].  The OAuth extension namespace
+   Discovery of the OpenID OAuth Extension is achieved via the mechanism
+   described in [OpenID].  The OpenID OAuth Extension namespace
    "http://specs.openid.net/extensions/oauth/1.0" SHOULD be listed as an
    <xrd:Type> child element of the <xrd:Service> element in the XRDS
    discovery document.
@@ -451,10 +451,10 @@ Balfanz, et al.                                                 [Page 8]
 
 7.  Requesting Authentication
 
-   When Requesting OpenID Authentication via the protocol mode
+   When requesting OpenID Authentication via the protocol mode
    "checkid_setup" or "checkid_immediate", this extension can be used to
-   request that the end user authorize an OAuth token at the same time
-   as their OpenID authentication.  This is done by sending the
+   request that the end user authorize an OAuth access token at the same
+   time as an OpenID authentication.  This is done by sending the
    following parameters as part of the OpenID request.
 
    openid.ns.oauth  REQUIRED.  Value:
@@ -507,14 +507,14 @@ Balfanz, et al.                                                 [Page 9]
 
 8.  Authorizing the OAuth Request
 
-   If the OAuth Extension is present in the authentication request, the
-   Combined Provider SHOULD verify that the consumer key passed in the
-   request is authorized to be used for the realm passed in the request.
-   If this verification succeeds, the Combined Provider SHOULD determine
-   that delegation of access from a user to the Combined Consumer has
-   been requested.
+   If the OpenID OAuth Extension is present in the authentication
+   request, the Combined Provider SHOULD verify that the consumer key
+   passed in the request is authorized to be used for the realm passed
+   in the request.  If this verification succeeds, the Combined Provider
+   SHOULD determine that delegation of access from a user to the
+   Combined Consumer has been requested.
 
-   The Combined Provider SHOULD not issue an approved request token
+   The Combined Provider SHOULD NOT issue an approved request token
    unless it has user consent to perform such delegation.
 
 
@@ -566,16 +566,16 @@ Balfanz, et al.                                                [Page 10]
    If the OpenID authentication request cannot be fulfilled (either in
    failure mode "setup_needed" or "cancel" as in Sections 10.2.1 and
    10.2.2 of [OpenID]) then the OAuth request SHOULD be considered to
-   fail and the Provider MUST NOT send any OAuth extension values in the
-   response.
+   fail and the Provider MUST NOT send any OpenID OAuth Extension values
+   in the response.
 
    The remainder of this section specifies how to handle the OAuth
    request in cases when the OpenID authentication response is a
    positive assertion (Section 10.1 of [OpenID]).
 
-   If the end user does wish to delegate access to the Consumer, the
-   Combined Provider MUST include and MUST sign the following
-   parameters.
+   If the end user does wish to delegate access to the Combined
+   Consumer, the Combined Provider MUST include and MUST sign the
+   following parameters.
 
    openid.ns.oauth  REQUIRED.  Identical value as defined in Section 7.
 
@@ -625,19 +625,19 @@ Balfanz, et al.                                                [Page 11]
    It SHALL use the following values to create the OAuth access token
    request:
 
-   consumer key  Consumers use the consumer key they established with
-      the Combined Provider in Section 6.
+   consumer key  Combined Consumers use the consumer key they
+      established with the Combined Provider in Section 6.
 
-   consumer secret  Consumers use the consumer secret they established
-      with the Combined Provider in Section 6.
+   consumer secret  Combined Consumers use the consumer secret they
+      established with the Combined Provider in Section 6.
 
-   OAuth token  Consumers use the request token obtained in Section 9.
+   OAuth token  Combined Consumers use the request token obtained in
+      Section 9.
 
-   OAuth token secret  Consumers use the empty string.
+   OAuth token secret  Combined Consumers use the empty string.
 
    The Combined Provider follows Section 6.3.2 to verify the request and
    either issue the access token or send an error response.
-
 
 
 
@@ -682,9 +682,9 @@ Balfanz, et al.                                                [Page 12]
    particular:
 
    OpenID full compatibility  The OpenID identity provider (OP) MAY
-      safely announce the endpoint supporting the OAuth extension to all
-      relying parties, whether or not they support the extension as
-      well.  The use of a separate service-type announcement for
+      safely announce the endpoint supporting the OpenID OAuth Extension
+      to all relying parties, whether or not they support the extension
+      as well.  The use of a separate service-type announcement for
       Combined Providers endpoints provides a mechanism for auto-
       discovery of OAuth capabilities by RPs.
 
@@ -756,18 +756,18 @@ Balfanz, et al.                                                [Page 13]
 
    Imposters cannot retrieve the OAuth access token  While it is
       possible for a malicious party to fake an OpenID request,
-      including an OpenID request that includes the OAuth extension (the
-      request is not signed, and knowledge of the consumer key and realm
-      is sufficient to cause the Combined Provider to display an
-      authorization page for that realm/consumer), that malicious party
-      would have to have knowledge of the consumer secret to exchange
-      the request token for an access token.  Note that while secure
-      under reasonable threat models, this is different from standard
-      OAuth: In standard OAuth, one needs knowledge of both the consumer
-      key and consumer secret (or, alternatively, of a request token
-      obtained through knowledge of the consumer key and secret) to
-      cause the Service Provider to display an authorization page for
-      that consumer.
+      including an OpenID request that includes the OpenID OAuth
+      Extension (the request is not signed, and knowledge of the
+      consumer key and realm is sufficient to cause the Combined
+      Provider to display an authorization page for that realm/
+      consumer), that malicious party would have to have knowledge of
+      the consumer secret to exchange the request token for an access
+      token.  Note that while secure under reasonable threat models,
+      this is different from standard OAuth: In standard OAuth, one
+      needs knowledge of both the consumer key and consumer secret (or,
+      alternatively, of a request token obtained through knowledge of
+      the consumer key and secret) to cause the Service Provider to
+      display an authorization page for that consumer.
 
 
 

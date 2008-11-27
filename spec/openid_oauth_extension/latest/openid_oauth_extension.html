@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en"><head><title>draft: OpenID OAuth Extension</title>
-<meta http-equiv="Expires" content="Mon, 24 Nov 2008 18:19:44 +0000">
+<meta http-equiv="Expires" content="Thu, 27 Nov 2008 02:22:39 +0000">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="OpenID OAuth Extension">
 <meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
@@ -149,13 +149,13 @@
 <tr><td class="header">&nbsp;</td><td class="header">Six Apart</td></tr>
 <tr><td class="header">&nbsp;</td><td class="header">J. Smarr</td></tr>
 <tr><td class="header">&nbsp;</td><td class="header">Plaxo</td></tr>
-<tr><td class="header">&nbsp;</td><td class="header">November 24, 2008</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">November 26, 2008</td></tr>
 </table></td></tr></table>
 <h1><br />OpenID OAuth Extension</h1>
 
 <h3>Abstract</h3>
 
-<p>This draft describe a mechanism to combine an OpenID 
+<p>This draft describes a mechanism to combine an OpenID 
         authentication request with the approval of an OAuth request token.
       
 </p><a name="toc"></a><br /><hr />
@@ -256,7 +256,7 @@ Purpose of this Specification</h3>
 Overview</h3>
 
 <p>Unlike standard OAuth (<a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>), the OpenID
-        OAuth extension does not provision request tokens in a
+        OAuth Extension does not provision request tokens in a
         server-to-server request from the Combined Consumer to the
         request token endpoint at the Combined Provider. Instead, the
         Combined Provider returns an already-approved request token to
@@ -275,9 +275,9 @@ Overview</h3>
 <a name="rfc.section.5"></a><h3>5.&nbsp;
 Discovery</h3>
 
-<p>Discovery of the OAuth extension is achieved via the
-      mechanism described in <a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>. The OAuth
-      extension namespace
+<p>Discovery of the OpenID OAuth Extension is achieved via the
+      mechanism described in <a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>. The OpenID OAuth
+      Extension namespace
       "http://specs.openid.net/extensions/oauth/1.0" SHOULD be listed
       as an &lt;xrd:Type&gt; child element of the &lt;xrd:Service&gt;
       element in the XRDS discovery document.
@@ -304,10 +304,10 @@ Before Requesting Authentication - Registration</h3>
 <a name="rfc.section.7"></a><h3>7.&nbsp;
 Requesting Authentication</h3>
 
-<p>When Requesting OpenID Authentication via the protocol mode
+<p>When requesting OpenID Authentication via the protocol mode
         "checkid_setup" or "checkid_immediate", this extension can be
-        used to request that the end user authorize an OAuth token at
-        the same time as their OpenID authentication.  This is done by
+        used to request that the end user authorize an OAuth access token at
+        the same time as an OpenID authentication.  This is done by
         sending the following parameters as part of the OpenID
         request.
         </p>
@@ -336,14 +336,14 @@ Requesting Authentication</h3>
 <a name="rfc.section.8"></a><h3>8.&nbsp;
 Authorizing the OAuth Request</h3>
 
-<p>If the OAuth Extension is present in the authentication
+<p>If the OpenID OAuth Extension is present in the authentication
 	request, the Combined Provider SHOULD verify that the consumer
 	key passed in the request is authorized to be used for the
 	realm passed in the request. If this verification succeeds, the
 	Combined Provider SHOULD determine that delegation of access
 	from a user to the Combined Consumer has been requested.
 </p>
-<p>The Combined Provider SHOULD not issue an approved request
+<p>The Combined Provider SHOULD NOT issue an approved request
 	token unless it has user consent to perform such delegation.
       
 </p>
@@ -355,7 +355,7 @@ Responding to Authentication Requests</h3>
 <p>If the OpenID authentication request cannot be fulfilled (either in
         failure mode "setup_needed" or "cancel" as in Sections 10.2.1 and 10.2.2
         of <a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>) then the OAuth request SHOULD be considered
-        to fail and the Provider MUST NOT send any OAuth extension values in the
+        to fail and the Provider MUST NOT send any OpenID OAuth Extension values in the
         response.
       
 </p>
@@ -364,7 +364,7 @@ Responding to Authentication Requests</h3>
         assertion (Section 10.1 of <a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>).
       
 </p>
-<p>If the end user does wish to delegate access to the Consumer,
+<p>If the end user does wish to delegate access to the Combined Consumer,
         the Combined Provider MUST include and MUST sign
         the following parameters.
         </p>
@@ -413,25 +413,25 @@ Obtaining the Access Token</h3>
 <blockquote class="text"><dl>
 <dt>consumer key</dt>
 <dd>
-	    Consumers use the consumer key they established with the
+	    Combined Consumers use the consumer key they established with the
 	    Combined Provider in <a class='info' href='#Registered'>Section&nbsp;6<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
           
 </dd>
 <dt>consumer secret</dt>
 <dd>
-	    Consumers use the consumer secret they established with
+	    Combined Consumers use the consumer secret they established with
 	    the Combined Provider in <a class='info' href='#Registered'>Section&nbsp;6<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
           
 </dd>
 <dt>OAuth token</dt>
 <dd>
-	    Consumers use the request token obtained in
+	    Combined Consumers use the request token obtained in
 	    <a class='info' href='#AuthResp'>Section&nbsp;9<span> (</span><span class='info'>Responding to Authentication Requests</span><span>)</span></a>.
           
 </dd>
 <dt>OAuth token secret</dt>
 <dd>
-	    Consumers use the empty string.
+	    Combined Consumers use the empty string.
           
 </dd>
 </dl></blockquote><p>
@@ -457,7 +457,7 @@ General Considerations</h3>
 <blockquote class="text"><dl>
 <dt>OpenID full compatibility</dt>
 <dd>The OpenID identity provider
-            (OP) MAY safely announce the endpoint supporting the OAuth extension
+            (OP) MAY safely announce the endpoint supporting the OpenID OAuth Extension
             to all relying parties, whether or not they support
             the extension as well.
             The use of a separate service-type announcement
@@ -514,7 +514,7 @@ Security Considerations</h3>
 <dd>
 	    While it is possible for a malicious party to fake an
 	    OpenID request, including an OpenID request that includes
-	    the OAuth extension (the request is not signed, and
+	    the OpenID OAuth Extension (the request is not signed, and
 	    knowledge of the consumer key and realm is sufficient
 	    to cause the Combined Provider to display an authorization
 	    page for that realm/consumer), that malicious party would

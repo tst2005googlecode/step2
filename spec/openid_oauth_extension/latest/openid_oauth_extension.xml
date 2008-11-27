@@ -44,7 +44,7 @@
     </author>
     <date year='2008'/>
     <abstract>
-      <t>This draft describe a mechanism to combine an OpenID 
+      <t>This draft describes a mechanism to combine an OpenID 
         authentication request with the approval of an OAuth request token.
       </t>
     </abstract>
@@ -96,7 +96,7 @@
 
     <section title="Overview">
       <t>Unlike standard OAuth (<xref target="OAuth"/>), the OpenID
-        OAuth extension does not provision request tokens in a
+        OAuth Extension does not provision request tokens in a
         server-to-server request from the Combined Consumer to the
         request token endpoint at the Combined Provider. Instead, the
         Combined Provider returns an already-approved request token to
@@ -112,9 +112,9 @@
     </section>
 
     <section title="Discovery">
-      <t>Discovery of the OAuth extension is achieved via the
-      mechanism described in <xref target="OpenID"/>. The OAuth
-      extension namespace
+      <t>Discovery of the OpenID OAuth Extension is achieved via the
+      mechanism described in <xref target="OpenID"/>. The OpenID OAuth
+      Extension namespace
       "http://specs.openid.net/extensions/oauth/1.0" SHOULD be listed
       as an &lt;xrd:Type&gt; child element of the &lt;xrd:Service&gt;
       element in the XRDS discovery document.
@@ -134,10 +134,10 @@
     </section>
 
     <section anchor='AuthReq' title="Requesting Authentication">
-      <t>When Requesting OpenID Authentication via the protocol mode
+      <t>When requesting OpenID Authentication via the protocol mode
         "checkid_setup" or "checkid_immediate", this extension can be
-        used to request that the end user authorize an OAuth token at
-        the same time as their OpenID authentication.  This is done by
+        used to request that the end user authorize an OAuth access token at
+        the same time as an OpenID authentication.  This is done by
         sending the following parameters as part of the OpenID
         request.
         <list style="hanging">
@@ -156,14 +156,14 @@
     </section>
 
     <section title="Authorizing the OAuth Request">
-      <t>If the OAuth Extension is present in the authentication
+      <t>If the OpenID OAuth Extension is present in the authentication
 	request, the Combined Provider SHOULD verify that the consumer
 	key passed in the request is authorized to be used for the
 	realm passed in the request. If this verification succeeds, the
 	Combined Provider SHOULD determine that delegation of access
 	from a user to the Combined Consumer has been requested.</t>
 
-	<t>The Combined Provider SHOULD not issue an approved request
+	<t>The Combined Provider SHOULD NOT issue an approved request
 	token unless it has user consent to perform such delegation.
       </t>
     </section>
@@ -172,14 +172,14 @@
       <t>If the OpenID authentication request cannot be fulfilled (either in
         failure mode "setup_needed" or "cancel" as in Sections 10.2.1 and 10.2.2
         of <xref target="OpenID"/>) then the OAuth request SHOULD be considered
-        to fail and the Provider MUST NOT send any OAuth extension values in the
+        to fail and the Provider MUST NOT send any OpenID OAuth Extension values in the
         response.
       </t> 
       <t>The remainder of this section specifies how to handle the OAuth
         request in cases when the OpenID authentication response is a positive 
         assertion (Section 10.1 of <xref target="OpenID"/>).
       </t>
-      <t>If the end user does wish to delegate access to the Consumer,
+      <t>If the end user does wish to delegate access to the Combined Consumer,
         the Combined Provider MUST include and MUST sign
         the following parameters.
         <list style="hanging">
@@ -214,19 +214,19 @@
         token request:
         <list style="hanging">
           <t hangText='consumer key'>
-	    Consumers use the consumer key they established with the
+	    Combined Consumers use the consumer key they established with the
 	    Combined Provider in <xref target='Registered'/>.
           </t>
           <t hangText='consumer secret'>
-	    Consumers use the consumer secret they established with
+	    Combined Consumers use the consumer secret they established with
 	    the Combined Provider in <xref target='Registered'/>.
           </t>  
           <t hangText='OAuth token'>
-	    Consumers use the request token obtained in
+	    Combined Consumers use the request token obtained in
 	    <xref target="AuthResp"/>.
           </t>  
           <t hangText='OAuth token secret'>
-	    Consumers use the empty string.
+	    Combined Consumers use the empty string.
           </t>  
         </list>
       </t>
@@ -245,7 +245,7 @@
         In particular:
         <list style="hanging">
           <t hangText="OpenID full compatibility">The OpenID identity provider
-            (OP) MAY safely announce the endpoint supporting the OAuth extension
+            (OP) MAY safely announce the endpoint supporting the OpenID OAuth Extension
             to all relying parties, whether or not they support
             the extension as well.
             The use of a separate service-type announcement
@@ -291,7 +291,7 @@
           <t hangText="Imposters cannot retrieve the OAuth access token">
 	    While it is possible for a malicious party to fake an
 	    OpenID request, including an OpenID request that includes
-	    the OAuth extension (the request is not signed, and
+	    the OpenID OAuth Extension (the request is not signed, and
 	    knowledge of the consumer key and realm is sufficient
 	    to cause the Combined Provider to display an authorization
 	    page for that realm/consumer), that malicious party would
