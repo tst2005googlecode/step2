@@ -89,8 +89,8 @@
       <t>This extension describes how to embed an OAuth approval
        request into an OpenID authentication request to permit
        combined user approval.  For security reasons, the OAuth access
-       token is not returned in the URL.  Instead a mechanism to
-       obtain the access token is provided.
+       token is not returned in the OpenID authentication response.
+       Instead a mechanism to obtain the access token is provided.
      </t>
    </section>
 

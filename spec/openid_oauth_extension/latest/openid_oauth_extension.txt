@@ -8,7 +8,7 @@ draft                                                         D. Balfanz
                                                                Six Apart
                                                                 J. Smarr
                                                                    Plaxo
-                                                       November 26, 2008
+                                                       November 28, 2008
 
 
                          OpenID OAuth Extension
@@ -237,8 +237,8 @@ Balfanz, et al.                                                 [Page 4]
    This extension describes how to embed an OAuth approval request into
    an OpenID authentication request to permit combined user approval.
    For security reasons, the OAuth access token is not returned in the
-   URL.  Instead a mechanism to obtain the access token is provided.
-
+   OpenID authentication response.  Instead a mechanism to obtain the
+   access token is provided.
 
 
 
