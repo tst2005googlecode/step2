@@ -23,9 +23,11 @@ import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.consumer.ProviderInfoNotFoundException;
+import com.google.step2.example.consumer.OAuthConsumerUtil;
 import com.google.step2.servlet.InjectableServlet;
 
 import net.oauth.OAuthAccessor;
+import net.oauth.OAuthException;
 
 import org.apache.log4j.Logger;
 import org.openid4java.consumer.ConsumerException;
@@ -34,6 +36,7 @@ import org.openid4java.message.AuthRequest;
 import org.openid4java.message.MessageException;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -79,38 +82,52 @@ public class LoginServlet extends InjectableServlet {
       throws ServletException, IOException {
     log.info("Login Servlet Post");
 
-    // Construct a string for the realm that we're on
+    // posted means they're sending us an OpenID4
     StringBuffer realm = new StringBuffer(req.getScheme());
     realm.append("://").append(req.getServerName());
     realm.append(":").append(req.getServerPort());
-
-    // posted means they're sending us an OpenID4
-    String returnToUrl = realm + PROJECT + REDIRECT_PATH;
-    String openId = req.getParameter("openid");
-
-    AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(
-        openId, returnToUrl);
+    StringBuffer returnToUrl = realm.append(PROJECT).append(REDIRECT_PATH);
 
     // this is magic - normally this would also fall out of the discovery:
-    OAuthAccessor accessor;
-    try {
-      accessor = providerStore.getOAuthAccessor("google");
-    } catch (ProviderInfoNotFoundException e1) {
-      throw new ServletException(e1);
-    }
+    OAuthAccessor accessor = null;
 
+    // Fetch an unauthorized OAuth request token to test authorizing  
     if (YES_STRING.equals(req.getParameter("oauth"))) {
-      System.out.println("requesting scope : " + (String) accessor.consumer.getProperty("scope"));
-      helper.requestOauthAuthorization(
-          accessor.consumer.consumerKey,
+      try {
+        accessor = providerStore.getOAuthAccessor("google");
+        accessor = OAuthConsumerUtil.getRequestToken(accessor);
+        // Change the realm and return URL to the OAuth consumer's endpoint
+        
+        realm = new StringBuffer("http://");
+        realm.append(accessor.consumer.consumerKey);
+        returnToUrl = realm;
+      } catch (ProviderInfoNotFoundException e) {
+        throw new ServletException(e);
+      } catch (OAuthException e) {
+        throw new ServletException(e);
+      } catch (URISyntaxException e) {
+        throw new ServletException(e);
+      }
+    }
+    
+    String openId = req.getParameter("openid");
+    AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(
+        openId, returnToUrl.toString());
+
+    if (accessor != null) {
+      log.debug("Requesting OAuth scope : " +
+          (String) accessor.consumer.getProperty("scope"));
+      helper.requestOauthAuthorization(accessor.consumer.consumerKey,
           (String) accessor.getProperty("scope"));
     }
 
     if (YES_STRING.equals(req.getParameter("email"))) {
+      log.debug("Requesting AX email");
       helper.requestAxAttribute("email", Step2.AX_EMAIL_SCHEMA, true);
     }
 
     if (YES_STRING.equals(req.getParameter("country"))) {
+      log.debug("Requesting AX country");
       helper.requestAxAttribute("country", Step2.AX_COUNTRY_SCHEMA, true);
     }
 
@@ -130,7 +147,7 @@ public class LoginServlet extends InjectableServlet {
     AuthRequest authReq = null;
     try {
       authReq = helper.generateRequest();
-      authReq.setRealm(realm + "/step2-example-consumer/checkauth");
+      authReq.setRealm(realm.toString());
       session.setAttribute("discovered", helper.getDiscoveryInformation());
     } catch (DiscoveryException e) {
       StringBuffer errorMessage =
