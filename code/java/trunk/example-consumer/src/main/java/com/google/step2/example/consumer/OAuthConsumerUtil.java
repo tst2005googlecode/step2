@@ -38,14 +38,15 @@ public class OAuthConsumerUtil {
 
   public static OAuthAccessor getAccessToken(OAuthAccessor accessor) 
       throws IOException, OAuthException, URISyntaxException {
+    OAuthAccessor accessorCopy = new OAuthAccessor(accessor.consumer);
+
     OAuthMessage response = getClient().invoke(accessor,
         accessor.consumer.serviceProvider.accessTokenURL,
         OAuth.newList("oauth_token", accessor.requestToken,
             "scope", accessor.getProperty("scope").toString()));
     log.info("Successfully got OAuth access token");
-    accessor.requestToken = null;
-    accessor.accessToken = response.getParameter("oauth_token");
-    accessor.tokenSecret = response.getParameter("oauth_token_secret");
+    accessorCopy.accessToken = response.getParameter("oauth_token");
+    accessorCopy.tokenSecret = response.getParameter("oauth_token_secret");
     return accessor;
   }
 
