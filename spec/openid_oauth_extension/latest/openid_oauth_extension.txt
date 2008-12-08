@@ -8,7 +8,9 @@ draft                                                         D. Balfanz
                                                                Six Apart
                                                                 J. Smarr
                                                                    Plaxo
-                                                       November 28, 2008
+                                                                  A. Tom
+                                                                   Yahoo
+                                                        December 8, 2008
 
 
                          OpenID OAuth Extension
@@ -50,11 +52,9 @@ draft                                                         D. Balfanz
 
 
 
-
-
 Balfanz, et al.                                                 [Page 1]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 Abstract
@@ -110,7 +110,7 @@ Table of Contents
 
 Balfanz, et al.                                                 [Page 2]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 1.  Requirements notation
@@ -166,7 +166,7 @@ Balfanz, et al.                                                 [Page 2]
 
 Balfanz, et al.                                                 [Page 3]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 2.  Terminology
@@ -222,7 +222,7 @@ Balfanz, et al.                                                 [Page 3]
 
 Balfanz, et al.                                                 [Page 4]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 3.  Purpose of this Specification
@@ -278,7 +278,7 @@ Balfanz, et al.                                                 [Page 4]
 
 Balfanz, et al.                                                 [Page 5]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 4.  Overview
@@ -334,7 +334,7 @@ Balfanz, et al.                                                 [Page 5]
 
 Balfanz, et al.                                                 [Page 6]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 5.  Discovery
@@ -390,7 +390,7 @@ Balfanz, et al.                                                 [Page 6]
 
 Balfanz, et al.                                                 [Page 7]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 6.  Before Requesting Authentication - Registration
@@ -446,7 +446,7 @@ Balfanz, et al.                                                 [Page 7]
 
 Balfanz, et al.                                                 [Page 8]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 7.  Requesting Authentication
@@ -502,7 +502,7 @@ Balfanz, et al.                                                 [Page 8]
 
 Balfanz, et al.                                                 [Page 9]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 8.  Authorizing the OAuth Request
@@ -558,7 +558,7 @@ Balfanz, et al.                                                 [Page 9]
 
 Balfanz, et al.                                                [Page 10]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 9.  Responding to Authentication Requests
@@ -614,7 +614,7 @@ Balfanz, et al.                                                [Page 10]
 
 Balfanz, et al.                                                [Page 11]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 10.  Obtaining the Access Token
@@ -670,7 +670,7 @@ Balfanz, et al.                                                [Page 11]
 
 Balfanz, et al.                                                [Page 12]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 11.  General Considerations
@@ -726,7 +726,7 @@ Balfanz, et al.                                                [Page 12]
 
 Balfanz, et al.                                                [Page 13]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 12.  Security Considerations
@@ -782,7 +782,7 @@ Balfanz, et al.                                                [Page 13]
 
 Balfanz, et al.                                                [Page 14]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 13.  Normative References
@@ -838,7 +838,7 @@ Balfanz, et al.                                                [Page 14]
 
 Balfanz, et al.                                                [Page 15]
 
-                         OpenID OAuth Extension            November 2008
+                         OpenID OAuth Extension            December 2008
 
 
 Authors' Addresses
@@ -867,10 +867,10 @@ Authors' Addresses
    Email: joseph@plaxo.com
 
 
+   Allen Tom (editor)
+   Yahoo!, Inc.
 
-
-
-
+   Email: atom@yahoo-inc.com
 
 
 

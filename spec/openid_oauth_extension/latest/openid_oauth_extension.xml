@@ -42,6 +42,12 @@
         <email>joseph@plaxo.com</email>
       </address>
     </author>
+    <author initials='A.' surname="Tom" fullname='Allen Tom (editor)'>
+      <organization abbrev='Yahoo'>Yahoo!, Inc.</organization>
+      <address>
+        <email>atom@yahoo-inc.com</email>
+      </address>
+    </author>
     <date year='2008'/>
     <abstract>
       <t>This draft describes a mechanism to combine an OpenID 
