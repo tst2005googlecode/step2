@@ -15,14 +15,14 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 /**
- * Utility class for requesting OAuth tokens from accessors 
+ * Utility class for requesting OAuth tokens from accessors
  *
  * @author sweis@google.com (Steve Weis)
  */
 public class OAuthConsumerUtil {
-  
+
   private static Logger log = Logger.getLogger(OAuthConsumerUtil.class);
-  
+
   public static OAuthAccessor getRequestToken(OAuthAccessor accessor)
       throws IOException, OAuthException, URISyntaxException {
     OAuthAccessor accessorCopy = new OAuthAccessor(accessor.consumer);
@@ -36,7 +36,7 @@ public class OAuthConsumerUtil {
     return accessor;
   }
 
-  public static OAuthAccessor getAccessToken(OAuthAccessor accessor) 
+  public static OAuthAccessor getAccessToken(OAuthAccessor accessor)
       throws IOException, OAuthException, URISyntaxException {
     OAuthAccessor accessorCopy = new OAuthAccessor(accessor.consumer);
 
@@ -47,7 +47,7 @@ public class OAuthConsumerUtil {
     log.info("Successfully got OAuth access token");
     accessorCopy.accessToken = response.getParameter("oauth_token");
     accessorCopy.tokenSecret = response.getParameter("oauth_token_secret");
-    return accessor;
+    return accessorCopy;
   }
 
   private static OAuthHttpClient getClient() {

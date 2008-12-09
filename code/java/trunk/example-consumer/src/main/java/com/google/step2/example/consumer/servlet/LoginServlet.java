@@ -91,16 +91,12 @@ public class LoginServlet extends InjectableServlet {
     // this is magic - normally this would also fall out of the discovery:
     OAuthAccessor accessor = null;
 
-    // Fetch an unauthorized OAuth request token to test authorizing  
+    // Fetch an unauthorized OAuth request token to test authorizing
     if (YES_STRING.equals(req.getParameter("oauth"))) {
       try {
         accessor = providerStore.getOAuthAccessor("google");
         accessor = OAuthConsumerUtil.getRequestToken(accessor);
-        // Change the realm and return URL to the OAuth consumer's endpoint
-        
-        realm = new StringBuffer("http://");
-        realm.append(accessor.consumer.consumerKey);
-        returnToUrl = realm;
+
       } catch (ProviderInfoNotFoundException e) {
         throw new ServletException(e);
       } catch (OAuthException e) {
@@ -109,7 +105,7 @@ public class LoginServlet extends InjectableServlet {
         throw new ServletException(e);
       }
     }
-    
+
     String openId = req.getParameter("openid");
     AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(
         openId, returnToUrl.toString());
