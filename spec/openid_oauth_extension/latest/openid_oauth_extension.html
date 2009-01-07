@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en"><head><title>draft: OpenID OAuth Extension</title>
-<meta http-equiv="Expires" content="Mon, 08 Dec 2008 21:48:32 +0000">
+<meta http-equiv="Expires" content="Wed, 07 Jan 2009 19:57:09 +0000">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="OpenID OAuth Extension">
 <meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
@@ -151,7 +151,7 @@
 <tr><td class="header">&nbsp;</td><td class="header">Plaxo</td></tr>
 <tr><td class="header">&nbsp;</td><td class="header">A. Tom</td></tr>
 <tr><td class="header">&nbsp;</td><td class="header">Yahoo</td></tr>
-<tr><td class="header">&nbsp;</td><td class="header">December 8, 2008</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">January 7, 2009</td></tr>
 </table></td></tr></table>
 <h1><br />OpenID OAuth Extension</h1>
 
@@ -171,23 +171,25 @@ Terminology<br />
 Purpose of this Specification<br />
 <a href="#anchor4">4.</a>&nbsp;
 Overview<br />
-<a href="#anchor5">5.</a>&nbsp;
+<a href="#namespace">5.</a>&nbsp;
+Extension Namespace<br />
+<a href="#anchor5">6.</a>&nbsp;
 Discovery<br />
-<a href="#Registered">6.</a>&nbsp;
+<a href="#Registered">7.</a>&nbsp;
 Before Requesting Authentication - Registration<br />
-<a href="#AuthReq">7.</a>&nbsp;
+<a href="#AuthReq">8.</a>&nbsp;
 Requesting Authentication<br />
-<a href="#anchor6">8.</a>&nbsp;
+<a href="#anchor6">9.</a>&nbsp;
 Authorizing the OAuth Request<br />
-<a href="#AuthResp">9.</a>&nbsp;
+<a href="#AuthResp">10.</a>&nbsp;
 Responding to Authentication Requests<br />
-<a href="#AuthTokenReq">10.</a>&nbsp;
+<a href="#AuthTokenReq">11.</a>&nbsp;
 Obtaining the Access Token<br />
-<a href="#anchor7">11.</a>&nbsp;
+<a href="#anchor7">12.</a>&nbsp;
 General Considerations<br />
-<a href="#anchor8">12.</a>&nbsp;
+<a href="#anchor8">13.</a>&nbsp;
 Security Considerations<br />
-<a href="#rfc.references1">13.</a>&nbsp;
+<a href="#rfc.references1">14.</a>&nbsp;
 Normative References<br />
 <a href="#rfc.authors">&#167;</a>&nbsp;
 Authors' Addresses<br />
@@ -272,9 +274,29 @@ Overview</h3>
         Provider, following standard OAuth practice. 
       
 </p>
-<a name="anchor5"></a><br /><hr />
+<a name="namespace"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.5"></a><h3>5.&nbsp;
+Extension Namespace</h3>
+
+<p>This protocol is an extension as defined by Section 12 of
+      <a class='info' href='#OpenID'>[OpenID]<span> (</span><span class='info'>Openid.net, &ldquo;OpenID Authentication 2.0 - Final,&rdquo; December&nbsp;2007.</span><span>)</span></a>. The namespace URI for this extension is 
+      "http://specs.openid.net/extensions/oauth/1.0".
+      
+</p>
+<p>All OpenID messages that contain an OpenID OAuth Extension element 
+      MUST contain the following extension namespace declaration:
+</p><div style='display: table; width: 0; margin-left: 3em; margin-right: auto'><pre>openid.ns.&lt;alias&gt;=http://specs.openid.net/extensions/oauth/1.0</pre></div>
+<p>
+      The actual extension namespace alias is determined by the party
+      composing the message in such a manner as to avoid conflicts
+      among multiple extensions. Throughout this document "oauth" is
+      used as an example for the extension namespace alias. 
+      
+</p>
+<a name="anchor5"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6"></a><h3>6.&nbsp;
 Discovery</h3>
 
 <p>Discovery of the OpenID OAuth Extension is achieved via the
@@ -287,7 +309,7 @@ Discovery</h3>
 </p>
 <a name="Registered"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6"></a><h3>6.&nbsp;
+<a name="rfc.section.7"></a><h3>7.&nbsp;
 Before Requesting Authentication - Registration</h3>
 
 <p>The Combined Consumer and the Combined Provider agree on a
@@ -303,7 +325,7 @@ Before Requesting Authentication - Registration</h3>
 </p>
 <a name="AuthReq"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.7"></a><h3>7.&nbsp;
+<a name="rfc.section.8"></a><h3>8.&nbsp;
 Requesting Authentication</h3>
 
 <p>When requesting OpenID Authentication via the protocol mode
@@ -311,16 +333,19 @@ Requesting Authentication</h3>
         used to request that the end user authorize an OAuth access token at
         the same time as an OpenID authentication.  This is done by
         sending the following parameters as part of the OpenID
-        request.
+        request. (Note that the use of "oauth" as part of the
+        parameter names here and in subsequent sections is just an
+        example. See <a class='info' href='#namespace'>Section&nbsp;5<span> (</span><span class='info'>Extension Namespace</span><span>)</span></a> for details.)
         </p>
 <blockquote class="text"><dl>
 <dt>openid.ns.oauth</dt>
 <dd>
-            REQUIRED. Value: "http://specs.openid.net/extensions/oauth/1.0".
+            REQUIRED. Value:
+            "http://specs.openid.net/extensions/oauth/1.0". 
 </dd>
 <dt>openid.oauth.consumer</dt>
 <dd>
-            REQUIRED. Value: The consumer key agreed upon in <a class='info' href='#Registered'>Section&nbsp;6<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
+            REQUIRED. Value: The consumer key agreed upon in <a class='info' href='#Registered'>Section&nbsp;7<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
 	  
 </dd>
 <dt>openid.oauth.scope</dt>
@@ -335,7 +360,7 @@ Requesting Authentication</h3>
 </p>
 <a name="anchor6"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8"></a><h3>8.&nbsp;
+<a name="rfc.section.9"></a><h3>9.&nbsp;
 Authorizing the OAuth Request</h3>
 
 <p>If the OpenID OAuth Extension is present in the authentication
@@ -351,7 +376,7 @@ Authorizing the OAuth Request</h3>
 </p>
 <a name="AuthResp"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.9"></a><h3>9.&nbsp;
+<a name="rfc.section.10"></a><h3>10.&nbsp;
 Responding to Authentication Requests</h3>
 
 <p>If the OpenID authentication request cannot be fulfilled (either in
@@ -373,13 +398,8 @@ Responding to Authentication Requests</h3>
 <blockquote class="text"><dl>
 <dt>openid.ns.oauth</dt>
 <dd>
-            REQUIRED. Identical value as defined in <a class='info' href='#AuthReq'>Section&nbsp;7<span> (</span><span class='info'>Requesting Authentication</span><span>)</span></a>.
+            REQUIRED. Identical value as defined in <a class='info' href='#AuthReq'>Section&nbsp;8<span> (</span><span class='info'>Requesting Authentication</span><span>)</span></a>.
           
-</dd>
-<dt>openid.oauth.consumer</dt>
-<dd>
-            REQUIRED. Value: The consumer key sent in the request.
-	  
 </dd>
 <dt>openid.oauth.request_token</dt>
 <dd>
@@ -391,7 +411,7 @@ Responding to Authentication Requests</h3>
             OPTIONAL.  A string that encodes, in a way possibly specific to
             the Combined Provider, one or more scopes that the
             returned request token is valid for. This will typically
-            indicate a subset of the scopes requested in <a class='info' href='#AuthReq'>Section&nbsp;7<span> (</span><span class='info'>Requesting Authentication</span><span>)</span></a>.
+            indicate a subset of the scopes requested in <a class='info' href='#AuthReq'>Section&nbsp;8<span> (</span><span class='info'>Requesting Authentication</span><span>)</span></a>.
           
 </dd>
 </dl></blockquote><p>
@@ -402,7 +422,7 @@ Responding to Authentication Requests</h3>
 </p>
 <a name="AuthTokenReq"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.10"></a><h3>10.&nbsp;
+<a name="rfc.section.11"></a><h3>11.&nbsp;
 Obtaining the Access Token</h3>
 
 <p>To exchange the request token for an access token, the
@@ -416,19 +436,19 @@ Obtaining the Access Token</h3>
 <dt>consumer key</dt>
 <dd>
 	    Combined Consumers use the consumer key they established with the
-	    Combined Provider in <a class='info' href='#Registered'>Section&nbsp;6<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
+	    Combined Provider in <a class='info' href='#Registered'>Section&nbsp;7<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
           
 </dd>
 <dt>consumer secret</dt>
 <dd>
 	    Combined Consumers use the consumer secret they established with
-	    the Combined Provider in <a class='info' href='#Registered'>Section&nbsp;6<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
+	    the Combined Provider in <a class='info' href='#Registered'>Section&nbsp;7<span> (</span><span class='info'>Before Requesting Authentication - Registration</span><span>)</span></a>.
           
 </dd>
 <dt>OAuth token</dt>
 <dd>
 	    Combined Consumers use the request token obtained in
-	    <a class='info' href='#AuthResp'>Section&nbsp;9<span> (</span><span class='info'>Responding to Authentication Requests</span><span>)</span></a>.
+	    <a class='info' href='#AuthResp'>Section&nbsp;10<span> (</span><span class='info'>Responding to Authentication Requests</span><span>)</span></a>.
           
 </dd>
 <dt>OAuth token secret</dt>
@@ -447,7 +467,7 @@ Obtaining the Access Token</h3>
 </p>
 <a name="anchor7"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.11"></a><h3>11.&nbsp;
+<a name="rfc.section.12"></a><h3>12.&nbsp;
 General Considerations</h3>
 
 <p>The proposal takes the approach to insulate each protocol
@@ -481,7 +501,7 @@ General Considerations</h3>
 </p>
 <a name="anchor8"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.12"></a><h3>12.&nbsp;
+<a name="rfc.section.13"></a><h3>13.&nbsp;
 Security Considerations</h3>
 
 <p>This proposal composes protocols that provide security
@@ -536,7 +556,7 @@ Security Considerations</h3>
 </p>
 <a name="rfc.references1"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<h3>13.&nbsp;Normative References</h3>
+<h3>14.&nbsp;Normative References</h3>
 <table width="99%" border="0">
 <tr><td class="author-text" valign="top"><a name="OAuth">[OAuth]</a></td>
 <td class="author-text"><a href="mailto:spec@oauth.net">OAuth Core Workgroup</a>, &ldquo;<a href="http://oauth.net/core/1.0/">OAuth Core 1.0</a>,&rdquo; December&nbsp;2007 (<a href="http://oauth.net/core/1.0/">HTML</a>).</td></tr>

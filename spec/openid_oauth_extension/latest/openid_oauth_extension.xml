@@ -48,7 +48,7 @@
         <email>atom@yahoo-inc.com</email>
       </address>
     </author>
-    <date year='2008'/>
+    <date year='2009'/>
     <abstract>
       <t>This draft describes a mechanism to combine an OpenID 
         authentication request with the approval of an OAuth request token.
@@ -117,6 +117,27 @@
       </t>
     </section>
 
+    <section title="Extension Namespace" anchor="namespace">
+      <t>This protocol is an extension as defined by Section 12 of
+      <xref target="OpenID"/>. The namespace URI for this extension is 
+      "http://specs.openid.net/extensions/oauth/1.0".
+      </t>
+      <t>All OpenID messages that contain an OpenID OAuth Extension element 
+      MUST contain the following extension namespace declaration:</t>
+
+      <figure>
+      <artwork>openid.ns.&lt;alias&gt;=http://specs.openid.net/extensions/oauth/1.0</artwork>
+      </figure>
+
+      <t>
+      The actual extension namespace alias is determined by the party
+      composing the message in such a manner as to avoid conflicts
+      among multiple extensions. Throughout this document "oauth" is
+      used as an example for the extension namespace alias. 
+      </t>
+
+    </section>
+
     <section title="Discovery">
       <t>Discovery of the OpenID OAuth Extension is achieved via the
       mechanism described in <xref target="OpenID"/>. The OpenID OAuth
@@ -145,10 +166,13 @@
         used to request that the end user authorize an OAuth access token at
         the same time as an OpenID authentication.  This is done by
         sending the following parameters as part of the OpenID
-        request.
+        request. (Note that the use of "oauth" as part of the
+        parameter names here and in subsequent sections is just an
+        example. See <xref target="namespace"/> for details.)
         <list style="hanging">
           <t hangText='openid.ns.oauth'>
-            REQUIRED. Value: "http://specs.openid.net/extensions/oauth/1.0".</t>
+            REQUIRED. Value:
+            "http://specs.openid.net/extensions/oauth/1.0". </t>
           <t hangText="openid.oauth.consumer">
             REQUIRED. Value: The consumer key agreed upon in <xref target="Registered"/>.
 	  </t>
@@ -192,9 +216,6 @@
           <t hangText='openid.ns.oauth'>
             REQUIRED. Identical value as defined in <xref target='AuthReq' />.
           </t>
-          <t hangText="openid.oauth.consumer">
-            REQUIRED. Value: The consumer key sent in the request.
-	  </t>
           <t hangText='openid.oauth.request_token'>
             REQUIRED. A user-approved request token.
           </t>  
