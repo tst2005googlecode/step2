@@ -29,7 +29,7 @@
     <dependency>
       <groupId>org.openid4java</groupId>
       <artifactId>openid4java</artifactId>
-      <version>0.9.3</version>
+      <version>0.9.5-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.guice</groupId>
@@ -39,7 +39,7 @@
     <dependency>
       <groupId>net.oauth</groupId>
       <artifactId>core</artifactId>
-      <version>20080524</version>
+      <version>20081027</version>
     </dependency>
   </dependencies>
   <organization>
@@ -111,6 +111,16 @@
       <id>oauth</id>
       <url>http://oauth.googlecode.com/svn/code/maven</url>
     </repository>
+<!--  
+    <repository>
+      <id>alchim.sourceforge.net releases</id>
+      <url>http://alchim.sourceforge.net/download/releases/</url>
+    </repository>
+    <repository>
+      <id>alchim.sourceforge.net snapshot</id>
+      <url>http://alchim.sourceforge.net/download/snapshots/</url>
+    </repository>
+-->    
     <repository>
       <id>maven2-repository.dev.java.net</id>
       <name>Java.net Repository for Maven</name>

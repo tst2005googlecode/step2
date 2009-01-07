@@ -101,8 +101,8 @@ public class AuthResponseHelper {
    * @return the IdP setup URL.
    */
   public String getIdpSetupUrl() {
-    log.info(result.getIdpSetupUrl());
-    return result.getIdpSetupUrl();
+    log.info(result.getOPSetupUrl());
+    return result.getOPSetupUrl();
   }
 
   /**

@@ -98,23 +98,23 @@ public class DummyOpenIDServlet extends InjectableServlet {
             throw new ServletException(e);
           }
         } else {
+          
           // We can't have both AX fetch and validate responses at once
           // Try adding an AX Fetch Response
           String email = (String) session.getAttribute("email");
           FetchResponse2 fetchResponse = new FetchResponse2();
-          if (email != null) {        
-            fetchResponse.addAttribute("email", Step2.AX_EMAIL_SCHEMA, email);
-          }
-          String country = (String) session.getAttribute("country");
-          if (country != null) {
-            fetchResponse.addAttribute("country", Step2.AX_COUNTRY_SCHEMA, country);
-          }
           try {
+            if (email != null) {        
+              fetchResponse.addAttribute("email", Step2.AX_EMAIL_SCHEMA, email);
+            }
+            String country = (String) session.getAttribute("country");
+            if (country != null) {
+              fetchResponse.addAttribute("country", Step2.AX_COUNTRY_SCHEMA, country);
+            }
             responseMessage.addExtension(fetchResponse);
-          } catch (MessageException e) {
-            throw new ServletException(e);
-          }
-          
+            } catch (MessageException e) {
+              throw new ServletException(e);
+            }
         }
 
         // Handle any OAuth Request tokens

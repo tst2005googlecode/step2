@@ -162,7 +162,12 @@ public class AuthRequestHelper {
       axFetchRequest = new FetchRequest2();
     }
 
-    axFetchRequest.addAttribute(alias, typeUri, required, count);
+    try {
+      axFetchRequest.addAttribute(alias, typeUri, required, count);
+    } catch (MessageException e) {
+      log.warn("Unable to add attribute to AX fetch request.");
+      axFetchRequest = null;
+    }
     return this;
   }
   
@@ -184,7 +189,12 @@ public class AuthRequestHelper {
       axValidateRequest = new ValidateRequest();
     }
     
-    axValidateRequest.addAttribute(alias, typeUri, value);
+    try {
+      axValidateRequest.addAttribute(alias, typeUri, value);
+    } catch (MessageException e) {
+      log.warn("Unable to add attribute to AX fetch request.");
+      axFetchRequest = null;
+    }
     return this;
   }
 
@@ -197,7 +207,8 @@ public class AuthRequestHelper {
     DiscoveryInformation discovered = getDiscoveryInformation();
 
     // this a standard OpenID request
-    AuthRequest authReq = consumerManager.authenticate(discovered, returnToUrl);
+    AuthRequest authReq =
+      consumerManager.authenticate(discovered, returnToUrl, null);
     if (axFetchRequest != null) {
       authReq.addExtension(axFetchRequest);
     }
