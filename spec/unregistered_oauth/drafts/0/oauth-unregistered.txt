@@ -1,0 +1,560 @@
+
+
+
+draft                                                         D. Balfanz
+                                                                B. Eaton
+                                                          B. de Medeiros
+                                                                  Google
+                                                         January 7, 2009
+
+
+           OAuth Extension to Support Unregistered Consumers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 1]
+
+                           unregistered-oauth               January 2009
+
+
+Abstract
+
+   This draft describes an optional mechanism for OAuth Providers to
+   satisfy authorization requests from Consumers who have not registered
+   a Consumer secret.
+
+
+Table of Contents
+
+   1.  Requirements notation  . . . . . . . . . . . . . . . . . . . .  3
+   2.  Terminology  . . . . . . . . . . . . . . . . . . . . . . . . .  4
+   3.  Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  5
+   4.  Authenticating with OAuth  . . . . . . . . . . . . . . . . . .  6
+     4.1.  Obtaining an Unauthorized Request Token  . . . . . . . . .  6
+       4.1.1.  Consumer Obtains a Request Token . . . . . . . . . . .  6
+       4.1.2.  Service Provider Issues an Unauthorized Request
+               Token  . . . . . . . . . . . . . . . . . . . . . . . .  6
+     4.2.  Obtaining User Authorization . . . . . . . . . . . . . . .  6
+       4.2.1.  Consumer Directs the User to the Service Provider  . .  6
+       4.2.2.  Service Provider Authenticates the User and
+               Obtains Consent  . . . . . . . . . . . . . . . . . . .  6
+       4.2.3.  Service Provider Directs the User Back to the
+               Consumer . . . . . . . . . . . . . . . . . . . . . . .  7
+     4.3.  Obtaining an Access Token  . . . . . . . . . . . . . . . .  7
+       4.3.1.  Consumer Requests an Access Token  . . . . . . . . . .  7
+       4.3.2.  Service Provider Grants an Access Token  . . . . . . .  7
+     4.4.  Accessing Protected Resources  . . . . . . . . . . . . . .  7
+   5.  Security Considerations  . . . . . . . . . . . . . . . . . . .  8
+   6.  Normative References . . . . . . . . . . . . . . . . . . . . .  9
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 2]
+
+                           unregistered-oauth               January 2009
+
+
+1.  Requirements notation
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 3]
+
+                           unregistered-oauth               January 2009
+
+
+2.  Terminology
+
+   This extension to the OAuth protocol uses the same terminology for
+   Service Providers and Consumers as defined in [OAuth].  The following
+   term is herein defined:
+
+   Consumer Key Registration  The out-of-band process by which Service
+      Providers and Consumers exchange the cryptographic keys called
+      'consumer secrets' used in the OAuth protocol.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 4]
+
+                           unregistered-oauth               January 2009
+
+
+3.  Overview
+
+   This extension describes a mechanism for Service Providers to satisfy
+   requests from OAuth consumers that have not registered a consumer
+   secret, and proposes a strategy to mitigate the security concerns
+   that accepting unregistered consumers introduces.
+
+   The organization of this spec follows the layout of Section 6 of
+   [OAuth], with the same section and subsection title headers.  Each
+   heading indicates only the differences of additions to each step that
+   this extension requires.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 5]
+
+                           unregistered-oauth               January 2009
+
+
+4.  Authenticating with OAuth
+
+4.1.  Obtaining an Unauthorized Request Token
+
+4.1.1.  Consumer Obtains a Request Token
+
+   The Consumer follows the steps outlined in Section 6.1.1 of [OAuth],
+   with the following restrictions:
+
+   oauth_consumer_key  The value SHOULD be the empty string.
+
+   oauth_signature_method  The value SHOULD be "HMAC-SHA1"
+
+   oauth_signature  The value MUST be the one computed according to
+      Section 9 (Signing Requests), where the consumer secret is taken
+      to be the empty string.
+
+4.1.2.  Service Provider Issues an Unauthorized Request Token
+
+   Unchanged from the regular OAuth spec.
+
+4.2.  Obtaining User Authorization
+
+4.2.1.  Consumer Directs the User to the Service Provider
+
+   This differs from Section 6.2.1 of [OAuth] in that both 'oauth_token'
+   and 'oauth_callback' MUST be included by the Consumer as part of the
+   browser-mediated request.
+
+4.2.2.  Service Provider Authenticates the User and Obtains Consent
+
+   The Service Provider MUST use the callback URL to infer the entity
+   that the user should trust in the request, and the Service Provider
+   SHOULD NOT prompt the user for authorization if the callback URL is
+   missing or is not a valid HTTP or HTTPS URL schema.  It is
+   RECOMMENDED that the Service Provider either perform verification of
+   the callback URL (the precise mechanism for doing so is left
+   unspecified here, but some suggestions are provided in the security
+   considerations section).  If callback URL verification is not
+   possible, it is RECOMMENDED that the Service Provider indicate to the
+   user that there is a lower level of assurance about the identity of
+   the party requesting authorization, differentiating these requests
+   from those initiated by registered consumers.
+
+   Apart from these considerations, the Service Provider should proceed
+   as in Section 6.2.2 of [OAuth].
+
+
+
+
+
+Balfanz, et al.                                                 [Page 6]
+
+                           unregistered-oauth               January 2009
+
+
+4.2.3.  Service Provider Directs the User Back to the Consumer
+
+   In addition to 'oauth_token', the service provider MUST include an
+   'oauth_cb_token' parameter, referred to as the "OAuth Callback
+   Token".  It is RECOMMENDED that the callback token have a short
+   expiration time (i.e., several seconds to a few minutes).
+
+4.3.  Obtaining an Access Token
+
+4.3.1.  Consumer Requests an Access Token
+
+   In addition to the parameters listed in section 6.3.1, the following
+   MUST be included as an additional parameter in the request:
+
+   oauth_cb_token  The value received from the Service Provider.
+
+   The signature is computed according to Section 9 of [OAuth].  The
+   signature scheme SHOULD be HMAC-SHA1, with the Consumer Secret set to
+   the empty string, as described above in Section 4.1.1.
+
+4.3.2.  Service Provider Grants an Access Token
+
+   In addition to performing the verification steps in Section 6.3.2 of
+   [OAuth], the Service Provider SHOULD ensure that:
+
+   o  The 'oauth_cb_token' is included and has never been exchanged for
+      an access token.
+
+   o  The 'oauth_cb_token' was issued in connection with the
+      authorization of the same 'oauth_token' included in the request.
+
+   If all verification tests pass, the Service Provider SHOULD issue the
+   'oauth_token' and 'oauth_token_secret' as per [OAuth].
+
+4.4.  Accessing Protected Resources
+
+   The Consumer proceeds as in Section 7 of [OAuth], using an empty
+   string as the consumer secret.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 7]
+
+                           unregistered-oauth               January 2009
+
+
+5.  Security Considerations
+
+   In order to have better assurance that the request from an
+   unregistered consumer is legitimate, the service provider should
+   attempt to perform some validation of the callback URL.  In
+   particular, if the callback URL contains query parameters it may be
+   exploiting an open redirector on a reputable site.  Simply displaying
+   the full callback URL to the user is generally not sufficient, as
+   most users cannot make informed decisions with this data.  In the
+   following, some alternatives are described that will allow service
+   providers to acquire greater confidence in the source of the
+   requests.
+
+   o  Service providers may limit the format of callback URLs, for
+      instance by constraining the form of query parameters that may be
+      present.  The 'tame' query parameters may then be safely omitted
+      from the UI when requesting authorization.  This reduces the risk
+      of confusing users about the origin of requests.  However this
+      approach requires unregistered consumers to be made aware of these
+      restrictions and perhaps to implement special logic to handle the
+      service provider.
+
+   o  If the OAuth request is sent together with an OpenID authorization
+      request, as in the OpenID OAuth extension [OpenIDOAuth], and the
+      service provider performs callback URL verification via the OpenID
+      realm verification mechanism, the provider can be assured with a
+      good degree of confidence about the origin of the requests, and
+      may use only the shorter OpenID realm URL for UI purposes in
+      requesting user authentication.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 8]
+
+                           unregistered-oauth               January 2009
+
+
+6.  Normative References
+
+   [OAuth]    OAuth Core Workgroup, "OAuth Core 1.0", December 2007,
+              <http://oauth.net/core/1.0/>.
+
+   [OpenIDOAuth]
+              Balfanz, D., de Medeiros, B., Recordon, D., and J. Smarr,
+              "OpenID OAuth Extension", 2009,
+              <http://breno.demedeiros.googlepages.com/
+              openidoauth.html>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                 [Page 9]
+
+                           unregistered-oauth               January 2009
+
+
+Authors' Addresses
+
+   Dirk Balfanz (editor)
+   Google, Inc.
+
+   Email: balfanz@google.com
+
+
+   Brian Eaton (editor)
+   Google, Inc.
+
+   Email: beaton@google.com
+
+
+   Breno de Medeiros (editor)
+   Google, Inc.
+
+   Email: breno@google.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balfanz, et al.                                                [Page 10]
+
