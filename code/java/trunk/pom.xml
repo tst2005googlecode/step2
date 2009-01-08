@@ -111,7 +111,6 @@
       <id>oauth</id>
       <url>http://oauth.googlecode.com/svn/code/maven</url>
     </repository>
-<!--  
     <repository>
       <id>alchim.sourceforge.net releases</id>
       <url>http://alchim.sourceforge.net/download/releases/</url>
@@ -120,7 +119,6 @@
       <id>alchim.sourceforge.net snapshot</id>
       <url>http://alchim.sourceforge.net/download/snapshots/</url>
     </repository>
--->    
     <repository>
       <id>maven2-repository.dev.java.net</id>
       <name>Java.net Repository for Maven</name>
