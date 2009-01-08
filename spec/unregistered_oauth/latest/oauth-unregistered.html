@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en"><head><title>draft: OAuth Extension to Support Unregistered Consumers</title>
-<meta http-equiv="Expires" content="Wed, 07 Jan 2009 21:25:34 +0000">
+<meta http-equiv="Expires" content="Wed, 07 Jan 2009 23:34:25 +0000">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="OAuth Extension to Support Unregistered Consumers">
 <meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
@@ -168,28 +168,22 @@ Overview<br />
 <a href="#anchor4">4.</a>&nbsp;
 Authenticating with OAuth<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor5">4.1.</a>&nbsp;
-Obtaining an Unauthorized Request Token<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RequestToken">4.1.1.</a>&nbsp;
-Consumer Obtains a Request Token<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor6">4.1.2.</a>&nbsp;
-Service Provider Issues an Unauthorized Request Token<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor7">4.2.</a>&nbsp;
 Obtaining User Authorization<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor8">4.2.1.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor6">4.1.1.</a>&nbsp;
 Consumer Directs the User to the Service Provider<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor9">4.2.2.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor7">4.1.2.</a>&nbsp;
 Service Provider Authenticates the User and Obtains Consent<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor10">4.2.3.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor8">4.1.3.</a>&nbsp;
 Service Provider Directs the User Back to the Consumer<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor11">4.3.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor9">4.2.</a>&nbsp;
 Obtaining an Access Token<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor12">4.3.1.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor10">4.2.1.</a>&nbsp;
 Consumer Requests an Access Token<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor13">4.3.2.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor11">4.2.2.</a>&nbsp;
 Service Provider Grants an Access Token<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor14">4.4.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor12">4.3.</a>&nbsp;
 Accessing Protected Resources<br />
-<a href="#anchor15">5.</a>&nbsp;
+<a href="#security">5.</a>&nbsp;
 Security Considerations<br />
 <a href="#rfc.references1">6.</a>&nbsp;
 Normative References<br />
@@ -216,17 +210,7 @@ Terminology</h3>
 
 <p>This extension to the OAuth protocol uses
         the same terminology for Service Providers and Consumers as defined in
-        <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>. The following term is herein defined:
-        </p>
-<blockquote class="text"><dl>
-<dt>Consumer Key Registration</dt>
-<dd>
-            The out-of-band process by which Service Providers and Consumers
-            exchange the cryptographic keys called 'consumer secrets' used
-            in the OAuth protocol.
-          
-</dd>
-</dl></blockquote><p>
+        <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>. 
       
 </p>
 <a name="anchor3"></a><br /><hr />
@@ -241,12 +225,6 @@ Overview</h3>
         consumers introduces.
       
 </p>
-<p>The organization of this spec follows the layout of Section 6 of
-        <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>, with the same section and
-        subsection title headers. Each heading indicates only the differences
-        of additions to each step that this extension requires.
-      
-</p>
 <a name="anchor4"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.4"></a><h3>4.&nbsp;
@@ -255,72 +233,32 @@ Authenticating with OAuth</h3>
 <a name="anchor5"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.4.1"></a><h3>4.1.&nbsp;
-Obtaining an Unauthorized Request Token</h3>
+Obtaining User Authorization</h3>
 
-<a name="RequestToken"></a><br /><hr />
-<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.4.1.1"></a><h3>4.1.1.&nbsp;
-Consumer Obtains a Request Token</h3>
-
-<p>The Consumer follows the steps outlined in Section 6.1.1 of
-            <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>, with the following restrictions:
-            </p>
-<blockquote class="text"><dl>
-<dt>oauth_consumer_key</dt>
-<dd>
-                The value SHOULD be the empty string.
-              
-</dd>
-<dt>oauth_signature_method</dt>
-<dd>
-                The value SHOULD be "HMAC-SHA1"
-              
-</dd>
-<dt>oauth_signature</dt>
-<dd>
-                The value MUST be the one computed according to
-                Section 9 (Signing Requests), where the consumer secret
-                is taken to be the empty string.
-              
-</dd>
-</dl></blockquote><p>
-          
-</p>
 <a name="anchor6"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.4.1.2"></a><h3>4.1.2.&nbsp;
-Service Provider Issues an Unauthorized Request Token</h3>
+<a name="rfc.section.4.1.1"></a><h3>4.1.1.&nbsp;
+Consumer Directs the User to the Service Provider</h3>
 
-<p>Unchanged from the regular OAuth spec.
+<p>This differs from Section 6.2.1 of <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a> in that
+            'oauth_callback' MUST be included by the Consumer
+            as part of the browser-mediated request, and 'oauth_token'
+            MUST NOT be included. 
           
 </p>
 <a name="anchor7"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.4.2"></a><h3>4.2.&nbsp;
-Obtaining User Authorization</h3>
-
-<a name="anchor8"></a><br /><hr />
-<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.4.2.1"></a><h3>4.2.1.&nbsp;
-Consumer Directs the User to the Service Provider</h3>
-
-<p>This differs from Section 6.2.1 of <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a> in that
-            both 'oauth_token' and 'oauth_callback' MUST be included by the Consumer
-            as part of the browser-mediated request.
-          
-</p>
-<a name="anchor9"></a><br /><hr />
-<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.4.2.2"></a><h3>4.2.2.&nbsp;
+<a name="rfc.section.4.1.2"></a><h3>4.1.2.&nbsp;
 Service Provider Authenticates the User and Obtains Consent</h3>
 
 <p>The Service Provider MUST use the
             callback URL to infer the entity that the user should trust in
-            the request, and the Service Provider SHOULD NOT prompt the user for
-            authorization if the callback URL is missing or is not a valid
-            HTTP or HTTPS URL schema. It is RECOMMENDED that the Service Provider
-            either perform verification of the callback URL (the precise mechanism
-            for doing so is left unspecified here, but some suggestions are provided
+            the request.
+</p>
+<p>It is RECOMMENDED that the Service Provider
+            perform verification of the callback URL (the precise mechanism
+            for doing so is left unspecified here, but see
+            <a class='info' href='#security'>Section&nbsp;5<span> (</span><span class='info'>Security Considerations</span><span>)</span></a>) some suggestions are provided
             in the security considerations section). If callback URL verification
             is not possible, it is RECOMMENDED that the Service Provider indicate
             to the user that there is
@@ -333,79 +271,50 @@ Service Provider Authenticates the User and Obtains Consent</h3>
             as in Section 6.2.2 of <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>.
           
 </p>
-<a name="anchor10"></a><br /><hr />
+<a name="anchor8"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.4.2.3"></a><h3>4.2.3.&nbsp;
+<a name="rfc.section.4.1.3"></a><h3>4.1.3.&nbsp;
 Service Provider Directs the User Back to the Consumer</h3>
 
-<p>In addition to 'oauth_token', the service provider MUST include an
-            'oauth_cb_token' parameter, referred to as
-            the "OAuth Callback Token". It is RECOMMENDED that
-            the callback token have a short expiration time (i.e., several seconds
+<p>The service provider MUST include an
+            'oauth_token' parameter. It is RECOMMENDED that
+            the OAuth token have a short expiration time (i.e., several seconds
             to a few minutes).
+          
+</p>
+<a name="anchor9"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.4.2"></a><h3>4.2.&nbsp;
+Obtaining an Access Token</h3>
+
+<a name="anchor10"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.4.2.1"></a><h3>4.2.1.&nbsp;
+Consumer Requests an Access Token</h3>
+
+<p>The signature is computed according to
+            Section 9 of <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>. The signature scheme SHOULD
+            be HMAC-SHA1, with the Consumer Key and Consumer Secret, as well as the Request Token Secret  set to the empty string.
           
 </p>
 <a name="anchor11"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.4.3"></a><h3>4.3.&nbsp;
-Obtaining an Access Token</h3>
-
-<a name="anchor12"></a><br /><hr />
-<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.4.3.1"></a><h3>4.3.1.&nbsp;
-Consumer Requests an Access Token</h3>
-
-<p>In addition to the parameters listed in section 6.3.1, the following
-            MUST be included as an additional parameter in the request:
-            </p>
-<blockquote class="text"><dl>
-<dt>oauth_cb_token</dt>
-<dd>
-                The value received from the Service Provider.
-              
-</dd>
-</dl></blockquote><p>
-          
-</p>
-<p>The signature is computed according to
-            Section 9 of <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>. The signature scheme SHOULD
-            be HMAC-SHA1, with the Consumer Secret set to the empty string, as
-            described above in <a class='info' href='#RequestToken'>Section&nbsp;4.1.1<span> (</span><span class='info'>Consumer Obtains a Request Token</span><span>)</span></a>.
-          
-</p>
-<a name="anchor13"></a><br /><hr />
-<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.4.3.2"></a><h3>4.3.2.&nbsp;
+<a name="rfc.section.4.2.2"></a><h3>4.2.2.&nbsp;
 Service Provider Grants an Access Token</h3>
 
-<p>In addition to performing the verification steps in Section 6.3.2 of
-            <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>, the Service Provider SHOULD ensure that:
-            </p>
-<ul class="text">
-<li>The 'oauth_cb_token' is included and has never been exchanged for
-                an access token.
-              
-</li>
-<li>The 'oauth_cb_token' was issued in connection with the authorization
-                of the same 'oauth_token' included in the request.
-              
-</li>
-</ul><p>
-            If all verification tests pass, the Service Provider SHOULD issue the
-            'oauth_token' and 'oauth_token_secret'
-            as per <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>.
+<p>As usual.
           
 </p>
-<a name="anchor14"></a><br /><hr />
+<a name="anchor12"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.4.4"></a><h3>4.4.&nbsp;
+<a name="rfc.section.4.3"></a><h3>4.3.&nbsp;
 Accessing Protected Resources</h3>
 
 <p>The Consumer proceeds as in Section 7 of <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>,
           using an empty string as the consumer secret. 
         
 </p>
-<a name="anchor15"></a><br /><hr />
+<a name="security"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.5"></a><h3>5.&nbsp;
 Security Considerations</h3>
@@ -421,13 +330,18 @@ Security Considerations</h3>
         source of the requests.
         </p>
 <ul class="text">
-<li>Service providers may limit the format of callback URLs, for instance
-            by constraining the form of query parameters that may be present. The
-            'tame' query parameters may then be safely omitted from the UI when
-            requesting authorization. This reduces the risk of confusing users
-            about the origin of requests. However this approach requires unregistered
-            consumers to be made aware of these restrictions and perhaps to implement
-            special logic to handle the service provider.
+<li>Service providers SHOULD limit the format of callback URLs, for instance
+            by rejecting callback URLs containing query parameters
+            without the "oauth" prefix.
+          
+</li>
+<li>
+            Service providers SHOULD also limit the acceptable URI
+            schemes in callback URLs, for example by rejecting
+            javascript: URI schemes. Many mobile applications register
+            URI schemes as callbacks to particular applications;
+            Service Providers may therefore decide to blacklist,
+            rather than whitelist, URI schemes.
           
 </li>
 <li>If the OAuth request is sent together with an OpenID authorization
