@@ -73,12 +73,6 @@ public class AxMessage2 extends AxMessage {
         return FetchRequest2.createFetchRequest2(parameterList);
       case FETCH_RESPONSE:
         return FetchResponse2.createFetchResponse2(parameterList);
-      case VALIDATE_REQUEST:
-        return ValidateRequest.createValidateRequest(parameterList);
-      case VALIDATE_RESPONSE_SUCCESS:
-        return ValidateResponse.createValidateResponse(true, parameterList);
-      case VALIDATE_RESPONSE_FAILURE:
-        return ValidateResponse.createValidateResponse(false, parameterList); 
       default:
         return super.getExtension(parameterList, isRequest);
       }

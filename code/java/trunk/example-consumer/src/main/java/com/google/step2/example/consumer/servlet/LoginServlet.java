@@ -29,7 +29,9 @@ import com.google.step2.servlet.InjectableServlet;
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthException;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.message.AuthRequest;
@@ -51,7 +53,7 @@ import javax.servlet.http.HttpSession;
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class LoginServlet extends InjectableServlet {
-  private Logger log = Logger.getLogger(LoginServlet.class);
+  private Log log = LogFactory.getLog(LoginServlet.class);
   private static final String TEMPLATE_FILE = "/WEB-INF/login.jsp";
   private static final String PROJECT = "/step2-example-consumer";
   private static final String REDIRECT_PATH = "/checkauth";
@@ -96,7 +98,6 @@ public class LoginServlet extends InjectableServlet {
       try {
         accessor = providerStore.getOAuthAccessor("google");
         accessor = OAuthConsumerUtil.getRequestToken(accessor);
-
       } catch (ProviderInfoNotFoundException e) {
         throw new ServletException(e);
       } catch (OAuthException e) {
@@ -125,18 +126,6 @@ public class LoginServlet extends InjectableServlet {
     if (YES_STRING.equals(req.getParameter("country"))) {
       log.debug("Requesting AX country");
       helper.requestAxAttribute("country", Step2.AX_COUNTRY_SCHEMA, true);
-    }
-
-    String emailMode = req.getParameter("emailmode");
-    if (emailMode != null) {
-      if (emailMode.equals("request")) {
-        helper.requestAxAttribute("email", Step2.AX_EMAIL_SCHEMA, true);
-      } else if (emailMode.equals("validate")) {
-        String emailValidate = req.getParameter("emailval");
-        if (emailValidate != null) {
-          helper.validateAxAttribute("email", Step2.AX_EMAIL_SCHEMA, emailValidate);
-        }
-      }
     }
 
     HttpSession session = req.getSession();
