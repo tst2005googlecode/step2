@@ -24,14 +24,13 @@ import com.google.step2.VerificationException;
 import com.google.step2.ConsumerHelper;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.consumer.ProviderInfoNotFoundException;
-import com.google.step2.openid.ax2.ValidateResponse;
 import com.google.step2.servlet.InjectableServlet;
 
 import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthException;
 import net.oauth.OAuthMessage;
-import net.oauth.client.OAuthHttpClient;
+import net.oauth.client.OAuthClient;
 
 import org.openid4java.association.AssociationException;
 import org.openid4java.discovery.DiscoveryException;
@@ -59,7 +58,7 @@ import javax.servlet.http.HttpSession;
 public class CheckAuthServlet extends InjectableServlet {
   private ConsumerHelper helper;
   private OAuthProviderInfoStore providerStore;
-  private OAuthHttpClient httpClient;
+  private OAuthClient oauthClient;
   private static final String NO_TOKEN = "None";
   private static final String UNKNOWN = "Unknown";
 
@@ -74,8 +73,8 @@ public class CheckAuthServlet extends InjectableServlet {
   }
 
   @Inject
-  void setOAuthHttpClient(OAuthHttpClient client) {
-    this.httpClient = client;
+  void setOAuthHttpClient(OAuthClient client) {
+    this.oauthClient = client;
   }
 
   @Override
@@ -117,15 +116,6 @@ public class CheckAuthServlet extends InjectableServlet {
       Class<? extends AxMessage> axExtensionType =
         authResponse.getAxExtensionType();
       if (axExtensionType != null) {
-        if (axExtensionType.equals(ValidateResponse.class)) {
-          ValidateResponse valResp = authResponse.getAxValidateResponse();
-          if (valResp.isSuccessful()) {
-            session.setAttribute("emailval", "Validation successful");
-          } else {
-            session.setAttribute("emailval", "Validation failed");
-          }
-        }
-
         if (axExtensionType.equals(FetchResponse.class)) {
           session.setAttribute("email",
               authResponse.getAxFetchAttributeValue("email"));
@@ -155,7 +145,7 @@ public class CheckAuthServlet extends InjectableServlet {
       try {
         OAuthAccessor accessor = providerStore.getOAuthAccessor("google");
 
-        OAuthMessage response = httpClient.invoke(accessor,
+        OAuthMessage response = oauthClient.invoke(accessor,
             accessor.consumer.serviceProvider.accessTokenURL,
             OAuth.newList(OAuth.OAUTH_TOKEN, requestToken));
 
