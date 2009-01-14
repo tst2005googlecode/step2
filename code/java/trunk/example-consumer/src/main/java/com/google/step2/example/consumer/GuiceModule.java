@@ -25,8 +25,7 @@ import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.openid.ax2.AxMessage2;
 import com.google.step2.servlet.ConsumerManagerProvider;
 
-import net.oauth.client.HttpClientPool;
-import net.oauth.client.OAuthHttpClient;
+import net.oauth.client.OAuthClient;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
@@ -71,20 +70,13 @@ public class GuiceModule extends AbstractModule {
     bind(HttpClient.class).toInstance(HttpClientFactory.getInstance(0,
         Boolean.FALSE, 10000, 10000, CookiePolicy.IGNORE_COOKIES));
 
-    bind(OAuthHttpClient.class).toInstance(getOAuthHttpClient());
+    bind(OAuthClient.class).toInstance(getOAuthClient());
 
     bind(OAuthProviderInfoStore.class)
         .to(SimpleProviderInfoStore.class).in(Scopes.SINGLETON);
   }
 
-  private OAuthHttpClient getOAuthHttpClient() {
-    return new OAuthHttpClient(
-        new HttpClientPool() {
-          // This trivial 'pool' simply allocates a new client every time.
-          // More efficient implementations are possible.
-          public HttpClient getHttpClient(URL server) {
-            return new HttpClient();
-          }}
-        );
-    }
+  private OAuthClient getOAuthClient() {
+    return new net.oauth.client.httpclient3.OAuthHttpClient();        
+  }
 }

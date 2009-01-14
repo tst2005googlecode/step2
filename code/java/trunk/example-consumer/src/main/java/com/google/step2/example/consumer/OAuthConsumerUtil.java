@@ -4,15 +4,14 @@ import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthException;
 import net.oauth.OAuthMessage;
-import net.oauth.client.HttpClientPool;
-import net.oauth.client.OAuthHttpClient;
+import net.oauth.client.OAuthClient;
+import net.oauth.client.httpclient3.OAuthHttpClient;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 
 /**
  * Utility class for requesting OAuth tokens from accessors
@@ -21,7 +20,7 @@ import java.net.URL;
  */
 public class OAuthConsumerUtil {
 
-  private static Logger log = Logger.getLogger(OAuthConsumerUtil.class);
+  private static Log log = LogFactory.getLog(OAuthConsumerUtil.class);
 
   public static OAuthAccessor getRequestToken(OAuthAccessor accessor)
       throws IOException, OAuthException, URISyntaxException {
@@ -50,15 +49,7 @@ public class OAuthConsumerUtil {
     return accessorCopy;
   }
 
-  private static OAuthHttpClient getClient() {
-    return new OAuthHttpClient(
-        new HttpClientPool() {
-          // This trivial 'pool' simply allocates a new client every time.
-          // More efficient implementations are possible.
-          public HttpClient getHttpClient(URL server) {
-            return new HttpClient();
-          }
-        }
-    );
+  private static OAuthClient getClient() {
+    return new OAuthHttpClient();
   }
 }
