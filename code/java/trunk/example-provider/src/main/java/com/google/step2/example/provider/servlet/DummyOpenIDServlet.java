@@ -3,7 +3,6 @@ package com.google.step2.example.provider.servlet;
 import com.google.step2.Step2;
 import com.google.step2.hybrid.HybridOauthResponse;
 import com.google.step2.openid.ax2.FetchResponse2;
-import com.google.step2.openid.ax2.ValidateResponse;
 import com.google.step2.servlet.InjectableServlet;
 
 import org.openid4java.message.AuthSuccess;
@@ -82,41 +81,22 @@ public class DummyOpenIDServlet extends InjectableServlet {
           userClaimedId, authenticatedAndApproved.booleanValue());
 
       if (responseMessage instanceof AuthSuccess) {
-        String emailVal = (String) session.getAttribute("emailval");
-
-        if (emailVal != null) {
-          // Handly any validation responses
-          ValidateResponse validateResponse;
-          if ("true".equals(emailVal)) {
-            validateResponse = new ValidateResponse(true);
-          } else {
-            validateResponse = new ValidateResponse(false);
+        // Try adding an AX Fetch Response
+        String email = (String) session.getAttribute("email");
+        FetchResponse2 fetchResponse = new FetchResponse2();
+        try {
+          if (email != null) {        
+            fetchResponse.addAttribute("email", Step2.AX_EMAIL_SCHEMA, email);
           }
-          try {
-            responseMessage.addExtension(validateResponse);
-          } catch (MessageException e) {
-            throw new ServletException(e);
+          String country = (String) session.getAttribute("country");
+          if (country != null) {
+            fetchResponse.addAttribute("country", Step2.AX_COUNTRY_SCHEMA, country);
           }
-        } else {
-          
-          // We can't have both AX fetch and validate responses at once
-          // Try adding an AX Fetch Response
-          String email = (String) session.getAttribute("email");
-          FetchResponse2 fetchResponse = new FetchResponse2();
-          try {
-            if (email != null) {        
-              fetchResponse.addAttribute("email", Step2.AX_EMAIL_SCHEMA, email);
-            }
-            String country = (String) session.getAttribute("country");
-            if (country != null) {
-              fetchResponse.addAttribute("country", Step2.AX_COUNTRY_SCHEMA, country);
-            }
-            responseMessage.addExtension(fetchResponse);
-            } catch (MessageException e) {
-              throw new ServletException(e);
-            }
+          responseMessage.addExtension(fetchResponse);
+        } catch (MessageException e) {
+          throw new ServletException(e);
         }
-
+        
         // Handle any OAuth Request tokens
         String oauthRequestToken =
           (String) session.getAttribute("oauth_request_token");
