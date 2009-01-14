@@ -38,9 +38,8 @@ optionally request user email and country attributes.
 <div>
   OpenID URL: <input type="text" id="openid" name="openid" size="50" />
 </div>
-<div>
-  <!-- <input type="radio" name="emailmode" value="validate">Email to Validate: <input type="text" id="emailval" name="emailval" size="50" /><br/> -->  
-  <input type="checkbox" name="emailmode" value="request" />AX Request email 
+<div>  
+  <input type="checkbox" name="email" value="yes" />AX Request email 
 </div>
 <div>
   <input type="checkbox" name="country" value="yes" />AX Request home country

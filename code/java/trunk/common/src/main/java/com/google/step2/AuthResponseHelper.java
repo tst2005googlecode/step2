@@ -20,7 +20,6 @@ package com.google.step2;
 import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.hybrid.HybridOauthResponse;
 import com.google.step2.openid.ax2.AxMessage2;
-import com.google.step2.openid.ax2.ValidateResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -168,9 +167,7 @@ public class AuthResponseHelper {
     if (resp.hasExtension(AxMessage2.OPENID_NS_AX_FINAL)) {
       MessageExtension extension = 
         resp.getExtension(AxMessage2.OPENID_NS_AX_FINAL);
-      if (extension instanceof ValidateResponse) {
-        return ValidateResponse.class;
-      } else if (extension instanceof FetchResponse) {
+      if (extension instanceof FetchResponse) {
         return FetchResponse.class;
       }
     }
@@ -182,19 +179,6 @@ public class AuthResponseHelper {
    */
   public boolean hasAxExtension() {
     return getAuthResponse().hasExtension(AxMessage2.OPENID_NS_AX_FINAL);
-  }
-
-  /**
-   * Returns the complete ValidateResponse object representing the result of a
-   * ValidateRequest
-   *
-   * @return a ValidateResponse object
-   *
-   * @throws MessageException if Attribute Extension parameters were not
-   *   included in the response, or if some other error occurred.
-   */
-  public ValidateResponse getAxValidateResponse() throws MessageException {
-    return getExtension(ValidateResponse.class, AxMessage2.OPENID_NS_AX_FINAL);
   }
   
   /**

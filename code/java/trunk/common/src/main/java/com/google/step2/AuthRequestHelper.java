@@ -19,7 +19,6 @@ package com.google.step2;
 
 import com.google.step2.hybrid.HybridOauthRequest;
 import com.google.step2.openid.ax2.FetchRequest2;
-import com.google.step2.openid.ax2.ValidateRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -83,9 +82,6 @@ public class AuthRequestHelper {
 
   // If AX attributes are specified, this object will hold them.
   private FetchRequest2 axFetchRequest = null;
-
-  // If AX validation attributes are specified, this object will hold them.
-  private ValidateRequest axValidateRequest = null;
 
   // If a Hybrid Oauth extension is specified, this object will hold it
   private HybridOauthRequest hybridOauthRequest = null;
@@ -170,33 +166,6 @@ public class AuthRequestHelper {
     }
     return this;
   }
-  
-  /**
-   * Adds a request to validate an Attribute Exchange attribute to the outoing
-   * auth reqeust.
-   *  
-   * @param alias wWhich alias should be used for this AX attribute in the
-   *   outgoing auth request.
-   * @param typeUri Describes which attribute we're actually asking about
-   *   (see www.axschema.org)
-   * @param value The value to validate
-   * @return This instance
-   */
-  public AuthRequestHelper validateAxAttribute(String alias, String typeUri,
-      String value) {
-    log.info("Validate AX Attribute Alias: " + alias);
-    if (axValidateRequest == null) {
-      axValidateRequest = new ValidateRequest();
-    }
-    
-    try {
-      axValidateRequest.addAttribute(alias, typeUri, value);
-    } catch (MessageException e) {
-      log.warn("Unable to add attribute to AX fetch request.");
-      axFetchRequest = null;
-    }
-    return this;
-  }
 
   /**
    * Generates a new auth request, which can be queried for a redirect-URL
@@ -215,10 +184,6 @@ public class AuthRequestHelper {
 
     if (hybridOauthRequest != null) {
       authReq.addExtension(hybridOauthRequest);
-    }
-
-    if (axValidateRequest != null) {
-      authReq.addExtension(axValidateRequest);
     }
 
     log.info(authReq);
