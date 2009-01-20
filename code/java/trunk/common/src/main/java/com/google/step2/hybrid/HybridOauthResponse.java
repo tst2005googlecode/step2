@@ -31,8 +31,7 @@ import java.util.List;
  */
 public class HybridOauthResponse extends HybridOauthMessage {
 
-  private final static List<String> requiredFields =
-    Arrays.asList(new String[] {CONSUMER_KEY});
+  private final static List<String> requiredFields = Arrays.asList();
 
   private final static List<String> optionalFields =
     Arrays.asList(new String[] {SCOPE, OAUTH_TOKEN});
@@ -44,13 +43,7 @@ public class HybridOauthResponse extends HybridOauthMessage {
     }
   }
 
-  public HybridOauthResponse(String consumerKey, String requestToken,
-      String scope) {
-    if (consumerKey == null || consumerKey.trim().length() == 0) {
-      throw new IllegalArgumentException("consumer key is required");
-    } else {
-      parameters.set(new Parameter(CONSUMER_KEY, consumerKey));
-    }
+  public HybridOauthResponse(String requestToken, String scope) {
     if (scope != null && scope.trim().length() > 0) {
       parameters.set(new Parameter(SCOPE, scope.trim()));
     }

@@ -40,7 +40,6 @@ public class HybridOauthMessage implements MessageExtension,
   public static final String OPENID_NS_OAUTH =
     "http://specs.openid.net/extensions/oauth/1.0";
 
-  static final String CONSUMER_KEY = "consumer";
   static final String SCOPE = "scope";
   static final String OAUTH_TOKEN = "request_token";
 
@@ -101,9 +100,5 @@ public class HybridOauthMessage implements MessageExtension,
 
   public String getScope() {
     return parameters.getParameterValue(SCOPE);
-  }
-
-  public String getConsumerKey() {
-    return parameters.getParameterValue(CONSUMER_KEY);
   }
 }

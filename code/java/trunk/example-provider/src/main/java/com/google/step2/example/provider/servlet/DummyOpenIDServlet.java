@@ -103,7 +103,7 @@ public class DummyOpenIDServlet extends InjectableServlet {
         if (oauthRequestToken != null) {
           // This is a request token response
           HybridOauthResponse hybridResponse =
-              new HybridOauthResponse("consumer-key", oauthRequestToken, "");
+              new HybridOauthResponse(oauthRequestToken, "");
           try {
             responseMessage.addExtension(hybridResponse);
           } catch (MessageException e) {

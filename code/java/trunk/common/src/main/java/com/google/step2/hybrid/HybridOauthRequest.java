@@ -30,6 +30,8 @@ import java.util.List;
  */
 public class HybridOauthRequest extends HybridOauthMessage {
 
+  static final String CONSUMER_KEY = "consumer";
+  
   protected final static List<String> requiredFields =
     Arrays.asList(new String[] {CONSUMER_KEY});
 
@@ -65,5 +67,9 @@ public class HybridOauthRequest extends HybridOauthMessage {
 
   boolean isValid() {
     return isValid(requiredFields, optionalFields);
+  }
+  
+  public String getConsumerKey() {
+    return parameters.getParameterValue(CONSUMER_KEY);
   }
 }
