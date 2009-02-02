@@ -5,7 +5,7 @@ import net.oauth.OAuthAccessor;
 import net.oauth.OAuthException;
 import net.oauth.OAuthMessage;
 import net.oauth.client.OAuthClient;
-import net.oauth.client.httpclient3.OAuthHttpClient;
+import net.oauth.client.httpclient4.HttpClient4;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,6 +50,6 @@ public class OAuthConsumerUtil {
   }
 
   private static OAuthClient getClient() {
-    return new OAuthHttpClient();
+    return new OAuthClient(new HttpClient4());
   }
 }

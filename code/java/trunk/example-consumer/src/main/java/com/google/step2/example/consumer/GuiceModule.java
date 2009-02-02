@@ -77,6 +77,6 @@ public class GuiceModule extends AbstractModule {
   }
 
   private OAuthClient getOAuthClient() {
-    return new net.oauth.client.httpclient3.OAuthHttpClient();        
+    return new OAuthClient(new net.oauth.client.httpclient4.HttpClient4());        
   }
 }
