@@ -1,0 +1,14 @@
+#summary Instructions how to get step2 to run in other servlet containers
+#labels Phase-Deploy
+
+= Running in Jetty without Tomcat =
+
+To run in other servlet containers:
+  # Remove step2/WEB-INF/classes/jsp
+  # In web.xml, remove all servlet and servlet-mapping under:
+{{{
+<!--
+Automatically created by Apache Jakarta Tomcat JspC.
+}}}
+
+(by mingfai.ma)
