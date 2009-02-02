@@ -50,7 +50,7 @@ public class SimpleProviderInfoStore implements OAuthProviderInfoStore {
 
   public SimpleProviderInfoStore() {
     ClassLoader loader = LoginServlet.class.getClassLoader();
-    String propertiesFile = "/" +
+    String propertiesFile =
       LoginServlet.class.getPackage().getName().replace(".", "/")
       + "/providers.properties";
     InputStream stream = loader.getResourceAsStream(propertiesFile);
