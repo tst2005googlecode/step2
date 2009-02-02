@@ -40,6 +40,7 @@ public class SimpleProviderInfoStore implements OAuthProviderInfoStore {
   private static final String CONSUMER_KEY = "consumerKey";
   private static final String CONSUMER_SECRET = "consumerSecret";
   private static final String SCOPE = "scope";
+  private static final String OAUTH_TEST_ENDPOINT = "oauthTestEndpoint";
 
   private static final Logger log =
       Logger.getLogger(SimpleProviderInfoStore.class.getName());
@@ -142,6 +143,9 @@ public class SimpleProviderInfoStore implements OAuthProviderInfoStore {
       } else if (parameter.equalsIgnoreCase(SCOPE)) {
         accessor.setProperty(SCOPE,
             properties.getProperty(propertyName, "").trim());
+      } else if (parameter.equalsIgnoreCase(OAUTH_TEST_ENDPOINT)) {
+        accessor.setProperty(OAUTH_TEST_ENDPOINT,
+            properties.getProperty(propertyName, "").trim());
       }
     }
   }
@@ -153,6 +157,7 @@ public class SimpleProviderInfoStore implements OAuthProviderInfoStore {
    */
   private void copyProperties(OAuthAccessor newAccessor, OAuthAccessor accessor) {
     newAccessor.setProperty(SCOPE, accessor.getProperty(SCOPE));
+    newAccessor.setProperty(OAUTH_TEST_ENDPOINT, accessor.getProperty(OAUTH_TEST_ENDPOINT));
   }
 
   public OAuthAccessor getOAuthAccessor(String providerKey)

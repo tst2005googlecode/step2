@@ -55,7 +55,6 @@ import javax.servlet.http.HttpSession;
 public class LoginServlet extends InjectableServlet {
   private Log log = LogFactory.getLog(LoginServlet.class);
   private static final String TEMPLATE_FILE = "/WEB-INF/login.jsp";
-  private static final String PROJECT = "/step2-example-consumer";
   private static final String REDIRECT_PATH = "/checkauth";
 
   private ConsumerHelper consumerHelper;
@@ -88,7 +87,8 @@ public class LoginServlet extends InjectableServlet {
     StringBuffer realm = new StringBuffer(req.getScheme());
     realm.append("://").append(req.getServerName());
     realm.append(":").append(req.getServerPort());
-    StringBuffer returnToUrl = realm.append(PROJECT).append(REDIRECT_PATH);
+    StringBuffer returnToUrl =
+      realm.append(req.getContextPath()).append(REDIRECT_PATH);
 
     // this is magic - normally this would also fall out of the discovery:
     OAuthAccessor accessor = null;
@@ -98,6 +98,13 @@ public class LoginServlet extends InjectableServlet {
       try {
         accessor = providerStore.getOAuthAccessor("google");
         accessor = OAuthConsumerUtil.getRequestToken(accessor);
+        // TODO(sweis): Put this string contstant somewhere that makes sense
+        String oauthTestEndpoint =
+          (String) accessor.getProperty("oauthTestEndpoint");
+        if (oauthTestEndpoint != null) {
+          realm = new StringBuffer(oauthTestEndpoint);
+          returnToUrl = new StringBuffer(oauthTestEndpoint);
+        }
       } catch (ProviderInfoNotFoundException e) {
         throw new ServletException(e);
       } catch (OAuthException e) {
