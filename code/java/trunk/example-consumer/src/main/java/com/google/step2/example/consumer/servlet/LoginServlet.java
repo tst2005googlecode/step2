@@ -127,12 +127,27 @@ public class LoginServlet extends InjectableServlet {
 
     if (YES_STRING.equals(req.getParameter("email"))) {
       log.debug("Requesting AX email");
-      helper.requestAxAttribute("email", Step2.AX_EMAIL_SCHEMA, true);
+      helper.requestAxAttribute(Step2.AxSchema.EMAIL, true);
     }
 
     if (YES_STRING.equals(req.getParameter("country"))) {
       log.debug("Requesting AX country");
-      helper.requestAxAttribute("country", Step2.AX_COUNTRY_SCHEMA, true);
+      helper.requestAxAttribute(Step2.AxSchema.COUNTRY, true);
+    }
+
+    if (YES_STRING.equals(req.getParameter("language"))) {
+      log.debug("Requesting AX country");
+      helper.requestAxAttribute(Step2.AxSchema.LANGUAGE, true);
+    }
+
+    if (YES_STRING.equals(req.getParameter("firstName"))) {
+      log.debug("Requesting AX country");
+      helper.requestAxAttribute(Step2.AxSchema.FIRST_NAME, true);
+    }
+
+    if (YES_STRING.equals(req.getParameter("lastName"))) {
+      log.debug("Requesting AX country");
+      helper.requestAxAttribute(Step2.AxSchema.LAST_NAME, true);
     }
 
     HttpSession session = req.getSession();

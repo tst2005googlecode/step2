@@ -71,9 +71,6 @@ public class AuthRequestHelper {
   // OpenID identity requests
   private final ConsumerManager consumerManager;
 
-  // Request OAuth scope(s)
-  private String oauthScope;
-
   // The user-supplied identifier
   private final String openId;
 
@@ -107,6 +104,7 @@ public class AuthRequestHelper {
       throws DiscoveryException {
     // if discovered == null, we'll try again
     if (discovered == null) {
+      @SuppressWarnings("unchecked")
       List<DiscoveryInformation> discoveries = consumerManager.discover(openId);
       discovered = consumerManager.associate(discoveries);
     }
@@ -136,6 +134,20 @@ public class AuthRequestHelper {
       boolean required) {
     log.info("Request AX Attribute Alias: " + alias);
     return requestAxAttribute(alias, typeUri, required, 1);
+  }
+
+  /**
+   * Adds a request for an Attribute Exchange attribute to the outgoing auth
+   * request.
+   *
+   * @param schema which attribute we're actually asking about
+   *   (see www.axschema.org)
+   * @param required whether or not we consider this attribute "required".
+   * @return this very instance.
+   */
+  public AuthRequestHelper requestAxAttribute(Step2.AxSchema schema,
+      boolean required) {
+    return requestAxAttribute(schema.getShortName(), schema.getUri(), required);
   }
 
   /**

@@ -32,12 +32,30 @@ import javax.servlet.http.HttpServletRequest;
 public class Step2 {
   private static Log log = LogFactory.getLog(Step2.class);
   
-  public static final String AX_EMAIL_SCHEMA =
-    "http://axschema.org/contact/email";
-
-  public static final String AX_COUNTRY_SCHEMA =
-    "http://axschema.org/contact/country/home";
-
+  public enum AxSchema {
+    EMAIL("http://axschema.org/contact/email", "email"),
+    COUNTRY("http://axschema.org/contact/country/home", "country"),
+    LANGUAGE("http://axschema.org/pref/language", "language"),
+    FIRST_NAME("http://axschema.org/namePerson/first", "firstName"),
+    LAST_NAME("http://axschema.org/namePerson/last", "lastName");
+    
+    private final String uri;
+    private final String shortName;
+    
+    private AxSchema(String uri, String shortName) {
+      this.uri = uri;
+      this.shortName = shortName;
+    }
+    
+    public String getUri() {
+      return uri;
+    }
+    
+    public String getShortName() {
+      return shortName;
+    }
+  }
+  
   /**
    * Returns the URL of an incoming HTTP request, including query parameters.
    * @param req the incoming HTTP request

@@ -45,6 +45,15 @@ optionally request user email and country attributes.
   <input type="checkbox" name="country" value="yes" />AX Request home country
 </div>
 <div>
+  <input type="checkbox" name="language" value="yes" />AX Request preferred language
+</div>
+<div>
+  <input type="checkbox" name="firstName" value="yes" />AX Request first name
+</div>
+<div>
+  <input type="checkbox" name="lastName" value="yes" />AX Request last name
+</div><hr />
+<div>
   <input type="checkbox" name="usePost" value="yes" />Use POST instead of GET
 </div>
 <div>

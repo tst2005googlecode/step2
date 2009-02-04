@@ -16,6 +16,9 @@
 <ul>
 <li>AX Fetch Email Response : ${email}</li>
 <li>AX Fetch Country Response: ${country}</li>
+<li>AX Fetch Language Response: ${language}</li>
+<li>AX Fetch First Name Response: ${firstName}</li>
+<li>AX Fetch Last Name Response: ${lastName}</li>
 <li>AX Validated Email: ${emailval}</li>
 </c:if>
 </ul>

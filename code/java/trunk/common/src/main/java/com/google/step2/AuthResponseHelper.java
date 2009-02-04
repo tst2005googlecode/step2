@@ -236,4 +236,14 @@ public class AuthResponseHelper {
 
     return values.get(0);
   }
+  
+  /**
+   * Gets an AX attribute value. If there are more than one value returned,
+   * this method returns just one of the returned values. If there are no
+   * values returned, this method returns null.
+   * @param schema the AX attribute that was requested
+   */
+  public String getAxFetchAttributeValue(Step2.AxSchema schema) {
+    return getAxFetchAttributeValue(schema.getShortName());
+  }
 }

@@ -19,9 +19,9 @@ package com.google.step2.example.consumer.servlet;
 
 import com.google.inject.Inject;
 import com.google.step2.AuthResponseHelper;
+import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
 import com.google.step2.VerificationException;
-import com.google.step2.ConsumerHelper;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.consumer.ProviderInfoNotFoundException;
 import com.google.step2.servlet.InjectableServlet;
@@ -43,6 +43,8 @@ import org.openid4java.message.ax.FetchResponse;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -61,6 +63,9 @@ public class CheckAuthServlet extends InjectableServlet {
   private OAuthClient oauthClient;
   private static final String NO_TOKEN = "None";
   private static final String UNKNOWN = "Unknown";
+
+  private static final List<Step2.AxSchema> SUPPORTED_AX_SCHEMAS =
+    Arrays.asList(Step2.AxSchema.values());
 
   @Inject
   public void setConsumerHelper(ConsumerHelper helper) {
@@ -106,9 +111,10 @@ public class CheckAuthServlet extends InjectableServlet {
           (claimedId == null) ? UNKNOWN : claimedId.getIdentifier());
 
       // Clean up stale session state if any
-      session.removeAttribute("email");
-      session.removeAttribute("country");
-      session.removeAttribute("emailval");
+
+      for (Step2.AxSchema schema : SUPPORTED_AX_SCHEMAS) {
+        session.removeAttribute(schema.getShortName());
+      }
       session.removeAttribute("request_token");
       session.removeAttribute("access_token");
       session.removeAttribute("access_token_secret");
@@ -117,10 +123,10 @@ public class CheckAuthServlet extends InjectableServlet {
         authResponse.getAxExtensionType();
       if (axExtensionType != null) {
         if (axExtensionType.equals(FetchResponse.class)) {
-          session.setAttribute("email",
-              authResponse.getAxFetchAttributeValue("email"));
-          session.setAttribute("country",
-              authResponse.getAxFetchAttributeValue("country"));
+          for (Step2.AxSchema schema : SUPPORTED_AX_SCHEMAS) {
+            session.setAttribute(schema.getShortName(),
+              authResponse.getAxFetchAttributeValue(schema));
+          }
         }
       }
 

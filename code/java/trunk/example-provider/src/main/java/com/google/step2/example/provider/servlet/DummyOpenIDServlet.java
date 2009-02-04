@@ -85,18 +85,20 @@ public class DummyOpenIDServlet extends InjectableServlet {
         String email = (String) session.getAttribute("email");
         FetchResponse2 fetchResponse = new FetchResponse2();
         try {
-          if (email != null) {        
-            fetchResponse.addAttribute("email", Step2.AX_EMAIL_SCHEMA, email);
+          if (email != null) {
+            fetchResponse.addAttribute(Step2.AxSchema.EMAIL.getShortName(),
+                Step2.AxSchema.EMAIL.getUri(), email);
           }
           String country = (String) session.getAttribute("country");
           if (country != null) {
-            fetchResponse.addAttribute("country", Step2.AX_COUNTRY_SCHEMA, country);
+            fetchResponse.addAttribute(Step2.AxSchema.COUNTRY.getShortName(),
+                Step2.AxSchema.COUNTRY.getUri(), country);
           }
           responseMessage.addExtension(fetchResponse);
         } catch (MessageException e) {
           throw new ServletException(e);
         }
-        
+
         // Handle any OAuth Request tokens
         String oauthRequestToken =
           (String) session.getAttribute("oauth_request_token");
