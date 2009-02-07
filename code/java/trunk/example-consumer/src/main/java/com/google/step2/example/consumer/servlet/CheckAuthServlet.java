@@ -22,6 +22,7 @@ import com.google.step2.AuthResponseHelper;
 import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
 import com.google.step2.VerificationException;
+import com.google.step2.AuthResponseHelper.ResultType;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.consumer.ProviderInfoNotFoundException;
 import com.google.step2.servlet.InjectableServlet;
@@ -46,6 +47,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -63,6 +65,7 @@ public class CheckAuthServlet extends InjectableServlet {
   private OAuthClient oauthClient;
   private static final String NO_TOKEN = "None";
   private static final String UNKNOWN = "Unknown";
+  private static final String TEMPLATE_FILE = "/WEB-INF/checkauth.jsp";
 
   private static final List<Step2.AxSchema> SUPPORTED_AX_SCHEMAS =
     Arrays.asList(Step2.AxSchema.values());
@@ -119,20 +122,21 @@ public class CheckAuthServlet extends InjectableServlet {
       session.removeAttribute("access_token");
       session.removeAttribute("access_token_secret");
 
-      Class<? extends AxMessage> axExtensionType =
-        authResponse.getAxExtensionType();
-      if (axExtensionType != null) {
-        if (axExtensionType.equals(FetchResponse.class)) {
-          for (Step2.AxSchema schema : SUPPORTED_AX_SCHEMAS) {
-            session.setAttribute(schema.getShortName(),
-              authResponse.getAxFetchAttributeValue(schema));
+      if (authResponse.getAuthResultType() != ResultType.AUTH_FAILURE) {
+        Class<? extends AxMessage> axExtensionType =
+            authResponse.getAxExtensionType();
+        if (axExtensionType != null) {
+          if (axExtensionType.equals(FetchResponse.class)) {
+            for (Step2.AxSchema schema : SUPPORTED_AX_SCHEMAS) {
+              session.setAttribute(schema.getShortName(),
+                  authResponse.getAxFetchAttributeValue(schema));
+            }
           }
         }
-      }
-
-      if (authResponse.hasHybridOauthExtension()) {
-        requestToken = authResponse.getHybridOauthResponse().getRequestToken();
-        session.setAttribute("request_token", "yes (" + requestToken + ")");
+        if (authResponse.hasHybridOauthExtension()) {
+          requestToken = authResponse.getHybridOauthResponse().getRequestToken();
+          session.setAttribute("request_token", "yes (" + requestToken + ")");
+        }
       }
     } catch (MessageException e) {
       throw new ServletException(e);
@@ -172,6 +176,13 @@ public class CheckAuthServlet extends InjectableServlet {
       }
     }
 
-    resp.sendRedirect(req.getRequestURI().replaceAll("/checkauth$", "/hello"));
+    String type = req.getParameter("login_type");
+    if (null == type || !type.equals("popup")) {
+      resp.sendRedirect(req.getRequestURI()
+          .replaceAll("/checkauth$", "/hello"));
+    } else {
+      RequestDispatcher d = req.getRequestDispatcher(TEMPLATE_FILE);
+      d.forward(req, resp);
+    }
   }
 }

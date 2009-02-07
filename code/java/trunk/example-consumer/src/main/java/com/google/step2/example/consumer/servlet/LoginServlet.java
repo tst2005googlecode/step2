@@ -98,6 +98,7 @@ public class LoginServlet extends InjectableServlet {
       try {
         accessor = providerStore.getOAuthAccessor("google");
         accessor = OAuthConsumerUtil.getRequestToken(accessor);
+
         // TODO(sweis): Put this string contstant somewhere that makes sense
         String oauthTestEndpoint =
           (String) accessor.getProperty("oauthTestEndpoint");
@@ -145,6 +146,7 @@ public class LoginServlet extends InjectableServlet {
       helper.requestAxAttribute(Step2.AxSchema.FIRST_NAME, true);
     }
 
+
     if (YES_STRING.equals(req.getParameter("lastName"))) {
       log.debug("Requesting AX country");
       helper.requestAxAttribute(Step2.AxSchema.LAST_NAME, true);
@@ -182,6 +184,5 @@ public class LoginServlet extends InjectableServlet {
       // using GET
       resp.sendRedirect(authReq.getDestinationUrl(true));
     }
-
   }
 }

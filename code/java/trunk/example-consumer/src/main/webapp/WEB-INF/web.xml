@@ -21,6 +21,11 @@
   </context-param>
 
   <servlet>
+    <servlet-name>default</servlet-name>
+    <servlet-class>org.mortbay.jetty.servlet.DefaultServlet</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>LoginServlet</servlet-name>
     <servlet-class>com.google.step2.example.consumer.servlet.LoginServlet</servlet-class>
   </servlet>
@@ -28,6 +33,11 @@
   <servlet>
     <servlet-name>HelloServlet</servlet-name>
     <servlet-class>com.google.step2.example.consumer.servlet.HelloWorldServlet</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>LoginViaPopupServlet</servlet-name>
+    <servlet-class>com.google.step2.example.consumer.servlet.LoginViaPopupServlet</servlet-class>
   </servlet>
 
   <servlet>
@@ -46,6 +56,11 @@
   </servlet-mapping>
 
   <servlet-mapping>
+    <servlet-name>LoginViaPopupServlet</servlet-name>
+    <url-pattern>/popup</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
     <servlet-name>CheckAuth</servlet-name>
     <url-pattern>/checkauth</url-pattern>
   </servlet-mapping>
@@ -60,5 +75,14 @@
     <url-pattern>/style.css</url-pattern>
   </servlet-mapping>
 
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.js</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.gif</url-pattern>
+  </servlet-mapping>
 
 </web-app>
