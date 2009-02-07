@@ -26,6 +26,8 @@ import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.VerificationResult;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
+import org.openid4java.message.AuthFailure;
+import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.MessageException;
 import org.openid4java.message.ParameterList;
 
@@ -97,7 +99,8 @@ public class ConsumerHelper {
     // the only indication that something went wrong during nonce and
     // signature checking is if the returned identity is null. In that case,
     // we don't even want to return anything.
-    if (verification.getVerifiedId() == null) {
+    if ((verification.getAuthResponse() instanceof AuthSuccess)
+        && (verification.getVerifiedId() == null)) {
       throw new VerificationException("something went wrong during " +
           "response verification, such as nonce or signature checking. " +
       "Check your debug logs.");
