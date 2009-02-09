@@ -92,8 +92,8 @@ public class LoginViaPopupServlet extends InjectableServlet {
         .append(REDIRECT_PATH);
     session.setAttribute(RETURN_TO, realm.toString());
 
-   // Do per-OP customizations:
-   perOpCustomize(req);
+    // Do per-OP customizations:
+    perOpCustomize(req);
 
     RequestDispatcher d = req.getRequestDispatcher(TEMPLATE_FILE);
     d.forward(req, resp);
@@ -104,7 +104,7 @@ public class LoginViaPopupServlet extends InjectableServlet {
    * an RP could use some technique to identify the user's preferred
    * identity provider.
    * @param req the incoming request
-   *   * @throws ServletException
+   * @throws ServletException 
    */
   @SuppressWarnings("unchecked")
   private void perOpCustomize(HttpServletRequest req) throws ServletException {

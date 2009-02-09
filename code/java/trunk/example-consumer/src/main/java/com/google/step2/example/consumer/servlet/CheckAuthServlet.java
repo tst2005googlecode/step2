@@ -181,13 +181,32 @@ public class CheckAuthServlet extends InjectableServlet {
       }
     }
 
-    String type = req.getParameter("login_type");
-    if (null == type || !type.equals("popup")) {
+    String type = req.getParameter(LOGIN_TYPE.getParameterName());
+    if (LOGIN_TYPE.POPUP.getType().equals(type)) {
       resp.sendRedirect(req.getRequestURI()
           .replaceAll("/checkauth$", "/hello"));
     } else {
       RequestDispatcher d = req.getRequestDispatcher(TEMPLATE_FILE);
       d.forward(req, resp);
+    }
+  }
+
+  private static enum LOGIN_TYPE {
+    POPUP("popup"),
+    UNKNOWN("");
+
+    private final String type;
+
+    private LOGIN_TYPE(String type) {
+      this.type = type;
+    }
+
+    public String getType() {
+      return type;
+    }
+
+    public static final String getParameterName() {
+      return "login_type";
     }
   }
 }
