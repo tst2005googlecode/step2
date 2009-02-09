@@ -168,7 +168,13 @@ public class SimpleProviderInfoStore implements OAuthProviderInfoStore {
       throw new ProviderInfoNotFoundException(
           "no such provider: " + providerKey);
     } else {
-      return result;
+      return copyAccessor(result);
     }
+  }
+
+  private OAuthAccessor copyAccessor(OAuthAccessor accessor) {
+      OAuthAccessor result = new OAuthAccessor(accessor.consumer);
+      result.setProperty("scope", accessor.getProperty("scope"));
+      return result;
   }
 }

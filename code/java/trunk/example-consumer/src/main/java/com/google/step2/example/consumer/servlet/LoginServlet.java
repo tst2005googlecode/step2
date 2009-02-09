@@ -84,11 +84,12 @@ public class LoginServlet extends InjectableServlet {
     log.info("Login Servlet Post");
 
     // posted means they're sending us an OpenID4
-    StringBuffer realm = new StringBuffer(req.getScheme());
-    realm.append("://").append(req.getServerName());
-    realm.append(":").append(req.getServerPort());
-    StringBuffer returnToUrl =
-      realm.append(req.getContextPath()).append(REDIRECT_PATH);
+    String realm = new StringBuffer(req.getScheme())
+        .append("://").append(req.getServerName())
+        .append(":").append(req.getServerPort())
+        .toString();
+    String returnToUrl = new StringBuffer(realm)
+        .append(req.getContextPath()).append(REDIRECT_PATH).toString();
 
     // this is magic - normally this would also fall out of the discovery:
     OAuthAccessor accessor = null;
@@ -103,8 +104,8 @@ public class LoginServlet extends InjectableServlet {
         String oauthTestEndpoint =
           (String) accessor.getProperty("oauthTestEndpoint");
         if (oauthTestEndpoint != null) {
-          realm = new StringBuffer(oauthTestEndpoint);
-          returnToUrl = new StringBuffer(oauthTestEndpoint);
+          realm = oauthTestEndpoint;
+          returnToUrl = oauthTestEndpoint;
         }
       } catch (ProviderInfoNotFoundException e) {
         throw new ServletException(e);
@@ -156,7 +157,7 @@ public class LoginServlet extends InjectableServlet {
     AuthRequest authReq = null;
     try {
       authReq = helper.generateRequest();
-      authReq.setRealm(realm.toString());
+      authReq.setRealm(realm);
       session.setAttribute("discovered", helper.getDiscoveryInformation());
     } catch (DiscoveryException e) {
       StringBuffer errorMessage =

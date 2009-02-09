@@ -114,7 +114,6 @@ public class CheckAuthServlet extends InjectableServlet {
           (claimedId == null) ? UNKNOWN : claimedId.getIdentifier());
 
       // Clean up stale session state if any
-
       for (Step2.AxSchema schema : SUPPORTED_AX_SCHEMAS) {
         session.removeAttribute(schema.getShortName());
       }

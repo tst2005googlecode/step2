@@ -25,6 +25,7 @@ import com.google.gdata.client.authn.oauth.OAuthSigner;
 import com.google.gdata.client.contacts.ContactsService;
 import com.google.gdata.data.contacts.ContactFeed;
 import com.google.gdata.util.ServiceException;
+import com.google.step2.Step2;
 import com.google.step2.servlet.InjectableServlet;
 
 import net.oauth.OAuthAccessor;
@@ -59,6 +60,15 @@ public class HelloWorldServlet extends InjectableServlet {
     // user attribute to null
     if (req.getParameter("logout") != null) {
       session.setAttribute("user", null);
+
+      // Clean up stale session state if any
+      for (Step2.AxSchema schema : Step2.AxSchema.values()) {
+        session.removeAttribute(schema.getShortName());
+      }
+      session.removeAttribute("request_token");
+      session.removeAttribute("access_token");
+      session.removeAttribute("access_token_secret");
+      session.removeAttribute("accessor");
     }
 
     if (session.getAttribute("user") == null) {

@@ -39,6 +39,20 @@
   		<artifactId>step2-consumer</artifactId>
   		<version>1-SNAPSHOT</version>
   	</dependency>
+        <dependency>
+            <groupId>com.google.gdata</groupId>
+            <artifactId>gdata.core</artifactId>
+            <version>1.0</version>
+	    <scope>system</scope>
+	    <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/gdata-core-1.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.google.gdata</groupId>
+            <artifactId>gdata.contacts</artifactId>
+            <version>2.0</version>
+	    <scope>system</scope>
+	    <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/gdata-contacts-2.0.jar</systemPath>
+        </dependency>
   </dependencies>
 
   <build>
