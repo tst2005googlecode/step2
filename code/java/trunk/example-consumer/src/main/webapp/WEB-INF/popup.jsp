@@ -57,7 +57,7 @@
     </div>
     <script type="text/javascript">
       var greetUser = function() {
-        window.location = "/step2-example-consumer/hello";
+        window.location = "/hello";
       };
       var extensions = <%= extensionParameters %>;
       var googleOpener = popupManager.createPopupOpener(

@@ -49,7 +49,7 @@ public class LoginViaPopupServlet extends InjectableServlet {
   private static final String OPENID_2_0_SERVER = "http://specs.openid.net/auth/2.0/server";
   private static final String UTF8 = "UTF-8";
   private static final String TEMPLATE_FILE = "/WEB-INF/popup.jsp";
-  private static final String PROJECT = "/step2-example-consumer";
+  private static final String PROJECT = "";
   private static final String REDIRECT_PATH = "/checkauth?login_type=popup";
   public static final String RETURN_TO = "step2_popup_return_to";
   public static final String REALM = "step2_popup_realm";
@@ -104,7 +104,7 @@ public class LoginViaPopupServlet extends InjectableServlet {
    * an RP could use some technique to identify the user's preferred
    * identity provider.
    * @param req the incoming request
-   *   * @throws ServletException 
+   *   * @throws ServletException
    */
   @SuppressWarnings("unchecked")
   private void perOpCustomize(HttpServletRequest req) throws ServletException {
@@ -118,7 +118,8 @@ public class LoginViaPopupServlet extends InjectableServlet {
       // This RP support Attribute Exchange, so looks if advertized as a supported
       // type for this OpenID server
       if (type.getType().equals(AX_1_0)) {
-        session.setAttribute(EXTENSION_PARAMS, getAxExtensionParameters());
+        session.setAttribute(EXTENSION_PARAMS,
+            getExtensionParameters(req.getServerName()));
       }
     }
     // Now for the actual location URL of the service
@@ -153,12 +154,22 @@ public class LoginViaPopupServlet extends InjectableServlet {
     }
   }
 
+  private String getExtensionParameters(String consumer) {
+    return new StringBuffer()
+        .append("{ ")
+        .append(getAxExtensionParameters())
+        .append(", ")
+        .append(getOAuthExtensionParameters(consumer))
+        .append(" } ")
+        .toString();
+  }
+
   /**
    * Returns an attribute exchange fetch request, in this case asking for
    * email, name, country, language, and an additional web URL.
    */
   private String getAxExtensionParameters() {
-    return new StringBuffer("{ 'openid.ns.ax' : 'http://openid.net/srv/ax/1.0', ")
+    return new StringBuffer("'openid.ns.ax' : 'http://openid.net/srv/ax/1.0', ")
         .append("'openid.ax.mode' : 'fetch_request', ")
         .append("'openid.ax.type.email' : 'http://axschema.org/contact/email', ")
         .append("'openid.ax.type.first' : 'http://axschema.org/namePerson/first', ")
@@ -166,8 +177,15 @@ public class LoginViaPopupServlet extends InjectableServlet {
         .append("'openid.ax.type.country' : 'http://axschema.org/contact/country/home', ")
         .append("'openid.ax.type.lang' : 'http://axschema.org/pref/language', ")
         .append("'openid.ax.type.web' : 'http://axschema.org/contact/web/default', ")
-        .append("'openid.ax.required' : 'email,first,last,country,lang,web' }")
+        .append("'openid.ax.required' : 'email,first,last,country,lang,web'")
         .toString();
+  }
+
+  private String getOAuthExtensionParameters(String consumer) {
+    return new StringBuffer("'openid.ns.oauth' : 'http://specs.openid.net/extensions/oauth/1.0', ")
+    .append("'openid.oauth.consumer' : '" + consumer + "', ")
+    .append("'openid.oauth.scope' : 'http://www.google.com/m8/feeds/' ")
+    .toString();
   }
 
   private static enum OpSettings {
