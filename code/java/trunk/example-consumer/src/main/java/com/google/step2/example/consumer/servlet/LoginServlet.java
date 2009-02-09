@@ -84,10 +84,17 @@ public class LoginServlet extends InjectableServlet {
     log.info("Login Servlet Post");
 
     // posted means they're sending us an OpenID4
-    String realm = new StringBuffer(req.getScheme())
-        .append("://").append(req.getServerName())
-        .append(":").append(req.getServerPort())
-        .toString();
+    StringBuffer realmBuf = new StringBuffer(req.getScheme())
+        .append("://").append(req.getServerName());
+
+    if ((req.getScheme().equalsIgnoreCase("http")
+         && req.getServerPort() != 80)
+        || (req.getScheme().equalsIgnoreCase("https")
+            && req.getServerPort() != 443)) {
+      realmBuf.append(":").append(req.getServerPort());
+    }
+
+    String realm = realmBuf.toString();
     String returnToUrl = new StringBuffer(realm)
         .append(req.getContextPath()).append(REDIRECT_PATH).toString();
 
