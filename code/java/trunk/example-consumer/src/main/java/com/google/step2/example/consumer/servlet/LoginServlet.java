@@ -121,7 +121,7 @@ public class LoginServlet extends InjectableServlet {
 
     if (accessor != null) {
       log.debug("Requesting OAuth scope : " +
-          (String) accessor.consumer.getProperty("scope"));
+          (String) accessor.getProperty("scope"));
       helper.requestOauthAuthorization(accessor.consumer.consumerKey,
           (String) accessor.getProperty("scope"));
     }

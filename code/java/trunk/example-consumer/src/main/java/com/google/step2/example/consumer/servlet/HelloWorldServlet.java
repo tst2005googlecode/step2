@@ -17,9 +17,21 @@
 
 package com.google.step2.example.consumer.servlet;
 
+import com.google.gdata.client.GoogleService;
+import com.google.gdata.client.authn.oauth.GoogleOAuthParameters;
+import com.google.gdata.client.authn.oauth.OAuthException;
+import com.google.gdata.client.authn.oauth.OAuthHmacSha1Signer;
+import com.google.gdata.client.authn.oauth.OAuthSigner;
+import com.google.gdata.client.contacts.ContactsService;
+import com.google.gdata.data.contacts.ContactFeed;
+import com.google.gdata.util.ServiceException;
 import com.google.step2.servlet.InjectableServlet;
 
+import net.oauth.OAuthAccessor;
+
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Date;
 
 import javax.servlet.RequestDispatcher;
@@ -35,6 +47,7 @@ import javax.servlet.http.HttpSession;
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class HelloWorldServlet extends InjectableServlet {
+
   private static String templateFile = "/WEB-INF/hello.jsp";
 
   @Override
@@ -52,12 +65,55 @@ public class HelloWorldServlet extends InjectableServlet {
       // redirect to login servlet
       resp.sendRedirect(req.getRequestURI().replaceAll("/hello$", "/login"));
     } else {
+
+      getOAuthData(req);
+
       RequestDispatcher d = req.getRequestDispatcher(templateFile);
       resp.setHeader("Pragma", "no-cache");
       resp.setHeader("Cache-Control", "no-cache");
       resp.setDateHeader("Expires", 0);
       resp.setDateHeader("Date", new Date().getTime());
       d.forward(req, resp);
+    }
+  }
+
+  private void getOAuthData(HttpServletRequest request) throws ServletException {
+
+    HttpSession session = request.getSession();
+
+    try {
+      OAuthAccessor accessor = (OAuthAccessor)session.getAttribute("accessor");
+
+      if (accessor == null) {
+        return;
+      }
+
+      URL feedUrl = new URL("http://www.google.com/m8/feeds/contacts/default/thin");
+      GoogleService service = new ContactsService("step2");
+
+      GoogleOAuthParameters params = new GoogleOAuthParameters();
+      params.setOAuthConsumerKey(accessor.consumer.consumerKey);
+      params.setOAuthConsumerSecret(accessor.consumer.consumerSecret);
+      params.setOAuthToken(accessor.accessToken);
+      params.setOAuthTokenSecret(accessor.tokenSecret);
+
+      OAuthSigner signer = new OAuthHmacSha1Signer();
+
+      service.setOAuthCredentials(params, signer);
+
+      ContactFeed resultFeed = service.getFeed(feedUrl, ContactFeed.class);
+
+      request.setAttribute("contacts", resultFeed);
+
+
+    } catch (MalformedURLException e) {
+      throw new ServletException(e);
+    } catch (OAuthException e) {
+      throw new ServletException(e);
+    } catch (IOException e) {
+      throw new ServletException(e);
+    } catch (ServiceException e) {
+      throw new ServletException(e);
     }
   }
 }

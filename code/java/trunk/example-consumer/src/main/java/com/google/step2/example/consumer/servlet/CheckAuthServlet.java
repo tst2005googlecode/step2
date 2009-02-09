@@ -121,6 +121,7 @@ public class CheckAuthServlet extends InjectableServlet {
       session.removeAttribute("request_token");
       session.removeAttribute("access_token");
       session.removeAttribute("access_token_secret");
+      session.removeAttribute("accessor");
 
       if (authResponse.getAuthResultType() != ResultType.AUTH_FAILURE) {
         Class<? extends AxMessage> axExtensionType =
@@ -166,6 +167,11 @@ public class CheckAuthServlet extends InjectableServlet {
           session.setAttribute("access_token", "yes (" + accessToken + ")");
           session.setAttribute("access_token_secret",
               "yes (" + accessTokenSecret + ")");
+
+          // store the whole OAuth accessor in the session
+          accessor.accessToken = accessToken;
+          accessor.tokenSecret = accessTokenSecret;
+          session.setAttribute("accessor", accessor);
         }
       } catch (ProviderInfoNotFoundException e) {
         e.printStackTrace();

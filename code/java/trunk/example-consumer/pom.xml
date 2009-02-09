@@ -79,6 +79,12 @@
         <artifactId>maven-war-plugin</artifactId>
         <configuration>
           <webXml>${basedir}/target/jspweb.xml</webXml>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>WEB-INF/lib/</classpathPrefix>
+            </manifest>
+          </archive>
         </configuration>
       </plugin>
     </plugins>
