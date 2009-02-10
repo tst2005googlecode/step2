@@ -61,7 +61,7 @@
       <div id="welcomePane">
         <button name = "submit_button" id = "submit_button"
                 style = "background-color:transparent;border-width:1px;border-color:#000000;padding:3px;margin-top:200px;">
-          <img src="<%= buttonImage %>" alt="<%= opFriendlyName %>" style="margin-bottom:-3px;"/>&nbsp; Login using your Google Account
+          <img src="<%= buttonImage %>" alt="<%= opFriendlyName %>" style="margin-bottom:-3px;"/>&nbsp; Sign in using your Google Account
         </button>
         <br />
         <input type="checkbox" id="stayOnPage" name="stayOnPage" checked="checked">
