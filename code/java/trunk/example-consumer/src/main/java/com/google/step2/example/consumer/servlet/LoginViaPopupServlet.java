@@ -206,8 +206,8 @@ public class LoginViaPopupServlet extends InjectableServlet {
   private String getAxExtensionParameters() {
     return new StringBuffer("'openid.ns.ax' : 'http://openid.net/srv/ax/1.0', ")
         .append("'openid.ax.mode' : 'fetch_request', ")
-        .append("'openid.ax.type.email' : 'http://axschema.org/contact/email', ")
-        // .append("'openid.ax.type.first' : 'http://axschema.org/namePerson/first', ")
+        .append("'openid.ax.type.email' : 'http://axschema.org/contact/email' ")
+        // .append(", 'openid.ax.type.first' : 'http://axschema.org/namePerson/first', ")
         // .append("'openid.ax.type.last' : 'http://axschema.org/namePerson/last', ")
         // .append("'openid.ax.type.country' : 'http://axschema.org/contact/country/home', ")
         // .append("'openid.ax.type.lang' : 'http://axschema.org/pref/language', ")
