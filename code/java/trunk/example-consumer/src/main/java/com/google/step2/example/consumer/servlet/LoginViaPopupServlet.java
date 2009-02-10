@@ -17,7 +17,12 @@
 
 package com.google.step2.example.consumer.servlet;
 
+import com.google.inject.Inject;
+import com.google.step2.consumer.OAuthProviderInfoStore;
+import com.google.step2.consumer.ProviderInfoNotFoundException;
 import com.google.step2.servlet.InjectableServlet;
+
+import net.oauth.OAuthAccessor;
 
 import org.openid4java.discovery.yadis.YadisException;
 import org.openid4java.discovery.yadis.YadisResolver;
@@ -62,6 +67,13 @@ public class LoginViaPopupServlet extends InjectableServlet {
       Logger.getLogger(LoginViaPopupServlet.class.getCanonicalName());
   private static final String AX_1_0 = "http://openid.net/srv/ax/1.0";
 
+  private OAuthProviderInfoStore providerStore;
+
+  @Inject
+  public void setProviderInfoStore(OAuthProviderInfoStore store) {
+    this.providerStore = store;
+  }
+
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws IOException, ServletException {
@@ -104,7 +116,7 @@ public class LoginViaPopupServlet extends InjectableServlet {
    * an RP could use some technique to identify the user's preferred
    * identity provider.
    * @param req the incoming request
-   * @throws ServletException 
+   * @throws ServletException
    */
   @SuppressWarnings("unchecked")
   private void perOpCustomize(HttpServletRequest req) throws ServletException {
@@ -182,6 +194,20 @@ public class LoginViaPopupServlet extends InjectableServlet {
   }
 
   private String getOAuthExtensionParameters(String consumer) {
+
+    // make sure that the data in the configuration file is actually for
+    // this RP.
+    OAuthAccessor accessor;
+    try {
+      accessor = providerStore.getOAuthAccessor("google");
+    } catch (ProviderInfoNotFoundException e) {
+      return "";
+    }
+
+    if (!consumer.equals(accessor.consumer.consumerKey)) {
+      return "";
+    }
+
     return new StringBuffer("'openid.ns.oauth' : 'http://specs.openid.net/extensions/oauth/1.0', ")
     .append("'openid.oauth.consumer' : '" + consumer + "', ")
     .append("'openid.oauth.scope' : 'http://www.google.com/m8/feeds/' ")
