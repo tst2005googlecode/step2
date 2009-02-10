@@ -29,6 +29,24 @@
 
 var popupManager = {};
 
+// Library constants
+
+popupManager.constants = {
+  'darkCover' : 'popupManager_darkCover_div',
+  'darkCoverStyle' : ['position:absolute;',
+                      'top:0px;',
+                      'left:0px;',
+                      'padding-right:0px;',
+                      'padding-bottom:0px;',
+                      'background-color:#000000;',
+                      'opacity:0.5;', //standard-compliant browsers
+                      '-moz-opacity:0.5;',           // old Mozilla 
+                      'filter:alpha(opacity=0.5);',  // IE
+                      'z-index:10000;',
+                      'width:100%;',
+                      'height:100%;'
+                      ].join('') };
+
 // Computes the size of the window contents. Returns a pair of
 // coordinates [width, height] which can be [0, 0] if it was not possible
 // to compute the values.
@@ -85,6 +103,21 @@ popupManager.getCenteredCoords = function(width, height) {
    return [xPos, yPos];
 };
 
+// A utility class, implements an onCloseHandler that darkens the screen
+// by overlaying it with a semi-transparent black layer. To use, ensure that
+// no screen element has a z-index at or above 10000.
+// This layer will be suppressed automatically after the screen closes.
+popupManager.darkenScreen = function() {
+  var darkCover = window.document.getElementById(window.popupManager.constants['darkCover']);
+  if (!darkCover) {
+    darkCover = window.document.createElement('div');
+    darkCover['id'] = window.popupManager.constants['darkCover'];
+    darkCover.setAttribute('style', window.popupManager.constants['darkCoverStyle']);
+    window.document.body.appendChild(darkCover);
+  }
+  darkCover.style.visibility = 'visible';
+};
+
 //  Returns a an object that can open a popup window customized for an OP & RP.
 //  to use you call var opener = popupManager.cretePopupOpener(openidParams);
 //  and then you can assign the 'onclick' handler of a button to
@@ -112,8 +145,12 @@ popupManager.createPopupOpener = (function(openidParams) {
   var that = this;
   var identifierSelect_ = 'http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select';
   var openidNs_ = 'http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0';
+  var onOpenHandler_ = (('onOpenHandler' in openidParams) &&
+      ('function' === typeof(openidParams.onOpenHandler))) ?
+          openidParams.onOpenHandler : this.darkenScreen;
   var onCloseHandler_ = (('onCloseHandler' in openidParams) &&
-      ('function' === typeof(openidParams.onCloseHandler))) ? openidParams.onCloseHandler : null;
+      ('function' === typeof(openidParams.onCloseHandler))) ?
+          openidParams.onCloseHandler : null;
   var returnToUrl_ = ('returnToUrl' in openidParams) ? openidParams.returnToUrl : null;
   var realm_ = ('realm' in openidParams) ? openidParams.realm : null;
   var endpoint_ = ('opEndpoint' in openidParams) ? openidParams.opEndpoint : null;
@@ -161,15 +198,19 @@ popupManager.createPopupOpener = (function(openidParams) {
   };
 
   // Tests that the popup window has closed
-  var isPopupClosed_ =  function() {
+  var isPopupClosed_ = function() {
     return (!popupWindow_ || popupWindow_.closed);
   };
 
   // Check to perform at each execution of the timed loop. It also triggers
   // the action that follows the closing of the popup
-  var waitForPopupClose_ =  function() {
+  var waitForPopupClose_ = function() {
     if (isPopupClosed_()) {
       popupWindow_ = null;
+      var darkCover = window.document.getElementById(window.popupManager.constants['darkCover']);
+      if (darkCover) {
+        darkCover.style.visibility = 'hidden';
+      }
       if (onCloseHandler_ !== null) {
         onCloseHandler_();
       }
@@ -184,6 +225,9 @@ popupManager.createPopupOpener = (function(openidParams) {
     // Function that opens the window.
     popup: function(width, height) {
       var urlToOpen = buildUrlToOpen_();
+      if (onOpenHandler_ !== null) {
+        onOpenHandler_();
+      }
       var coordinates = that.getCenteredCoords(width, height);
       popupWindow_ = window.open(urlToOpen, "",
           "width=" + width + ",height=" + height +
