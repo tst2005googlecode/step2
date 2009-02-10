@@ -26,6 +26,8 @@
 
 <% } %>
 
+<div id="results">
+
 <h3>Attribute Exchange Results:</h3>
 <ul>
 <li>AX Fetch Email Response : ${email}</li>
@@ -78,9 +80,10 @@ for an access token automatically:</p>
     }
 %>
 
-<% if (longVersion) { %>
-
 <a href="?logout">Logout</a>
+</div>
+
+<% if (longVersion) { %>
 
 </body>
 </html>

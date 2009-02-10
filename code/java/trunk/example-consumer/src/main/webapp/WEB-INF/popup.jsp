@@ -21,6 +21,28 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>Pop-up Example</title>
+
+    <style>
+      #popupForm {
+        text-align:center;
+        margin-bottom:4px;
+        margin-top:50px;
+      }
+      #welcomePane {
+        float: left;
+        width: 40%;
+      }
+      #libPane {
+        float: left;
+        width: 60%;
+      }
+      #results {
+        font-family:sans-serif;
+        font-size:14px;
+        text-align:left;
+      }
+    </style>
+
   </head>
   <body style = "background-color:#FFFFFF; color:#000000;">
       <%
@@ -32,32 +54,41 @@
         String opFriendlyName = (String) session.getAttribute(LoginViaPopupServlet.OP_FRIENDLY);
         String extensionParameters = (String) session.getAttribute(LoginViaPopupServlet.EXTENSION_PARAMS);
       %>
-    <script type="text/javascript" src="popuplib.js">
-    </script>
+    <script type="text/javascript" src="popuplib.js"></script>
+    <script type="text/javascript" src="jquery-1.3.1.js"></script>
+
     <div id="popupForm">
-      <div style="text-align:center;margin-bottom:4px;margin-top:50px;">
-        <table style="width:100%;">
-          <tr>
-            <td>
-              <button name = "submit_button" id = "submit_button"
-                style = "background-color:transparent;border-width:1px;border-color:#000000;padding:3px;margin-bottom:200px;">
-                <img src="<%= buttonImage %>" alt="<%= opFriendlyName %>" style="margin-bottom:-3px;"/>&nbsp; Login using your Google Account
-              </button>
-              <br />
-              For examples on how to use the library, see <a href="http://step2.googlecode.com">step2.googlecode.com</a>
-            </td>
-            <td>
-              Popup library:<br /> <hr style="width:720px;"/>
-              <iframe src = "popuplib.js" style="width:700px;height:400px;background-color:#ECECFF;">
-              </iframe>
-            </td>
-          </tr>
-        </table>
+      <div id="welcomePane">
+        <button name = "submit_button" id = "submit_button"
+                style = "background-color:transparent;border-width:1px;border-color:#000000;padding:3px;margin-top:200px;">
+          <img src="<%= buttonImage %>" alt="<%= opFriendlyName %>" style="margin-bottom:-3px;"/>&nbsp; Login using your Google Account
+        </button>
+        <br />
+        <input type="checkbox" id="stayOnPage" name="stayOnPage" checked="checked"></input>
+        <label for="stayOnPage">stay on this page after login</label>
+        <br /><br />
+        For examples on how to use the library, see <a href="http://step2.googlecode.com">step2.googlecode.com</a>
+      </div>
+
+      <div id="libPane">
+           Popup library:<br /> <hr style="width:100%;"/>
+        <iframe src = "popuplib.js" style="width:100%;height:400px;background-color:#ECECFF;">
+        </iframe>
       </div>
     </div>
     <script type="text/javascript">
       var greetUser = function() {
-        window.location = "/hello";
+        if ($("#stayOnPage").is(":checked")) {
+          $.ajax({
+              url: "/hello?size=short",
+              cache: false,
+              success: function(response) {
+                $("#welcomePane").html(response);
+              }
+          });
+        } else {
+          window.location = "/hello";
+        }
       };
       var extensions = <%= extensionParameters %>;
       var googleOpener = popupManager.createPopupOpener(
@@ -68,7 +99,7 @@
             'shouldEncodeUrls' : true,
             'extensions' : extensions });
       document.getElementById("submit_button").onclick = function() {
-        googleOpener.popup(500,450);
+        googleOpener.popup(593,521);
         return true;
       };
     </script>
