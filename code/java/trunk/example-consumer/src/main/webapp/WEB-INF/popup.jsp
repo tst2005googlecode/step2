@@ -72,11 +72,16 @@
 
       <div id="libPane">
            Popup library:<br /> <hr style="width:100%;"/>
-        <iframe src = "popuplib.js" style="width:100%;height:400px;background-color:#ECECFF;">
-        </iframe>
+        <div id="popuplib_source" style="width:100%;height:400px;background-color:#ECECFF;overflow:scroll;">
+        </div>
       </div>
     </div>
     <script type="text/javascript">
+      $.ajax({ url: "./popuplib.js",
+               success: function(response) {
+                   $("#popuplib_source").html('<pre style="text-align:left;">'+response+'</pre>');
+               }
+             });
       var greetUser = function() {
         if ($("#stayOnPage").is(":checked")) {
           $.ajax({
