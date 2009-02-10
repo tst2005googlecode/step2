@@ -102,7 +102,7 @@ public class LoginViaPopupServlet extends InjectableServlet {
     if (port != 80 && port != 443) {
       realm.append(":").append(port);
     }
-    session.setAttribute(REALM, realm.toString());
+    session.setAttribute(REALM, realm.toString().replaceFirst("http://www\\.","http://*."));
 
     // Now set the return_to URL
     realm.append(PROJECT)
