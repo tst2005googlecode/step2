@@ -71,7 +71,7 @@ public class HelloWorldServlet extends InjectableServlet {
       session.removeAttribute("accessor");
     }
 
-    if (session.getAttribute("user") == null) {
+    if (session.getAttribute("user") == null && !"short".equals(req.getParameter("size"))) {
       // redirect to login servlet
       resp.sendRedirect(req.getRequestURI().replaceAll("/hello$", "/login"));
     } else {

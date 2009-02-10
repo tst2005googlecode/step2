@@ -26,7 +26,7 @@
       #popupForm {
         text-align:center;
         margin-bottom:4px;
-        margin-top:50px;
+        margin-top:10px;
       }
       #welcomePane {
         float: left;
@@ -41,6 +41,10 @@
         font-size:14px;
         text-align:left;
       }
+     body {
+       font-family:sans-serif;
+     }
+     
     </style>
 
   </head>
@@ -57,6 +61,8 @@
     <script type="text/javascript" src="popuplib.js"></script>
     <script type="text/javascript" src="jquery-1.3.1.js"></script>
 
+<center><h2>OpenID Popup Demo</h2></center>
+
     <div id="popupForm">
       <div id="welcomePane">
         <button name = "submit_button" id = "submit_button"
@@ -71,13 +77,13 @@
       </div>
 
       <div id="libPane">
-           Popup library:<br /> <hr style="width:100%;"/>
-        <div id="popuplib_source" style="width:100%;height:400px;background-color:#ECECFF;overflow:scroll;">
+           Popup library:<br /> <hr style="width:98%;"/>
+        <div id="popuplib_source" style="width:98%;height:400px;background-color:#ECECFF;overflow:scroll;padding-left:5px;border:1px solid #aaa">
         </div>
       </div>
     </div>
     <script type="text/javascript">
-      $.ajax({ url: "./popuplib.js",
+      $.ajax({ url: "/popuplib.js",
                success: function(response) {
                    $("#popuplib_source").html('<pre style="text-align:left;">'+response+'</pre>');
                }

@@ -21,6 +21,7 @@ import com.google.inject.Inject;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.consumer.ProviderInfoNotFoundException;
 import com.google.step2.servlet.InjectableServlet;
+import com.google.step2.Step2;
 
 import net.oauth.OAuthAccessor;
 
@@ -84,6 +85,10 @@ public class LoginViaPopupServlet extends InjectableServlet {
     resp.setDateHeader("Date", System.currentTimeMillis());
     HttpSession session = req.getSession();
 
+    if (req.getParameter("logout") != null) {
+      logoutUser(req);
+    }
+
     // Set our realm; in practice one would make the realm site-wide,
     // for instance, substituting the host part of the domain by '*'
     // This also assumes that you want an https return_to URL if the page
@@ -109,6 +114,20 @@ public class LoginViaPopupServlet extends InjectableServlet {
 
     RequestDispatcher d = req.getRequestDispatcher(TEMPLATE_FILE);
     d.forward(req, resp);
+  }
+
+  private void logoutUser(HttpServletRequest req) {
+    HttpSession session = req.getSession();
+    session.setAttribute("user", null);
+
+    // Clean up stale session state if any
+    for (Step2.AxSchema schema : Step2.AxSchema.values()) {
+      session.removeAttribute(schema.getShortName());
+    }
+    session.removeAttribute("request_token");
+    session.removeAttribute("access_token");
+    session.removeAttribute("access_token_secret");
+    session.removeAttribute("accessor");
   }
 
   /**
