@@ -19,7 +19,7 @@
 <%@ page session="true" %>
 <%@page import="com.google.step2.example.consumer.servlet.LoginViaPopupServlet"%>
   <head>
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
     <title>Pop-up Example</title>
 
     <style type="text/css">
@@ -64,7 +64,7 @@
           <img src="<%= buttonImage %>" alt="<%= opFriendlyName %>" style="margin-bottom:-3px;"/>&nbsp; Login using your Google Account
         </button>
         <br />
-        <input type="checkbox" id="stayOnPage" name="stayOnPage" checked="checked"></input>
+        <input type="checkbox" id="stayOnPage" name="stayOnPage" checked="checked">
         <label for="stayOnPage">stay on this page after login</label>
         <br /><br />
         For examples on how to use the library, see <a href="http://step2.googlecode.com">step2.googlecode.com</a>
