@@ -167,13 +167,17 @@ public class LoginViaPopupServlet extends InjectableServlet {
   }
 
   private String getExtensionParameters(String consumer) {
-    return new StringBuffer()
+    StringBuffer buf =  new StringBuffer()
         .append("{ ")
-        .append(getAxExtensionParameters())
-        .append(", ")
-        .append(getOAuthExtensionParameters(consumer))
-        .append(" } ")
-        .toString();
+        .append(getAxExtensionParameters());
+
+    String oauthParams = getOAuthExtensionParameters(consumer);
+    if (oauthParams.length() > 0) {
+        buf.append(", ")
+          .append(getOAuthExtensionParameters(consumer));
+    }
+
+    return buf.append(" } ").toString();
   }
 
   /**
