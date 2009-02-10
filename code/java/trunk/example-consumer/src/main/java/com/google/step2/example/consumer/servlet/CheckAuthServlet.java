@@ -183,11 +183,11 @@ public class CheckAuthServlet extends InjectableServlet {
 
     String type = req.getParameter(LOGIN_TYPE.getParameterName());
     if (LOGIN_TYPE.POPUP.getType().equals(type)) {
-      resp.sendRedirect(req.getRequestURI()
-          .replaceAll("/checkauth$", "/hello"));
-    } else {
       RequestDispatcher d = req.getRequestDispatcher(TEMPLATE_FILE);
       d.forward(req, resp);
+    } else {
+      resp.sendRedirect(req.getRequestURI()
+          .replaceAll("/checkauth$", "/hello"));
     }
   }
 
