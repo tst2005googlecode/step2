@@ -209,9 +209,9 @@ public class LoginViaPopupServlet extends InjectableServlet {
     }
 
     return new StringBuffer("'openid.ns.oauth' : 'http://specs.openid.net/extensions/oauth/1.0', ")
-    .append("'openid.oauth.consumer' : '" + consumer + "', ")
-    .append("'openid.oauth.scope' : 'http://www.google.com/m8/feeds/' ")
-    .toString();
+      .append("'openid.oauth.consumer' : '" + consumer + "', ")
+      .append("'openid.oauth.scope' : 'http://www.google.com/m8/feeds/' ")
+      .toString();
   }
 
   private static enum OpSettings {
