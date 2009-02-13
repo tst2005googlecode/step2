@@ -20,9 +20,12 @@
 //
 //  var googleOpener = popupManager.createOpener(openidParams);
 //
-//  where 'openidParams' are customized for Google (typically you just change
-//  the openidpoint and extensions based on what the OP supports). Then, you can
-//  either directly call
+//  where 'openidParams' are customized for Google in this instance.
+//  (typically you just change the openidpoint and extensions based on what
+//  the OP supports). OpenID libraries can often discover these properties
+//  automatically from the location of an XRD document.
+//
+//  Then, you can either directly call
 //  googleOpener.popup(width, height), where 'width' and 'height' are your choices
 //  for popup size, or you can display a button 'Sign in with Google' and set the
 //..'onclick' handler of the button to googleOpener.popup()
@@ -103,10 +106,24 @@ popupManager.getCenteredCoords = function(width, height) {
    return [xPos, yPos];
 };
 
-// A utility class, implements an onCloseHandler that darkens the screen
-// by overlaying it with a semi-transparent black layer. To use, ensure that
-// no screen element has a z-index at or above 10000.
-// This layer will be suppressed automatically after the screen closes.
+//  A utility class, implements an onOpenHandler that darkens the screen
+//  by overlaying it with a semi-transparent black layer. To use, ensure that
+//  no screen element has a z-index at or above 10000.
+//  This layer will be suppressed automatically after the screen closes.
+//
+//  Note: If you want to perform other operations before opening the popup, but
+//  also would like the screen to darken, you can define a custom handler
+//  as such:
+//  var myOnOpenHandler = function(inputs) {
+//    .. do something
+//    popupManager.darkenScreen();
+//    .. something else
+//  };
+//  Then you pass myOnOpenHandler as input to the opener, as in:
+//  var openidParams = {};
+//  openidParams.onOpenHandler = myOnOpenHandler;
+//  ... other customizations
+//  var myOpener = popupManager.createOpener(openidParams);
 popupManager.darkenScreen = function() {
   var darkCover = window.document.getElementById(window.popupManager.constants['darkCover']);
   if (!darkCover) {
@@ -125,7 +142,7 @@ popupManager.darkenScreen = function() {
 //
 //  To use it, you would typically have code such as:
 //  var myLoginCheckFunction = ...  some AJAXy call or page refresh operation
-//    that will cause the user to see the logged-in experience in the current page.
+//  that will cause the user to see the logged-in experience in the current page.
 //  var openidParams = { realm : 'openid.realm', returnToUrl : 'openid.return_to',
 //  opEndpoint : 'openid.op_endpoint', onCloseHandler : myLoginCheckFunction,
 //  shouldEncodeUrls : 'true' (default) or 'false', extensions : myOpenIDExtensions };
