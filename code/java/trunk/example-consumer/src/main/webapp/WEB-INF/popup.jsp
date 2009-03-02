@@ -44,7 +44,7 @@
      body {
        font-family:sans-serif;
      }
-     
+
     </style>
 
   </head>
@@ -110,7 +110,7 @@
             'shouldEncodeUrls' : true,
             'extensions' : extensions });
       document.getElementById("submit_button").onclick = function() {
-        googleOpener.popup(593,521);
+        googleOpener.popup(450,500);
         return true;
       };
     </script>
