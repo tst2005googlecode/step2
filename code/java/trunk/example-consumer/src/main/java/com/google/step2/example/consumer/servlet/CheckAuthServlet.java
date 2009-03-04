@@ -108,11 +108,6 @@ public class CheckAuthServlet extends InjectableServlet {
       AuthResponseHelper authResponse =
         helper.verify(receivingUrl, openidResp, discovered);
 
-      // Get Claimed Identifier
-      Identifier claimedId = authResponse.getClaimedId();
-      session.setAttribute("user",
-          (claimedId == null) ? UNKNOWN : claimedId.getIdentifier());
-
       // Clean up stale session state if any
       for (Step2.AxSchema schema : SUPPORTED_AX_SCHEMAS) {
         session.removeAttribute(schema.getShortName());
@@ -121,8 +116,23 @@ public class CheckAuthServlet extends InjectableServlet {
       session.removeAttribute("access_token");
       session.removeAttribute("access_token_secret");
       session.removeAttribute("accessor");
+      session.removeAttribute("user");
 
-      if (authResponse.getAuthResultType() != ResultType.AUTH_FAILURE) {
+      // Get Claimed Identifier
+      Identifier claimedId = authResponse.getClaimedId();
+      session.setAttribute("user",
+          (claimedId == null) ? UNKNOWN : claimedId.getIdentifier());
+
+
+      if (authResponse.getAuthResultType() == ResultType.SETUP_NEEDED) {
+        throw new ServletException("setup needed");
+      }
+
+      if (authResponse.getAuthResultType() == ResultType.AUTH_FAILURE) {
+        throw new ServletException("auth failure");
+      }
+
+      if (authResponse.getAuthResultType() == ResultType.AUTH_SUCCESS) {
         Class<? extends AxMessage> axExtensionType =
             authResponse.getAxExtensionType();
         if (axExtensionType != null) {

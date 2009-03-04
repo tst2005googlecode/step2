@@ -111,7 +111,13 @@ public class HelloWorldServlet extends InjectableServlet {
 
       service.setOAuthCredentials(params, signer);
 
-      ContactFeed resultFeed = service.getFeed(feedUrl, ContactFeed.class);
+      ContactFeed resultFeed;
+      try {
+        resultFeed = service.getFeed(feedUrl, ContactFeed.class);
+      } catch (NullPointerException e) {
+        request.setAttribute("contacts", null);
+        return;
+      }
 
       request.setAttribute("contacts", resultFeed);
 
