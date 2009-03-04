@@ -23,6 +23,7 @@ import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.consumer.ProviderInfoNotFoundException;
+import com.google.step2.discovery.IdpIdentifier;
 import com.google.step2.example.consumer.OAuthConsumerUtil;
 import com.google.step2.servlet.InjectableServlet;
 
@@ -123,7 +124,9 @@ public class LoginServlet extends InjectableServlet {
       }
     }
 
-    String openId = req.getParameter("openid");
+    // we assume that the user typed an identifier for an IdP, not for a user
+    IdpIdentifier openId = new IdpIdentifier(req.getParameter("openid"));
+
     AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(
         openId, returnToUrl.toString());
 

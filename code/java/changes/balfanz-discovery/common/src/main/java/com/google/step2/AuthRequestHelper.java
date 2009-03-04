@@ -24,8 +24,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
+import org.openid4java.discovery.Discovery;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
+import org.openid4java.discovery.Identifier;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.MessageException;
 
@@ -72,7 +74,7 @@ public class AuthRequestHelper {
   private final ConsumerManager consumerManager;
 
   // The user-supplied identifier
-  private final String openId;
+  private final Identifier openId;
 
   // The URL that the auth result should be delivered to
   private final String returnToUrl;
@@ -86,11 +88,11 @@ public class AuthRequestHelper {
   // discovery information
   private DiscoveryInformation discovered = null;
 
-  AuthRequestHelper(ConsumerManager consumerManager, String openId,
+  AuthRequestHelper(ConsumerManager consumerManager, Identifier openId,
       String returnToUrl) {
     log.info("OpenId: " + openId + " ReturnToUrl: " + returnToUrl);
     this.consumerManager = consumerManager;
-    this.openId = openId.trim();
+    this.openId = openId;
     this.returnToUrl = returnToUrl;
   }
 
@@ -104,8 +106,9 @@ public class AuthRequestHelper {
       throws DiscoveryException {
     // if discovered == null, we'll try again
     if (discovered == null) {
+      Discovery discovery = consumerManager.getDiscovery();
       @SuppressWarnings("unchecked")
-      List<DiscoveryInformation> discoveries = consumerManager.discover(openId);
+      List<DiscoveryInformation> discoveries = discovery.discover(openId);
       discovered = consumerManager.associate(discoveries);
     }
 

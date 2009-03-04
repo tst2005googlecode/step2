@@ -19,8 +19,16 @@ package com.google.step2.example.consumer;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.CreationException;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Scopes;
+import com.google.inject.Singleton;
 import com.google.step2.consumer.OAuthProviderInfoStore;
+import com.google.step2.discovery.DefaultHostMetaFetcher;
+import com.google.step2.discovery.HostMetaFetcher;
+import com.google.step2.discovery.LegacyXrdsResolver;
+import com.google.step2.discovery.ParallelHostMetaFetcher;
+import com.google.step2.discovery.XrdDiscoveryResolver;
 import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.openid.ax2.AxMessage2;
 import com.google.step2.servlet.ConsumerManagerProvider;
@@ -35,8 +43,6 @@ import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.message.Message;
 import org.openid4java.message.MessageException;
 import org.openid4java.util.HttpClientFactory;
-
-import java.net.URL;
 
 /**
  *
@@ -74,9 +80,38 @@ public class GuiceModule extends AbstractModule {
 
     bind(OAuthProviderInfoStore.class)
         .to(SimpleProviderInfoStore.class).in(Scopes.SINGLETON);
+
+    // customizations for new-style discovery
+
+    bind(HostMetaFetcher.class)
+        .toProvider(HostMetaFetcherProvider.class).in(Scopes.SINGLETON);
+
+    bind(XrdDiscoveryResolver.USER_TYPE)
+        .to(LegacyXrdsResolver.UserXrdsResolver.class).in(Scopes.SINGLETON);
+
+    bind(XrdDiscoveryResolver.SITE_TYPE)
+        .to(LegacyXrdsResolver.SiteXrdsResolver.class).in(Scopes.SINGLETON);
   }
 
   private OAuthClient getOAuthClient() {
-    return new OAuthClient(new net.oauth.client.httpclient4.HttpClient4());        
+    return new OAuthClient(new net.oauth.client.httpclient4.HttpClient4());
+  }
+
+  @Singleton
+  private static class HostMetaFetcherProvider
+      implements Provider<HostMetaFetcher> {
+
+    private final HostMetaFetcher fetcher;
+
+    @Inject
+    public HostMetaFetcherProvider(
+        DefaultHostMetaFetcher fetcher1,
+        GoogleHostedHostMetaFetcher fetcher2) {
+      fetcher = new ParallelHostMetaFetcher(fetcher1, fetcher2);
+    }
+
+    public HostMetaFetcher get() {
+      return fetcher;
+    }
   }
 }

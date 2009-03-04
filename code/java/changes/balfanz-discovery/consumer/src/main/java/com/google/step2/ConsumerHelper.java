@@ -18,6 +18,8 @@
 package com.google.step2;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.step2.discovery.Discovery2;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,7 +28,7 @@ import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.VerificationResult;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
-import org.openid4java.message.AuthFailure;
+import org.openid4java.discovery.Identifier;
 import org.openid4java.message.AuthSuccess;
 import org.openid4java.message.MessageException;
 import org.openid4java.message.ParameterList;
@@ -39,17 +41,19 @@ import org.openid4java.message.ParameterList;
  * @author Dirk Balfanz (dirk.balfanz@gmail.com)
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
+@Singleton
 public class ConsumerHelper {
   private static Log log = LogFactory.getLog(ConsumerHelper.class);
 
   // for doing associations, for generating requests that include
   // OpenID identity requests, and for verifying responses that include
   // OpenID identity requests.
-  private ConsumerManager consumerManager;
+  private final ConsumerManager consumerManager;
 
   @Inject
-  public ConsumerHelper(ConsumerManager consumerManager) {
+  public ConsumerHelper(ConsumerManager consumerManager, Discovery2 discovery) {
     this.consumerManager = consumerManager;
+    this.consumerManager.setDiscovery(discovery);
   }
 
   /**
@@ -63,7 +67,7 @@ public class ConsumerHelper {
    *
    * @return an AuthRequestHelper object
    */
-  public AuthRequestHelper getAuthRequestHelper(String openId,
+  public AuthRequestHelper getAuthRequestHelper(Identifier openId,
       String returnToUrl) {
     log.info("OpenId: " + openId + " Return URL: " + returnToUrl);
     return new AuthRequestHelper(consumerManager, openId, returnToUrl);
