@@ -21,8 +21,10 @@
 //  var googleOpener = popupManager.createOpener(openidParams);
 //
 //  where 'openidParams' are customized for Google in this instance.
-//  (typically you just change the openidpoint and extensions based on what
-//  the OP supports). OpenID libraries can often discover these properties
+//  (typically you just change the openidpoint, the version number
+//  (the openid.ns parameter) and the extensions based on what
+//  the OP supports.
+//  OpenID libraries can often discover these properties
 //  automatically from the location of an XRD document.
 //
 //  Then, you can either directly call
@@ -48,7 +50,11 @@ popupManager.constants = {
                       'z-index:10000;',
                       'width:100%;',
                       'height:100%;'
-                      ].join('') };
+                      ].join(''),
+  'openidSpec' : {
+     'identifier_select' : 'http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select',
+     'namespace2' : 'http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0'
+  } };
 
 // Computes the size of the window contents. Returns a pair of
 // coordinates [width, height] which can be [0, 0] if it was not possible
@@ -151,17 +157,35 @@ popupManager.darkenScreen = function() {
 //  if you support Attribute Exchange v.1.0, you can say:
 //  (Example for attribute exchange request for email and name,
 //  assuming that shouldEncodeUrls = 'true':)
-//  var myOpenIDExtensions = { 'openid.ax.ns' : 'http://openid.net/srv/ax/1.0',
+//  var myOpenIDExtensions = {
+//      'openid.ax.ns' : 'http://openid.net/srv/ax/1.0',
 //      'openid.ax.type.email' : 'http://axschema.org/contact/email',
 //      'openid.ax.type.name1' : 'http://axschema.org/namePerson/first',
 //      'openid.ax.type.name2' : 'http://axschema.org/namePerson/last',
 //      'openid.ax.required' : 'email,name1,name2' };
+//  Note that the 'ui' namespace is reserved by this library for the OpenID
+//  UI extension, and that the mode 'popup' is automatically applied.
+//  If you wish to make use of the 'language' feature of the OpenID UI extension
+//  simply add the following entry (example assumes the language requested
+//  is Swiss French:
+//  var my OpenIDExtensions = {
+//    ... // other extension parameters
+//    'openid.ui.language' : 'fr_CH',
+//    ... };
 popupManager.createPopupOpener = (function(openidParams) {
   var interval_ = null;
   var popupWindow_ = null;
   var that = this;
-  var identifierSelect_ = 'http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select';
-  var openidNs_ = 'http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0';
+  var shouldEscape_ = ('shouldEncodeUrls' in openidParams) ? openidParams.shouldEncodeUrls : true;
+  var encodeIfRequested_ = function(url) {
+    return (shouldEscape_ ? encodeURIComponent(url) : url);
+  };
+  var identifier_ = ('identifier' in openidParams) ? encodeIfRequested_(openidParams.identifier) :
+      this.constants.openidSpec.identifier_select;
+  var identity_ = ('identity' in openidParams) ? encodeIfRequested_(openidParams.identity) :
+      this.constants.openidSpec.identifier_select;
+  var openidNs_ = ('namespace' in openidParams) ? encodeIfRequested_(openidParams.namespace) :
+      this.constants.openidSpec.namespace2;
   var onOpenHandler_ = (('onOpenHandler' in openidParams) &&
       ('function' === typeof(openidParams.onOpenHandler))) ?
           openidParams.onOpenHandler : this.darkenScreen;
@@ -171,12 +195,7 @@ popupManager.createPopupOpener = (function(openidParams) {
   var returnToUrl_ = ('returnToUrl' in openidParams) ? openidParams.returnToUrl : null;
   var realm_ = ('realm' in openidParams) ? openidParams.realm : null;
   var endpoint_ = ('opEndpoint' in openidParams) ? openidParams.opEndpoint : null;
-  var shouldEscape_ = ('shouldEncodeUrls' in openidParams) ? openidParams.shouldEncodeUrls : true;
   var extensions_ = ('extensions' in openidParams) ? openidParams.extensions : null;
-
-  var encodeIfRequested_ = function(url) {
-    return (shouldEscape_ ? encodeURIComponent(url) : url);
-  };
 
   // processes key value pairs, escaping any input;
   var keyValueConcat_ = function(keyValuePairs) {
@@ -202,8 +221,8 @@ popupManager.createPopupOpener = (function(openidParams) {
     urlToOpen = [ endpoint_, connector,
         'openid.ns=', openidNs_,
         '&openid.mode=checkid_setup',
-        '&openid.claimed_id=', identifierSelect_,
-        '&openid.identity=', identifierSelect_,
+        '&openid.claimed_id=', identifier_,
+        '&openid.identity=', identity_,
         '&openid.return_to=', encodedUrl ].join('');
     if (realm_ !== null) {
       urlToOpen += "&openid.realm=" + encodeIfRequested_(realm_);
@@ -211,6 +230,9 @@ popupManager.createPopupOpener = (function(openidParams) {
     if (extensions_ !== null) {
       urlToOpen += keyValueConcat_(extensions_);
     }
+    urlToOpen += '&openid.ns.ui=' + encodeURIComponent(
+        'http://specs.openid.net/extensions/ui/1.0');
+    urlToOpen += '&openid.ui.mode=popup';
     return urlToOpen;
   };
 
