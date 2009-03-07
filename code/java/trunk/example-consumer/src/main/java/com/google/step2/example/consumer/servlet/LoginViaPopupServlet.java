@@ -99,7 +99,7 @@ public class LoginViaPopupServlet extends InjectableServlet {
     StringBuffer realm = new StringBuffer(req.getScheme());
     realm.append("://").append(req.getServerName());
     int port = req.getServerPort();
-    if (port != 80 && port != 443) {
+    if ((port != 80) && (port != 443)) {
       realm.append(":").append(port);
     }
     session.setAttribute(REALM, realm.toString().replaceFirst("http://www\\.","http://*."));
@@ -207,13 +207,12 @@ public class LoginViaPopupServlet extends InjectableServlet {
     return new StringBuffer("'openid.ns.ax' : 'http://openid.net/srv/ax/1.0', ")
         .append("'openid.ax.mode' : 'fetch_request', ")
         .append("'openid.ax.type.email' : 'http://axschema.org/contact/email', ")
-        .append("'openid.ax.required' : 'email'")
-        // .append("'openid.ax.type.first' : 'http://axschema.org/namePerson/first', ")
-        // .append("'openid.ax.type.last' : 'http://axschema.org/namePerson/last', ")
-        // .append("'openid.ax.type.country' : 'http://axschema.org/contact/country/home', ")
-        // .append("'openid.ax.type.lang' : 'http://axschema.org/pref/language', ")
-        // .append("'openid.ax.type.web' : 'http://axschema.org/contact/web/default', ")
-        // .append("'openid.ax.required' : 'email,first,last,country,lang,web'")
+        .append("'openid.ax.type.first' : 'http://axschema.org/namePerson/first', ")
+        .append("'openid.ax.type.last' : 'http://axschema.org/namePerson/last', ")
+        .append("'openid.ax.type.country' : 'http://axschema.org/contact/country/home', ")
+        .append("'openid.ax.type.lang' : 'http://axschema.org/pref/language', ")
+        .append("'openid.ax.type.web' : 'http://axschema.org/contact/web/default', ")
+        .append("'openid.ax.required' : 'email,first,last,country,lang,web'")
         .toString();
   }
 
