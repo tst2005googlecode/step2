@@ -29,6 +29,13 @@ public class FetchException extends Exception {
     super(message, cause);
   }
 
+  /**
+   * @param request the FetchRequest we couldn't successfully complete.
+   */
+  public FetchException(FetchRequest request, Throwable cause) {
+    this("Couldn't fetch " + request.getUri().toASCIIString(), cause);
+  }
+
   public FetchException(String message) {
     super(message);
   }

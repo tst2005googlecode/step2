@@ -20,7 +20,7 @@ import com.google.inject.ImplementedBy;
 
 /**
  * Simple interface for fetching data over HTTP. This is here simply so that
- * implementation can easily replace the default (Apache HTML-client-based)
+ * implementation can easily replace the default (Apache HTTP-client-based)
  * implementation.
  */
 @ImplementedBy(DefaultHttpFetcher.class)
@@ -28,6 +28,10 @@ public interface HttpFetcher {
 
   /**
    * Fetch some data over HTTP. Follow redirects during the fetch.
+   *
+   * @throws FetchException if there is an error during the run of the
+   *   HTTP protocol itself. This does not include HTTP error responses (which
+   *   are returned in the FetchResponse).
    */
   FetchResponse fetch(FetchRequest request) throws FetchException;
 }

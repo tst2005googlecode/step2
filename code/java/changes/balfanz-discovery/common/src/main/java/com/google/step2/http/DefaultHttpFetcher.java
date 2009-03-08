@@ -23,22 +23,32 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectHandler;
+import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
  * Default implementations of HttpFetcher and FetchResponse. Based on
- * Apache html client.
+ * Apache http client. We use the {@link ProxySelectorRoutePlanner}, which means
+ * that we pick up the default proxy set in the VM (can be set through
+ * {@link java.net.ProxySelector}.setDefault(), or by specifying system
+ * properties http.proxyHost, http.proxyPort, etc.).
  */
 public class DefaultHttpFetcher implements HttpFetcher {
 
   private final DefaultHttpClient httpClient;
 
   public DefaultHttpFetcher() {
+    // this follows redirects by default
     this.httpClient = new DefaultHttpClient();
-    this.httpClient.setRedirectHandler(new DefaultRedirectHandler());
+
+    // this means you can set a proxy through
+    // java.net.ProxySelector.setDefault(), or by simply starting the
+    // jvm with -Dhttp.proxyHost=foo.com -Dhttp.proxyPort=8080
+    httpClient.setRoutePlanner(new ProxySelectorRoutePlanner(
+        httpClient.getConnectionManager().getSchemeRegistry(),
+        null));
   }
 
   public FetchResponse fetch(FetchRequest request) throws FetchException {
@@ -63,9 +73,9 @@ public class DefaultHttpFetcher implements HttpFetcher {
     try {
       return new DefaultFetchResponse(httpClient.execute(uriRequest));
     } catch (ClientProtocolException e) {
-      throw new FetchException(e);
+      throw new FetchException(request, e);
     } catch (IOException e) {
-      throw new FetchException(e);
+      throw new FetchException(request, e);
     }
   }
 

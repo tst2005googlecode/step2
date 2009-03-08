@@ -63,6 +63,17 @@ public class FetchRequest {
     return uri;
   }
 
+  // implementing hashCode and equals so we can use these in EasyMock-based
+  // test cases like this:
+  //
+  // ...
+  // // the request going out should look like this:
+  // FetchRequest expectedRequest = ...;
+  //
+  // expect(httpFetcher.fetch(expectedRequest));
+  // ...
+  //
+  // which will use .equals() to compare the actual and expected fetch requests.
   @Override
   public int hashCode() {
     final int prime = 31;
