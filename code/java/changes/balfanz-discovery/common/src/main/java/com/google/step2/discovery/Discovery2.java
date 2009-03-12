@@ -265,7 +265,10 @@ public class Discovery2 extends Discovery {
       return Collections.emptyList();
     }
 
-    // look for URITemplates in site xrd(s), follow them, and return results
+    // now that we have the location of the XRD, perform the actual
+    // discovery on the XRD. This might involve simply looking for the correct
+    // Link in the XRD, or it might involve following URITemplate links, etc.,
+    // depending on the kind of Identifier we're performing discovery on.
     return xrdResolver.findOpEndpoints(id, xrdsUri);
   }
 

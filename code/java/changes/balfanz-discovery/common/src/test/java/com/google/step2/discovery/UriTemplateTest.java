@@ -36,6 +36,5 @@ public class UriTemplateTest extends TestCase {
 
     assertEquals("http://bla.com/;about",
         template.map(URI.create(url)).toString());
-
   }
 }

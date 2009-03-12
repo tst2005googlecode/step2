@@ -46,7 +46,8 @@ public class HostMeta {
       throws IOException {
 
     HostMeta result = new HostMeta();
-    BufferedReader reader = new BufferedReader(new InputStreamReader(content));
+    BufferedReader reader =
+        new BufferedReader(new InputStreamReader(content, "UTF-8"));
 
     int i = 0;
     String line;
