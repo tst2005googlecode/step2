@@ -23,6 +23,8 @@ import junit.framework.TestCase;
 import org.easymock.classextension.EasyMock;
 import org.easymock.classextension.IMocksControl;
 
+import java.util.concurrent.Executors;
+
 public class ParallelHostMetaFetcherTest extends TestCase {
 
   private IMocksControl control;
@@ -40,7 +42,8 @@ public class ParallelHostMetaFetcherTest extends TestCase {
     fetcher2 = control.createMock(HostMetaFetcher.class);
     hostMeta1 = new HostMeta();
     hostMeta2 = new HostMeta();
-    fetcher = new ParallelHostMetaFetcher(fetcher1, fetcher2);
+    fetcher = new ParallelHostMetaFetcher(
+        Executors.newFixedThreadPool(2), 10L, fetcher1, fetcher2);
   }
 
   public void testGet_bothSucceed() throws Exception {

@@ -23,6 +23,8 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.discovery.DefaultHostMetaFetcher;
 import com.google.step2.discovery.HostMetaFetcher;
@@ -43,6 +45,9 @@ import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.message.Message;
 import org.openid4java.message.MessageException;
 import org.openid4java.util.HttpClientFactory;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  *
@@ -81,14 +86,29 @@ public class GuiceModule extends AbstractModule {
     bind(OAuthProviderInfoStore.class)
         .to(SimpleProviderInfoStore.class).in(Scopes.SINGLETON);
 
-    // customizations for new-style discovery
+    /*
+     * customizations for new-style discovery
+     */
 
+    // we're using a ParallelHostMetaFetcher to fetch host-metas both from their
+    // default location, and from a special location at Google.
     bind(HostMetaFetcher.class)
         .toProvider(HostMetaFetcherProvider.class).in(Scopes.SINGLETON);
 
+    // we're waiting at most 10 seconds for the two host-meta fetchers to find
+    // a host-meta
+    bind(Long.class)
+        .annotatedWith(Names.named("hostMetaTimeout"))
+        .toInstance(Long.valueOf(10)); // 10 seconds
+
+    // we're supplying at most 20 threads for host-meta fetchers
+    bind(ExecutorService.class)
+        .annotatedWith(Names.named("ParallelHostMetaFetcherExecutor"))
+        .toInstance(Executors.newFixedThreadPool(20));
+
+    // we're using XRDS syntax in our meta-data documents.
     bind(XrdDiscoveryResolver.USER_TYPE)
         .to(LegacyXrdsResolver.UserXrdsResolver.class).in(Scopes.SINGLETON);
-
     bind(XrdDiscoveryResolver.SITE_TYPE)
         .to(LegacyXrdsResolver.SiteXrdsResolver.class).in(Scopes.SINGLETON);
   }
@@ -105,9 +125,11 @@ public class GuiceModule extends AbstractModule {
 
     @Inject
     public HostMetaFetcherProvider(
+        @Named("ParallelHostMetaFetcherExecutor") ExecutorService executor,
+        @Named("hostMetaTimeout") Long timeout,
         DefaultHostMetaFetcher fetcher1,
         GoogleHostedHostMetaFetcher fetcher2) {
-      fetcher = new ParallelHostMetaFetcher(fetcher1, fetcher2);
+      fetcher = new ParallelHostMetaFetcher(executor, timeout, fetcher1, fetcher2);
     }
 
     public HostMetaFetcher get() {

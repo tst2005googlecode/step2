@@ -19,7 +19,12 @@ package com.google.step2.discovery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Uses multiple fetchers in parallel to obtain a host-meta for a given site.
@@ -36,105 +41,72 @@ import java.util.concurrent.CountDownLatch;
 public class ParallelHostMetaFetcher implements HostMetaFetcher {
 
   private final List<HostMetaFetcher> fetchers;
+  private final ExecutorService executorService;
+  private final long timeout; // in seconds
 
   /**
    * Public constructor.
+   * @param executorService the ExecutorService that will run the various
+   *   threads in which we'll attempt the parallel fetching.
+   * @param timeout timeout, in seconds, of how long we're willing to wait for
+   *   the parallel host-meta fetchers to fetch a host-meta
    * @param fetchers the fetchers that we will try in parallel.
    */
-  public ParallelHostMetaFetcher(HostMetaFetcher... fetchers) {
+  public ParallelHostMetaFetcher(ExecutorService executorService,
+      Long timeout, HostMetaFetcher... fetchers) {
+    if (fetchers.length == 0) {
+      throw new IllegalArgumentException("need to supply at least one " +
+          "HostMetaFetcher to ParallelHostMetaFetcher");
+    }
     this.fetchers = Arrays.asList(fetchers);
+    this.executorService = executorService;
+    this.timeout = timeout.longValue();
   }
 
   public HostMeta getHostMeta(String host) throws HostMetaException {
-    ParallelFetchRequest request = new ParallelFetchRequest(host);
-    return request.get();
+    List<Callable<HostMeta>> threads =
+        new ArrayList<Callable<HostMeta>>(fetchers.size());
+    for (HostMetaFetcher fetcher : fetchers) {
+      threads.add(new FetcherThread(fetcher, host));
+    }
+
+    try {
+      return executorService.invokeAny(threads, timeout, TimeUnit.SECONDS);
+
+    } catch (InterruptedException e) {
+      throw new HostMetaException(e);
+    } catch (ExecutionException e) {
+      throw new HostMetaException("no fetcher found a host-meta for " + host, e);
+    } catch (RejectedExecutionException e) {
+      throw new HostMetaException("could not schedule threads for parallel " +
+          "fetching of host-meta for " + host, e);
+    } catch (TimeoutException e) {
+      throw new HostMetaException("none of the host-meta fetchers completed " +
+          "within " + timeout + " seconds for host " + host, e);
+    }
   }
 
   /**
-   * Encapsulates the state we need to keep track of multiple host-meta
-   * fetches.
+   * Thread in which we execute one particular fetch.
    */
-  private class ParallelFetchRequest {
+  private class FetcherThread implements Callable<HostMeta> {
 
-    private final CountDownLatch latch;
-    private final List<FetcherThread> fetcherThreads;
-    private HostMeta result;
-    private HostMetaException exception;
+    private final String host;
+    private final HostMetaFetcher fetcher;
 
-    public ParallelFetchRequest(String host) {
-      latch = new CountDownLatch(fetchers.size());
-      fetcherThreads = new ArrayList<FetcherThread>();
-      for (HostMetaFetcher fetcher : fetchers) {
-        FetcherThread thread = new FetcherThread(fetcher, host);
-        fetcherThreads.add(thread);
-        thread.start();
-      }
+    public FetcherThread(HostMetaFetcher fetcher, String host) {
+      this.fetcher = fetcher;
+      this.host = host;
     }
 
-    /**
-     * Cancels all fetcher threads, except for the one provided (presumably,
-     * because we already know that that thread has finished).
-     *
-     * @param fetcherThread the thread that we don't need to cancel.
-     */
-    public void cancelAllFetchersExcept(FetcherThread fetcherThread) {
-      for (FetcherThread thread : fetcherThreads) {
-        if (thread != fetcherThread) {
-          thread.cancel();
-        }
-      }
-    }
-
-    public HostMeta get() throws HostMetaException {
-      do {
-        try {
-          latch.await();
-        } catch (InterruptedException e) {
-          // we got interrupted. just loop around and wait some more.
-        }
-      } while (latch.getCount() > 0);
-
-      if (result != null) {
-        return result;
-      }
-
-      if (exception != null) {
-        throw exception;
-      }
-
-      throw new HostMetaException("none of the fetchers returned.");
-    }
-
-    /**
-     * Thread in which we execute one particular fetch.
-     */
-    private class FetcherThread extends Thread {
-
-      private final String host;
-      private final HostMetaFetcher fetcher;
-
-      public FetcherThread(HostMetaFetcher fetcher, String host) {
-        this.fetcher = fetcher;
-        this.host = host;
-      }
-
-      public void cancel() {
-        // if the HostMetaFetcher interface was richer, we would actually
-        // try and cancel the fetching of the host-meta here.
-        // For now, we'll just signal this thread as done.
-        latch.countDown();
-      }
-
-      @Override
-      public void run() {
-        try {
-          result = fetcher.getHostMeta(host);
-          cancelAllFetchersExcept(this);
-        } catch(HostMetaException e) {
-          exception = e;
-        } finally {
-          latch.countDown();
-        }
+    public HostMeta call() throws HostMetaException {
+      HostMeta hostMeta = fetcher.getHostMeta(host);
+      if (hostMeta == null) {
+        throw new HostMetaException("fetcher " +
+            fetcher.getClass().getName() +
+            " returned null host-meta for " + host);
+      } else {
+        return hostMeta;
       }
     }
   }
