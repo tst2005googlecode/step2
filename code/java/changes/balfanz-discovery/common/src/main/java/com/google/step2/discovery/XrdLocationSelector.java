@@ -34,13 +34,12 @@ import java.util.List;
  * Abstract super-class for, and implementations of, various strategies for
  * finding the URI pointing to a relevant XRD(S) document.
  *
- * The goal XRD location selection is to find a suitable URI from a
+ * The goal of XRD location selection is to find a suitable URI from a
  * host-meta document that is likely to point to an XRD(S) file with
  * metadata about the (user or IdP) identifier in question.
  *
- * @param <T> the type of identifier that we're performing discovery on.
  */
-public abstract class XrdLocationSelector<T extends Identifier> {
+public class XrdLocationSelector {
 
   // specifies a link that points to an XRD(S) document that includes meta
   // data about OpenID OPs. Whether the document is old-style XRDS or new-style
@@ -94,89 +93,60 @@ public abstract class XrdLocationSelector<T extends Identifier> {
    *   claimed id to a Link-Pattern in the host-meta, resulting in a pointer
    *   (URI) pointing to the user's XRD(S) document.
    */
-  public abstract URI findXrdUriForOp(HostMeta hostMeta, String mimeType,
-      T id) throws DiscoveryException;
+  public URI findXrdUriForOp(HostMeta hostMeta, String mimeType,
+      Identifier id) throws DiscoveryException {
 
-  //////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Implementation class for UrlIdentifiers (i.e., user discovery).
-   */
-  public static class UserXrdLocationSelector
-      extends XrdLocationSelector<UrlIdentifier> {
-
-    /**
-     * Returns a URI that points either to a site-wide XRD(S) document, or
-     * directly to the claimed id's XRD(S) document. In the former caser, the
-     * XRD resolver will have to follow another level of indirection through
-     * a URITemplate link. In the latter case, the user's XRD(S) document should
-     * already contain the pointer to the OP.
-     */
-    @Override
-    public URI findXrdUriForOp(HostMeta hostMeta, String mimeType,
-        UrlIdentifier claimedId) {
-
-      // Link-Pattern: pointing directly to the user's XRD(S) has precendence
-      URI uri = tryLinkPatternForUserXrds(hostMeta, mimeType, claimedId);
-      if (uri != null) {
-        return uri;
-      }
-
-      // if we didn't find any link-patterns, we'll go with a site-wide XRD(S)
-      return tryLinkForSiteXrds(hostMeta, mimeType);
-    }
-
-    /**
-     * Tries to find a Link-Pattern that points to the XRD(S) for a given
-     * claimed id, and returns that URI that is created by applying the claimed
-     * id to the Link-Pattern.
-     * @param hostMeta the host-meta in which to look for an appropriate
-     *   Link-Pattern.
-     * @return null if no link-pattern could be found.
-     */
-    private URI tryLinkPatternForUserXrds(HostMeta hostMeta, String mimeType,
-        UrlIdentifier claimedId) {
-
-      LinkPattern pattern = getMatchingLink(hostMeta.getLinkPatterns(),
-          mimeType);
-
-      if (pattern != null) {
-        UriTemplate template = new UriTemplate(pattern.getUriPattern());
-        return template.map(URI.create(claimedId.getIdentifier()));
-      } else {
-        return null;
-      }
-    }
-
-    /**
-     * Returns a URI pointing to a site-wide XRD(S).
-     */
-    private URI tryLinkForSiteXrds(HostMeta hostMeta, String mimeType) {
+    if (id instanceof UrlIdentifier) {
+      return findUserXrdUriForOp(hostMeta, mimeType, (UrlIdentifier) id);
+    } else if (id instanceof IdpIdentifier) {
       return findSiteXrdUriForOp(hostMeta, mimeType);
+    } else {
+      throw new DiscoveryException("unkown type of identifier: "
+          + id.getClass().getName());
     }
   }
 
-  //////////////////////////////////////////////////////////////////////////////
-
   /**
-   * Implementation class for IdPIdentifiers (i.e., site discovery).
+   * Returns a URI that points either to a site-wide XRD(S) document, or
+   * directly to the claimed id's XRD(S) document. In the former caser, the
+   * XRD resolver will have to follow another level of indirection through
+   * a URITemplate link. In the latter case, the user's XRD(S) document should
+   * already contain the pointer to the OP.
    */
-  public static class SiteXrdLocationSelector
-      extends XrdLocationSelector<IdpIdentifier> {
+  private URI findUserXrdUriForOp(HostMeta hostMeta, String mimeType,
+      UrlIdentifier claimedId) {
 
-    /**
-     * Returns a URI pointing to a site-wide XRD(S).
-     */
-    @Override
-    public URI findXrdUriForOp(HostMeta hostMeta, String mimeType,
-        IdpIdentifier host) {
-      return findSiteXrdUriForOp(hostMeta, mimeType);
+    // Link-Pattern: pointing directly to the user's XRD(S) has precendence
+    URI uri = tryLinkPatternForUserXrds(hostMeta, mimeType, claimedId);
+    if (uri != null) {
+      return uri;
     }
+
+    // if we didn't find any link-patterns, we'll go with a site-wide XRD(S)
+    return findSiteXrdUriForOp(hostMeta, mimeType);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  // remaining methods in the abstract superclass
+  /**
+   * Tries to find a Link-Pattern that points to the XRD(S) for a given
+   * claimed id, and returns that URI that is created by applying the claimed
+   * id to the Link-Pattern.
+   * @param hostMeta the host-meta in which to look for an appropriate
+   *   Link-Pattern.
+   * @return null if no link-pattern could be found.
+   */
+  private URI tryLinkPatternForUserXrds(HostMeta hostMeta, String mimeType,
+      UrlIdentifier claimedId) {
 
+    LinkPattern pattern = getMatchingLink(hostMeta.getLinkPatterns(),
+        mimeType);
+
+    if (pattern != null) {
+      UriTemplate template = new UriTemplate(pattern.getUriPattern());
+      return template.map(URI.create(claimedId.getIdentifier()));
+    } else {
+      return null;
+    }
+  }
 
   /**
    * Finds, in /host-meta, a pointer to a site-wide XRD(S) document. Normally,
@@ -188,7 +158,7 @@ public abstract class XrdLocationSelector<T extends Identifier> {
    * @param hostMeta the host-meta we're searching through.
    * @param mimeType the mime-type of the link we're interested in.
    */
-  protected URI findSiteXrdUriForOp(HostMeta hostMeta, String mimeType) {
+  private URI findSiteXrdUriForOp(HostMeta hostMeta, String mimeType) {
     Link link = getMatchingLink(hostMeta.getLinks(), mimeType);
     return (link == null) ? null : link.getUri();
   }
@@ -200,7 +170,7 @@ public abstract class XrdLocationSelector<T extends Identifier> {
    * http://specs.openid.net/auth/2.5/xrd-op) (although less specific rel-types
    * are also considered if the most specific one cannot be found).
    */
-  protected <T extends LinkBase> T getMatchingLink(Collection<T> links,
+  private <T extends LinkBase> T getMatchingLink(Collection<T> links,
       String mimeType) {
 
     // bring links into a sortable datatype, and only use those
@@ -239,7 +209,7 @@ public abstract class XrdLocationSelector<T extends Identifier> {
   /**
    * Discards all links from a host-meta that aren't the right MIME type.
    */
-  protected <T extends LinkBase> List<T> filterByMimeType(Collection<T> links,
+  private <T extends LinkBase> List<T> filterByMimeType(Collection<T> links,
       String mimeType) {
 
     ArrayList<T> result = new ArrayList<T>();

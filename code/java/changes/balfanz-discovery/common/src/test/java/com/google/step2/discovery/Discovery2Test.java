@@ -37,16 +37,10 @@ import java.util.List;
 
 public class Discovery2Test extends TestCase {
 
-  private static interface UserResover
-      extends XrdDiscoveryResolver<UrlIdentifier> {}
-  private static interface SiteResolver
-      extends XrdDiscoveryResolver<IdpIdentifier> {}
-
   private IMocksControl control;
   private HostMetaFetcher hostMetafetcher;
   private Discovery2 discovery;
-  private UserResover userResolver;
-  private SiteResolver siteResolver;
+  private XrdDiscoveryResolver xrdResolver;
 
   @Override
   protected void setUp() throws Exception {
@@ -54,10 +48,9 @@ public class Discovery2Test extends TestCase {
     control = EasyMock.createControl();
     hostMetafetcher = control.createMock(HostMetaFetcher.class);
 
-    userResolver = control.createMock(UserResover.class);
-    siteResolver = control.createMock(SiteResolver.class);
+    xrdResolver = control.createMock(XrdDiscoveryResolver.class);
 
-    discovery = new Discovery2(hostMetafetcher, userResolver, siteResolver);
+    discovery = new Discovery2(hostMetafetcher, xrdResolver);
   }
 
   public void testDiscoverOpEndpointsForSite_throughXrd() throws Exception {
@@ -71,9 +64,9 @@ public class Discovery2Test extends TestCase {
 
     expect(hostMetafetcher.getHostMeta(host.getIdentifier()))
         .andReturn(hostMeta);
-    expect(siteResolver.getDiscoveryDocumentType())
+    expect(xrdResolver.getDiscoveryDocumentType())
         .andReturn("application/xrds+xml");
-    expect(siteResolver.findOpEndpoints(host, URI.create("http://foo.com/bar2")))
+    expect(xrdResolver.findOpEndpoints(host, URI.create("http://foo.com/bar2")))
         .andReturn(infos);
 
     control.replay();
@@ -97,9 +90,9 @@ public class Discovery2Test extends TestCase {
 
     expect(hostMetafetcher.getHostMeta("bob.com"))
         .andReturn(hostMeta);
-    expect(userResolver.getDiscoveryDocumentType())
+    expect(xrdResolver.getDiscoveryDocumentType())
         .andReturn("application/xrds+xml");
-    expect(userResolver.findOpEndpoints(user, URI.create("http://foo.com/bar2")))
+    expect(xrdResolver.findOpEndpoints(user, URI.create("http://foo.com/bar2")))
         .andReturn(infos);
 
     control.replay();
@@ -122,9 +115,9 @@ public class Discovery2Test extends TestCase {
 
     expect(hostMetafetcher.getHostMeta("bob.com"))
         .andReturn(hostMeta);
-    expect(userResolver.getDiscoveryDocumentType())
+    expect(xrdResolver.getDiscoveryDocumentType())
         .andReturn("application/xrds+xml");
-    expect(userResolver.findOpEndpoints(user, URI.create("http://foo.com/bar2")))
+    expect(xrdResolver.findOpEndpoints(user, URI.create("http://foo.com/bar2")))
         .andReturn(infos);
 
     control.replay();

@@ -53,8 +53,7 @@ import javax.xml.parsers.ParserConfigurationException;
  * for UrlIdentifiers (for user discovery) and IdPIdentifiers (for site
  * discovery).
  */
-public abstract class LegacyXrdsResolver<T extends Identifier>
-    implements XrdDiscoveryResolver<T> {
+public class LegacyXrdsResolver extends AbstractXrdDiscoveryResolver {
 
   // the type of meta-data document this resolver understands
   static private final String XRDS_TYPE = "application/xrds+xml";
@@ -72,156 +71,119 @@ public abstract class LegacyXrdsResolver<T extends Identifier>
   // injected fetcher
   protected final HttpFetcher httpFetcher;
 
-  public String getDiscoveryDocumentType() {
-    return XRDS_TYPE;
-  }
-
-  // implemented in subclasses
-  public abstract List<DiscoveryInformation> findOpEndpoints(T id, URI xrdUri)
-      throws DiscoveryException;
-
-  // constructor
-  protected LegacyXrdsResolver(Discovery discovery, HttpFetcher httpFetcher) {
+  @Inject
+  public LegacyXrdsResolver(Discovery discovery, HttpFetcher httpFetcher) {
     this.legacyDiscovery = discovery;
     this.httpFetcher = httpFetcher;
   }
 
-  //////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Class implementing XRDS-based user discovery.
-   */
-  public static class UserXrdsResolver
-      extends LegacyXrdsResolver<UrlIdentifier> {
-
-    @Inject
-    public UserXrdsResolver(Discovery discovery, HttpFetcher fetcher) {
-      super(discovery, fetcher);
-    }
-
-    /**
-     * XRDS-based user discovery works as follows: First, we fetch the site-wide
-     * XRDS from the URI provided to us (which was obtained from a /host-meta).
-     *
-     * Then, we look for URITemplates in the XRDS, which will point us to the
-     * user's XRDS. Finally, we look for OP endpoints in the user's XRDS.
-     */
-    @Override
-    public List<DiscoveryInformation> findOpEndpoints(UrlIdentifier claimedId,
-        URI siteXrdsUri) throws DiscoveryException {
-      // fetch site-wide XRD
-      XRD xrd;
-      try {
-        xrd = fetchXrd(siteXrdsUri);
-      } catch (FetchException e) {
-        throw new DiscoveryException("could not fetch XRDS from " + siteXrdsUri,
-            e);
-      }
-
-      if (xrd == null) {
-        throw new DiscoveryException("XRDS at " + siteXrdsUri + " did not " +
-            "contain any XRD.");
-      }
-
-      // perform mapping to extract user's XRDS location.
-      URI userXrdsuri = mapClaimedIdToUserXrdsUri(xrd, claimedId);
-
-      // now that we have the user XRDS URI, we can use the
-      // parse it and return the list of OP endpoints found in there.
-      return findSignonEndpointsInUserXrds(claimedId, userXrdsuri);
-    }
-
-
-    /**
-     * Finds OP endpoints in a user's XRDS.
-     * @param claimedId the claimed id given to us. This claimedId should be
-     *   included in the discovery infos returned.
-     * @param userXrdsUri the URI from which to load the user's XRDS.
-     * @return a list of discovery infos.
-     * @throws DiscoveryException
-     */
-    private List<DiscoveryInformation> findSignonEndpointsInUserXrds(
-        UrlIdentifier claimedId, URI userXrdsUri) throws DiscoveryException {
-
-      // the legacy yadis discoverer will fill <uri> as the claimed id, since
-      // that is where it's downloading the XRDS from. We know, however, that
-      // we're performing discovery on <claimedId>, so we will return that in
-      // in the discovery info objects.
-      return filterByVersion(getLegacyDiscoveries(userXrdsUri),
-          DiscoveryInformation.OPENID2, claimedId);
-    }
-
-    /**
-     * Looks for a URITemplate in the XRD, and applies the claimed id to it in
-     * order to generate the user's XRDS endpoint.
-     *
-     * @throws DiscoveryException
-     */
-    /* visible for testing */
-    URI mapClaimedIdToUserXrdsUri(XRD xrd, UrlIdentifier claimedId)
-        throws DiscoveryException {
-
-      // find the <Service> element with type '.../describedby'
-      Service service = getServiceForType(xrd, URI_TEMPLATE_TYPE);
-      if (service == null) {
-        throw new DiscoveryException("could not find service of type " +
-            URI_TEMPLATE_TYPE + " in XRDS at location " +
-            claimedId.getIdentifier());
-      }
-
-      // find the <URITemplate> tag inside the <Service> element
-      @SuppressWarnings("unchecked")
-      Vector<Element> templates = service.getOtherTagValues(URI_TEMPLATE_TAG);
-      if (templates == null || templates.size() == 0) {
-        throw new DiscoveryException("missing " + URI_TEMPLATE_TAG + " in " +
-            "service specification in XRDS at location " +
-            claimedId.getIdentifier());
-      }
-
-      // we're just looking at the first URITemplate:
-      Element element = templates.get(0);
-
-      // now, apply the mapping:
-      UriTemplate template = new UriTemplate(element.getTextContent());
-      return template.map(URI.create(claimedId.getIdentifier()));
-    }
+  @Override
+  public String getDiscoveryDocumentType() {
+    return XRDS_TYPE;
   }
 
-  //////////////////////////////////////////////////////////////////////////////
-
   /**
-   * Class implementing XRDS-based site discovery.
+   * XRDS-based user discovery works as follows: First, we fetch the site-wide
+   * XRDS from the URI provided to us (which was obtained from a /host-meta).
+   *
+   * Then, we look for URITemplates in the XRDS, which will point us to the
+   * user's XRDS. Finally, we look for OP endpoints in the user's XRDS.
    */
-  public static class SiteXrdsResolver
-      extends LegacyXrdsResolver<IdpIdentifier> {
-
-    @Inject
-    public SiteXrdsResolver(Discovery discovery, HttpFetcher fetcher) {
-      super(discovery, fetcher);
+  @Override
+  protected List<DiscoveryInformation> findOpEndpointsForUser(
+      UrlIdentifier claimedId, URI siteXrdsUri) throws DiscoveryException {
+    // fetch site-wide XRD
+    XRD xrd;
+    try {
+      xrd = fetchXrd(siteXrdsUri);
+    } catch (FetchException e) {
+      throw new DiscoveryException("could not fetch XRDS from " + siteXrdsUri,
+          e);
     }
 
-    /**
-     * Finds OP endpoints in a site's XRDS.
-     * @param id is ignored in this method, since site discovery
-     *   information only returns the endpoint itself, no other information.
-     * @param siteXrdsUri the URI from which to load the site's XRDS.
-     * @return a list of discovery infos.
-     * @throws DiscoveryException
-     */
-    @Override
-    public List<DiscoveryInformation> findOpEndpoints(IdpIdentifier id,
-        URI siteXrdsUri) throws DiscoveryException {
-        return filterByVersion(getLegacyDiscoveries(siteXrdsUri),
-            DiscoveryInformation.OPENID2_OP, null);
-      }
+    if (xrd == null) {
+      throw new DiscoveryException("XRDS at " + siteXrdsUri + " did not " +
+          "contain any XRD.");
+    }
+
+    // perform mapping to extract user's XRDS location.
+    URI userXrdsuri = mapClaimedIdToUserXrdsUri(xrd, claimedId);
+
+    // now that we have the user XRDS URI, we can use the
+    // parse it and return the list of OP endpoints found in there.
+    return findSignonEndpointsInUserXrds(claimedId, userXrdsuri);
   }
 
 
-  //////////////////////////////////////////////////////////////////////////////
-  // remaining methods from superclass
+  /**
+   * Finds OP endpoints in a user's XRDS.
+   * @param claimedId the claimed id given to us. This claimedId should be
+   *   included in the discovery infos returned.
+   * @param userXrdsUri the URI from which to load the user's XRDS.
+   * @return a list of discovery infos.
+   * @throws DiscoveryException
+   */
+  private List<DiscoveryInformation> findSignonEndpointsInUserXrds(
+      UrlIdentifier claimedId, URI userXrdsUri) throws DiscoveryException {
+
+    // the legacy yadis discoverer will fill <uri> as the claimed id, since
+    // that is where it's downloading the XRDS from. We know, however, that
+    // we're performing discovery on <claimedId>, so we will return that in
+    // in the discovery info objects.
+    return filterByVersion(getLegacyDiscoveries(userXrdsUri),
+        DiscoveryInformation.OPENID2, claimedId);
+  }
+
+  /**
+   * Looks for a URITemplate in the XRD, and applies the claimed id to it in
+   * order to generate the user's XRDS endpoint.
+   *
+   * @throws DiscoveryException
+   */
+  /* visible for testing */
+  URI mapClaimedIdToUserXrdsUri(XRD xrd, UrlIdentifier claimedId)
+      throws DiscoveryException {
+
+    // find the <Service> element with type '.../describedby'
+    Service service = getServiceForType(xrd, URI_TEMPLATE_TYPE);
+    if (service == null) {
+      throw new DiscoveryException("could not find service of type " +
+          URI_TEMPLATE_TYPE + " in XRDS at location " +
+          claimedId.getIdentifier());
+    }
+
+    // find the <URITemplate> tag inside the <Service> element
+    @SuppressWarnings("unchecked")
+    Vector<Element> templates = service.getOtherTagValues(URI_TEMPLATE_TAG);
+    if (templates == null || templates.size() == 0) {
+      throw new DiscoveryException("missing " + URI_TEMPLATE_TAG + " in " +
+          "service specification in XRDS at location " +
+          claimedId.getIdentifier());
+    }
+
+    // we're just looking at the first URITemplate:
+    Element element = templates.get(0);
+
+    // now, apply the mapping:
+    UriTemplate template = new UriTemplate(element.getTextContent());
+    return template.map(URI.create(claimedId.getIdentifier()));
+  }
+
+  /**
+   * Finds OP endpoints in a site's XRDS.
+   * @param siteXrdsUri the URI from which to load the site's XRDS.
+   * @return a list of discovery infos.
+   * @throws DiscoveryException
+   */
+  @Override
+  protected List<DiscoveryInformation> findOpEndpointsForSite(
+      URI siteXrdsUri) throws DiscoveryException {
+    return filterByVersion(getLegacyDiscoveries(siteXrdsUri),
+        DiscoveryInformation.OPENID2_OP, null);
+  }
 
   @SuppressWarnings("unchecked")
-  protected List<DiscoveryInformation> getLegacyDiscoveries(URI uri)
+  private List<DiscoveryInformation> getLegacyDiscoveries(URI uri)
       throws DiscoveryException {
     return legacyDiscovery.discover(uri.toString());
   }
@@ -232,7 +194,7 @@ public abstract class LegacyXrdsResolver<T extends Identifier>
    *
    * @throws FetchException
    */
-  protected XRD fetchXrd(URI uri) throws FetchException {
+  private XRD fetchXrd(URI uri) throws FetchException {
 
     FetchRequest request = FetchRequest.createGetRequest(uri);
 
@@ -282,7 +244,7 @@ public abstract class LegacyXrdsResolver<T extends Identifier>
   /**
    * Returns highest-priority service for given type from an XRD
    */
-  protected Service getServiceForType(XRD xrd, String type) {
+  private Service getServiceForType(XRD xrd, String type) {
 
     @SuppressWarnings("unchecked")
     Vector<Service> services = xrd.getServicesByType(type);
@@ -315,7 +277,7 @@ public abstract class LegacyXrdsResolver<T extends Identifier>
    *   change the claimed id.
    * @return the filtered list
    */
-  protected List<DiscoveryInformation> filterByVersion(
+  private List<DiscoveryInformation> filterByVersion(
       List<DiscoveryInformation> list, String version, Identifier id)
       throws DiscoveryException {
 

@@ -92,10 +92,8 @@ import java.util.List;
 public class Discovery2 extends Discovery {
 
   private final HostMetaFetcher hostMetaFetcher;
-  private final XrdDiscoveryResolver<UrlIdentifier> userXrdResolver;
-  private final XrdDiscoveryResolver<IdpIdentifier> siteXrdResolver;
-  private final XrdLocationSelector<UrlIdentifier> userXrdLocationSelector;
-  private final XrdLocationSelector<IdpIdentifier> siteXrdLocationSelector;
+  private final XrdDiscoveryResolver xrdResolver;
+  private final XrdLocationSelector xrdLocationSelector;
 
   // Strategy for site discovery: First, we try discoverOpEndpointsForSite,
   // and as a fallback try legacy discovery for an identifier derived from
@@ -138,13 +136,10 @@ public class Discovery2 extends Discovery {
 
   @Inject
   public Discovery2(HostMetaFetcher hostMetaFetcher,
-      XrdDiscoveryResolver<UrlIdentifier> userXrdResolver,
-      XrdDiscoveryResolver<IdpIdentifier> siteXrdResolver) {
+      XrdDiscoveryResolver xrdResolver) {
     this.hostMetaFetcher = hostMetaFetcher;
-    this.userXrdResolver = userXrdResolver;
-    this.siteXrdResolver = siteXrdResolver;
-    this.userXrdLocationSelector = new XrdLocationSelector.UserXrdLocationSelector();
-    this.siteXrdLocationSelector = new XrdLocationSelector.SiteXrdLocationSelector();
+    this.xrdResolver = xrdResolver;
+    this.xrdLocationSelector = new XrdLocationSelector();
   }
 
   /**
@@ -160,8 +155,7 @@ public class Discovery2 extends Discovery {
   public List<DiscoveryInformation> discoverOpEndpointsForSite(
       IdpIdentifier site) throws DiscoveryException {
 
-    return performHostMetaBasedDiscovery(siteXrdLocationSelector,
-        siteXrdResolver, site.getIdentifier(), site);
+    return performHostMetaBasedDiscovery(site.getIdentifier(), site);
   }
 
   /**
@@ -226,28 +220,21 @@ public class Discovery2 extends Discovery {
     // extract the host from the user's URL
     String host = claimedId.getUrl().getHost();
 
-    return performHostMetaBasedDiscovery(userXrdLocationSelector, userXrdResolver,
-        host, claimedId);
+    return performHostMetaBasedDiscovery(host, claimedId);
   }
 
   /**
    * Performs host-meta-based OpenID discovery for different form of
    * identifiers (e.g., IdPIdentifier for a site or UrlIdentifier for a user).
    *
-   *
-   * @param <T> the type of identifier we're performing discovery on
-   * @param xrdSelector the object that knows how to look for
-   *   identifier-type-specific metadata both in the host-meta and in the XRD(S)
    * @param host the host for which the host-meta should be fetched.
    * @param id the identifier for which we're trying to discover the OpenID
    *   endpoint
    * @throws DiscoveryException
    */
   /* visible for testing */
-  <T extends Identifier>
-  List<DiscoveryInformation> performHostMetaBasedDiscovery(
-      XrdLocationSelector<T> xrdSelector, XrdDiscoveryResolver<T> xrdResolver,
-      String host, T id) throws DiscoveryException {
+  List<DiscoveryInformation> performHostMetaBasedDiscovery(String host,
+      Identifier id) throws DiscoveryException {
 
     // get host-meta for that host
     HostMeta hostMeta;
@@ -257,11 +244,15 @@ public class Discovery2 extends Discovery {
       throw new DiscoveryException("could not get host-meta for " + host, e);
     }
 
-    // find XRD that host-meta is pointing to
-    URI xrdsUri = xrdSelector.findXrdUriForOp(hostMeta,
+    // Find XRD that host-meta is pointing to. In the case of site-discovery,
+    // this will point to the site's XRD. In the case of user-discovery, this
+    // can either point directly to the user's XRD, or point to the site's XRD.
+    // In this case, the xrdResolver will have to figure out how to get the
+    // user's XRD from the site's XRD.
+    URI xrdUri = xrdLocationSelector.findXrdUriForOp(hostMeta,
         xrdResolver.getDiscoveryDocumentType(), id);
 
-    if (xrdsUri == null) {
+    if (xrdUri == null) {
       return Collections.emptyList();
     }
 
@@ -269,7 +260,7 @@ public class Discovery2 extends Discovery {
     // discovery on the XRD. This might involve simply looking for the correct
     // Link in the XRD, or it might involve following URITemplate links, etc.,
     // depending on the kind of Identifier we're performing discovery on.
-    return xrdResolver.findOpEndpoints(id, xrdsUri);
+    return xrdResolver.findOpEndpoints(id, xrdUri);
   }
 
   /**

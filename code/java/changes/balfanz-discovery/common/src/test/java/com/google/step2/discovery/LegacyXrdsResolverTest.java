@@ -18,8 +18,6 @@ package com.google.step2.discovery;
 
 import static org.easymock.classextension.EasyMock.expect;
 
-import com.google.step2.discovery.LegacyXrdsResolver.SiteXrdsResolver;
-import com.google.step2.discovery.LegacyXrdsResolver.UserXrdsResolver;
 import com.google.step2.http.FetchRequest;
 import com.google.step2.http.FetchResponse;
 import com.google.step2.http.HttpFetcher;
@@ -78,13 +76,12 @@ public class LegacyXrdsResolverTest extends TestCase {
   private IMocksControl control;
   private Discovery yadis;
   private HttpFetcher fetcher;
-  private SiteXrdsResolver siteResolver;
-  private UserXrdsResolver userResolver;
 
   private ServerSocket socket;
   private int listenPort;
   private ConnectListener connectListener;
   private Thread listenerThread;
+  private LegacyXrdsResolver xrdResolver;
 
   @Override
   protected void setUp() throws Exception {
@@ -92,8 +89,7 @@ public class LegacyXrdsResolverTest extends TestCase {
     control = EasyMock.createControl();
     yadis = control.createMock(Discovery.class);
     fetcher = control.createMock(HttpFetcher.class);
-    siteResolver = new LegacyXrdsResolver.SiteXrdsResolver(yadis, fetcher);
-    userResolver = new LegacyXrdsResolver.UserXrdsResolver(yadis, fetcher);
+    xrdResolver = new LegacyXrdsResolver(yadis, fetcher);
 
     try {
       socket = new ServerSocket(0);
@@ -141,7 +137,7 @@ public class LegacyXrdsResolverTest extends TestCase {
 
     control.replay();
     List<DiscoveryInformation> result =
-        siteResolver.findOpEndpoints(host, siteXrdsUri);
+        xrdResolver.findOpEndpoints(host, siteXrdsUri);
     control.verify();
 
     assertEquals(1, result.size());
@@ -167,7 +163,7 @@ public class LegacyXrdsResolverTest extends TestCase {
 
     control.replay();
     List<DiscoveryInformation> result =
-        userResolver.findOpEndpoints(user, siteXrdsUri);
+        xrdResolver.findOpEndpoints(user, siteXrdsUri);
     control.verify();
 
     assertEquals(1, result.size());

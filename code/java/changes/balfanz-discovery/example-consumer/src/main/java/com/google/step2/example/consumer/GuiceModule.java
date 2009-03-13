@@ -28,9 +28,7 @@ import com.google.inject.name.Names;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.discovery.DefaultHostMetaFetcher;
 import com.google.step2.discovery.HostMetaFetcher;
-import com.google.step2.discovery.LegacyXrdsResolver;
 import com.google.step2.discovery.ParallelHostMetaFetcher;
-import com.google.step2.discovery.XrdDiscoveryResolver;
 import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.openid.ax2.AxMessage2;
 import com.google.step2.servlet.ConsumerManagerProvider;
@@ -105,12 +103,6 @@ public class GuiceModule extends AbstractModule {
     bind(ExecutorService.class)
         .annotatedWith(Names.named("ParallelHostMetaFetcherExecutor"))
         .toInstance(Executors.newFixedThreadPool(20));
-
-    // we're using XRDS syntax in our meta-data documents.
-    bind(XrdDiscoveryResolver.USER_TYPE)
-        .to(LegacyXrdsResolver.UserXrdsResolver.class).in(Scopes.SINGLETON);
-    bind(XrdDiscoveryResolver.SITE_TYPE)
-        .to(LegacyXrdsResolver.SiteXrdsResolver.class).in(Scopes.SINGLETON);
   }
 
   private OAuthClient getOAuthClient() {
