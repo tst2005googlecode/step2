@@ -16,6 +16,7 @@
  */
 package com.google.step2.http;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
@@ -96,6 +97,14 @@ public class DefaultHttpFetcher implements HttpFetcher {
         return response.getEntity().getContent();
       } catch (IllegalStateException e) {
         throw new FetchException(e);
+      } catch (IOException e) {
+        throw new FetchException(e);
+      }
+    }
+
+    public byte[] getContentAsBytes() throws FetchException {
+      try {
+        return IOUtils.toByteArray(getContentAsStream());
       } catch (IOException e) {
         throw new FetchException(e);
       }

@@ -34,4 +34,9 @@ public interface FetchResponse {
    * Returns the contents of this HTTP response, as an InputStream
    */
   public InputStream getContentAsStream() throws FetchException;
+
+  /**
+   * Returns the contents of this HTTP response, as a byte array
+   */
+  public byte[] getContentAsBytes() throws FetchException;
 }

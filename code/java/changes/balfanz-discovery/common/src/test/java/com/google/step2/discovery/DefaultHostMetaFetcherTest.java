@@ -109,6 +109,10 @@ public class DefaultHostMetaFetcherTest extends TestCase {
       return new ByteArrayInputStream(response.getBytes());
     }
 
+    public byte[] getContentAsBytes() {
+      return response.getBytes();
+    }
+
     public int getStatusCode() {
       return status;
     }

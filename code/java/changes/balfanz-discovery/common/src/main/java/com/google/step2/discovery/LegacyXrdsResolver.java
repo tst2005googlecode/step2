@@ -21,6 +21,7 @@ import com.google.step2.http.FetchException;
 import com.google.step2.http.FetchRequest;
 import com.google.step2.http.FetchResponse;
 import com.google.step2.http.HttpFetcher;
+import com.google.step2.util.XmlUtil;
 
 import org.openid4java.discovery.Discovery;
 import org.openid4java.discovery.DiscoveryException;
@@ -43,8 +44,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
@@ -202,10 +201,7 @@ public class LegacyXrdsResolver extends AbstractXrdDiscoveryResolver {
     try {
       FetchResponse response = httpFetcher.fetch(request);
 
-      DocumentBuilderFactory factory = getSecureDocumentBuilderFactory();
-      DocumentBuilder builder = factory.newDocumentBuilder();
-
-      Document document = builder.parse(response.getContentAsStream());
+      Document document = XmlUtil.getDocument(response.getContentAsStream());
 
       xrds = new XRDS(document.getDocumentElement(), false);
 
@@ -222,23 +218,6 @@ public class LegacyXrdsResolver extends AbstractXrdDiscoveryResolver {
     }
 
     return xrds.getFinalXRD();
-  }
-
-  /* visible for testing */
-  static DocumentBuilderFactory getSecureDocumentBuilderFactory()
-     throws ParserConfigurationException {
-
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-
-    factory.setNamespaceAware(true);
-    factory.setFeature(
-      "http://xml.org/sax/features/external-general-entities", false);
-    factory.setFeature(
-      "http://xml.org/sax/features/external-parameter-entities",false);
-    factory.setFeature(
-      "http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-
-    return factory;
   }
 
   /**
