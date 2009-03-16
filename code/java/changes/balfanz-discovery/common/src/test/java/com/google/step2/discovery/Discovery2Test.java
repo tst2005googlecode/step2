@@ -32,6 +32,7 @@ import org.openid4java.discovery.UrlIdentifier;
 
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,7 +54,7 @@ public class Discovery2Test extends TestCase {
     discovery = new Discovery2(hostMetafetcher, xrdResolver);
   }
 
-  public void testDiscoverOpEndpointsForSite_throughXrd() throws Exception {
+  public void testDiscoverOpEndpointsForSite() throws Exception {
 
     IdpIdentifier host = new IdpIdentifier("host");
     List<DiscoveryInformation> infos = new ArrayList<DiscoveryInformation>();
@@ -62,11 +63,11 @@ public class Discovery2Test extends TestCase {
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
         "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml");
 
+    expect(xrdResolver.getDiscoveryDocumentType())
+        .andStubReturn("application/xrds+xml");
     expect(hostMetafetcher.getHostMeta(host.getIdentifier()))
         .andReturn(hostMeta);
-    expect(xrdResolver.getDiscoveryDocumentType())
-        .andReturn("application/xrds+xml");
-    expect(xrdResolver.findOpEndpoints(host, URI.create("http://foo.com/bar2")))
+    expect(xrdResolver.findOpEndpointsForSite(host, URI.create("http://foo.com/bar2")))
         .andReturn(infos);
 
     control.replay();
@@ -78,33 +79,35 @@ public class Discovery2Test extends TestCase {
     assertSame(infos, result);
   }
 
-  // testing user discovery: the path that goes through host-meta-based
-  // discovery, and fetches a site-wide XRD
-  public void testDiscoverOpEndpointsForUser_hostMetaXrd() throws Exception {
+  public void testTryHostMetaBasedClaimedIdDiscovery() throws Exception {
+
     UrlIdentifier user = new UrlIdentifier("http://bob.com/myid");
     List<DiscoveryInformation> infos = new ArrayList<DiscoveryInformation>();
 
     HostMeta hostMeta = getHostMeta(
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar2?uri={%uri}>; " +
+            "rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; " +
+            "type=application/xrds+xml");
 
+    expect(xrdResolver.getDiscoveryDocumentType())
+        .andStubReturn("application/xrds+xml");
     expect(hostMetafetcher.getHostMeta("bob.com"))
         .andReturn(hostMeta);
-    expect(xrdResolver.getDiscoveryDocumentType())
-        .andReturn("application/xrds+xml");
-    expect(xrdResolver.findOpEndpoints(user, URI.create("http://foo.com/bar2")))
+    expect(xrdResolver.findOpEndpointsForUser(user,
+        URI.create("http://foo.com/bar2?uri=" + URLEncoder.encode(user.getIdentifier(), "UTF-8"))))
         .andReturn(infos);
 
     control.replay();
 
-    List<DiscoveryInformation> result = discovery.discoverOpEndpointsForUser(user);
+    List<DiscoveryInformation> result = discovery.tryHostMetaBasedDiscoveryForUser(user);
 
     control.verify();
 
     assertSame(infos, result);
   }
 
-  public void testTryHostMetaBasedClaimedIdDiscovery_throughXrd() throws Exception {
+  public void testTryHostMetaBasedClaimedIdDiscovery_siteXrd() throws Exception {
 
     UrlIdentifier user = new UrlIdentifier("http://bob.com/myid");
     List<DiscoveryInformation> infos = new ArrayList<DiscoveryInformation>();
@@ -113,11 +116,11 @@ public class Discovery2Test extends TestCase {
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
         "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml");
 
+    expect(xrdResolver.getDiscoveryDocumentType())
+        .andStubReturn("application/xrds+xml");
     expect(hostMetafetcher.getHostMeta("bob.com"))
         .andReturn(hostMeta);
-    expect(xrdResolver.getDiscoveryDocumentType())
-        .andReturn("application/xrds+xml");
-    expect(xrdResolver.findOpEndpoints(user, URI.create("http://foo.com/bar2")))
+    expect(xrdResolver.findOpEndpointsForUserThroughSiteXrd(user, URI.create("http://foo.com/bar2")))
         .andReturn(infos);
 
     control.replay();

@@ -41,7 +41,9 @@ public class ParallelHostMetaFetcherTest extends TestCase {
     fetcher1 = control.createMock(HostMetaFetcher.class);
     fetcher2 = control.createMock(HostMetaFetcher.class);
     hostMeta1 = new HostMeta();
+    hostMeta1.addLink(Link.fromString("Link: <http://foo.com>"));
     hostMeta2 = new HostMeta();
+    hostMeta2.addLink(Link.fromString("Link: <http://foo.com>"));
     fetcher = new ParallelHostMetaFetcher(
         Executors.newFixedThreadPool(2), 10L, fetcher1, fetcher2);
   }

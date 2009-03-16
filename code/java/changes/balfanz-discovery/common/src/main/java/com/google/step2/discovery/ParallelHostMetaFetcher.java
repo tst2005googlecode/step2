@@ -101,10 +101,11 @@ public class ParallelHostMetaFetcher implements HostMetaFetcher {
 
     public HostMeta call() throws HostMetaException {
       HostMeta hostMeta = fetcher.getHostMeta(host);
-      if (hostMeta == null) {
+      if ((hostMeta == null)
+          || (0 == (hostMeta.getLinks().size() + hostMeta.getLinkPatterns().size()))) {
         throw new HostMetaException("fetcher " +
             fetcher.getClass().getName() +
-            " returned null host-meta for " + host);
+            " returned empty host-meta for " + host);
       } else {
         return hostMeta;
       }

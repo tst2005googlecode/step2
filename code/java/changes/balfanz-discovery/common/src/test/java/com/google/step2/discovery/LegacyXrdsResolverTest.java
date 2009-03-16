@@ -26,16 +26,13 @@ import junit.framework.TestCase;
 
 import org.easymock.classextension.EasyMock;
 import org.easymock.classextension.IMocksControl;
-import org.openid4java.discovery.Discovery;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.UrlIdentifier;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Arrays;
 import java.util.List;
 
 public class LegacyXrdsResolverTest extends TestCase {
@@ -60,8 +57,36 @@ public class LegacyXrdsResolverTest extends TestCase {
     "</XRD>\n" +
     "</xrds:XRDS>\n";
 
+  private static String USER_XRD =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+    "<xrds:XRDS xmlns:xrds=\"xri://$xrds\" xmlns:openid=\"http://openid.net/" +
+        "xmlns/1.0\" xmlns=\"xri://$xrd*($v*2.0)\">\n" +
+    "<XRD>\n" +
+    "<CanonicalID>http://balfanz.net/openid?id=12345</CanonicalID>\n" +
+    "<Service priority=\"0\">\n" +
+    "<Type>http://specs.openid.net/auth/2.0/signon</Type>\n" +
+    "<Type>http://openid.net/srv/ax/1.0</Type>\n" +
+    "<URI>https://www.google.com/a/balfanz.net/o8/ud?be=o8</URI>\n" +
+    "</Service>\n" +
+    "</XRD>\n" +
+    "</xrds:XRDS>\n";
+
+  private static String USER_XRD_WITH_LOCAL_ID =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+    "<xrds:XRDS xmlns:xrds=\"xri://$xrds\" xmlns:openid=\"http://openid.net/" +
+        "xmlns/1.0\" xmlns=\"xri://$xrd*($v*2.0)\">\n" +
+    "<XRD>\n" +
+    "<CanonicalID>http://balfanz.net/openid?id=12345</CanonicalID>\n" +
+    "<Service priority=\"0\">\n" +
+    "<Type>http://specs.openid.net/auth/2.0/signon</Type>\n" +
+    "<Type>http://openid.net/srv/ax/1.0</Type>\n" +
+    "<URI>https://www.google.com/a/balfanz.net/o8/ud?be=o8</URI>\n" +
+    "<LocalID>12345</LocalID>\n" +
+    "</Service>\n" +
+    "</XRD>\n" +
+    "</xrds:XRDS>\n";
+
   private IMocksControl control;
-  private Discovery yadis;
   private HttpFetcher fetcher;
   private LegacyXrdsResolver xrdResolver;
 
@@ -69,59 +94,97 @@ public class LegacyXrdsResolverTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     control = EasyMock.createControl();
-    yadis = control.createMock(Discovery.class);
     fetcher = control.createMock(HttpFetcher.class);
-    xrdResolver = new LegacyXrdsResolver(yadis, fetcher);
+    xrdResolver = new LegacyXrdsResolver(fetcher);
   }
 
   public void testFindOpEndpointsForSite() throws Exception {
-    IdpIdentifier host = new IdpIdentifier("host");
+    IdpIdentifier host = new IdpIdentifier("balfanz.net");
     URI siteXrdsUri = URI.create("http://example.com/xrds");
-    List<DiscoveryInformation> infos = Arrays.asList(
-        // a server info
-        new DiscoveryInformation(new URL("http://example.com/op1")),
-        // a signon info
-        new DiscoveryInformation(
-            new URL("http://example.com/op2"),
-            new UrlIdentifier("http://bob.com")));
-
-    expect(yadis.discover(siteXrdsUri.toString())).andReturn(infos);
-
-    control.replay();
-    List<DiscoveryInformation> result =
-        xrdResolver.findOpEndpoints(host, siteXrdsUri);
-    control.verify();
-
-    assertEquals(1, result.size());
-    DiscoveryInformation info = result.get(0);
-    assertEquals("http://example.com/op1", info.getOPEndpoint().toString());
-  }
-
-  public void testFindOpEndpointsForUser() throws Exception {
-    UrlIdentifier user = new UrlIdentifier("http://bob.com/id");
-    URI siteXrdsUri = URI.create("http://example.com/xrds");
-    List<DiscoveryInformation> infos = Arrays.asList(
-        // a server info
-        new DiscoveryInformation(new URL("http://example.com/op1")),
-        // a signon info
-        new DiscoveryInformation(new URL("http://example.com/op2"), user));
 
     FetchRequest httpRequest = FetchRequest.createGetRequest(siteXrdsUri);
 
     expect(fetcher.fetch(httpRequest)).andReturn(new FakeResponse(SITE_XRD));
-    String userXrdsUri = "https://www.google.com/accounts/o8/user-xrds?uri="
-      + URLEncoder.encode(user.getIdentifier(), "UTF-8");
-    expect(yadis.discover(userXrdsUri)).andReturn(infos);
 
     control.replay();
     List<DiscoveryInformation> result =
-        xrdResolver.findOpEndpoints(user, siteXrdsUri);
+        xrdResolver.findOpEndpointsForSite(host, siteXrdsUri);
     control.verify();
 
     assertEquals(1, result.size());
     DiscoveryInformation info = result.get(0);
-    assertEquals("http://example.com/op2", info.getOPEndpoint().toString());
+    assertEquals("https://www.google.com/a/balfanz.net/o8/ud?be=o8",
+        info.getOPEndpoint().toString());
+  }
+
+  public void testFindOpEndpointsForUser_direct() throws Exception {
+    UrlIdentifier user = new UrlIdentifier("http://balfanz.net/openid?id=12345");
+    URI siteXrdsUri = URI.create("http://example.com/xrds");
+
+    FetchRequest httpRequest = FetchRequest.createGetRequest(siteXrdsUri);
+
+    expect(fetcher.fetch(httpRequest)).andReturn(new FakeResponse(USER_XRD));
+
+    control.replay();
+    List<DiscoveryInformation> result =
+        xrdResolver.findOpEndpointsForUser(user, siteXrdsUri);
+    control.verify();
+
+    assertEquals(1, result.size());
+    DiscoveryInformation info = result.get(0);
+    assertEquals("https://www.google.com/a/balfanz.net/o8/ud?be=o8",
+        info.getOPEndpoint().toString());
     assertEquals(user.getIdentifier(), info.getClaimedIdentifier().toString());
+    assertNull(info.getDelegateIdentifier());
+  }
+
+  public void testFindOpEndpointsForUser_directWithLocalId() throws Exception {
+    UrlIdentifier user = new UrlIdentifier("http://balfanz.net/openid?id=12345");
+    URI siteXrdsUri = URI.create("http://example.com/xrds");
+
+    FetchRequest httpRequest = FetchRequest.createGetRequest(siteXrdsUri);
+
+    expect(fetcher.fetch(httpRequest)).andReturn(new FakeResponse(USER_XRD_WITH_LOCAL_ID));
+
+    control.replay();
+    List<DiscoveryInformation> result =
+        xrdResolver.findOpEndpointsForUser(user, siteXrdsUri);
+    control.verify();
+
+    assertEquals(1, result.size());
+    DiscoveryInformation info = result.get(0);
+    assertEquals("https://www.google.com/a/balfanz.net/o8/ud?be=o8",
+        info.getOPEndpoint().toString());
+    assertEquals(user.getIdentifier(), info.getClaimedIdentifier().toString());
+    assertEquals("12345", info.getDelegateIdentifier());
+  }
+
+  public void testFindOpEndpointsForUser_throughSiteXrds() throws Exception {
+    UrlIdentifier user = new UrlIdentifier("http://balfanz.net/openid?id=12345");
+    URI siteXrdsUri = URI.create("http://example.com/xrds");
+
+    FetchRequest httpRequest = FetchRequest.createGetRequest(siteXrdsUri);
+
+    expect(fetcher.fetch(httpRequest)).andReturn(new FakeResponse(SITE_XRD));
+
+    String userXrdsUri = "https://www.google.com/accounts/o8/user-xrds?uri="
+        + URLEncoder.encode(user.getIdentifier(), "UTF-8");
+
+    FetchRequest nextRequest = FetchRequest.createGetRequest(URI.create(userXrdsUri));
+
+    expect(fetcher.fetch(nextRequest)).andReturn(new FakeResponse(USER_XRD));
+
+    control.replay();
+    List<DiscoveryInformation> result =
+        xrdResolver.findOpEndpointsForUserThroughSiteXrd(user, siteXrdsUri);
+    control.verify();
+
+    assertEquals(1, result.size());
+    DiscoveryInformation info = result.get(0);
+    assertEquals("https://www.google.com/a/balfanz.net/o8/ud?be=o8",
+        info.getOPEndpoint().toString());
+    assertEquals(user.getIdentifier(), info.getClaimedIdentifier().toString());
+    assertNull(info.getDelegateIdentifier());
   }
 
   private static class FakeResponse implements FetchResponse {

@@ -27,6 +27,8 @@ import org.openid4java.discovery.UrlIdentifier;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Implements Next-Generation OpenID discovery, based on Link-headers,
@@ -58,9 +60,9 @@ import java.util.List;
  *
  * - find the host-meta file for the host identified in the claimed id.
  * - in the host-meta file, check whether a Link-Pattern in the host-meta
- *   points to an XRD(S) for the OpenID URL.
+ *   points to an XRD(S) for the claimed id, and if so, skip the next two steps.
  * - if not, find a Link in the host-meta that points to an XRD(S) metadata
- *   document for the site
+ *   document for the site.
  * - follow the URITemplate link in the site XRD(S) to find the XRD(S) for the
  *   the claimed id.
  * - follow the links in the XRD(S) to find the OP endpoint.
@@ -90,6 +92,9 @@ import java.util.List;
  * doesn't yield any results.
  */
 public class Discovery2 extends Discovery {
+
+  private static final Logger logger =
+      Logger.getLogger(Discovery2.class.getName());
 
   private final HostMetaFetcher hostMetaFetcher;
   private final XrdDiscoveryResolver xrdResolver;
@@ -144,10 +149,9 @@ public class Discovery2 extends Discovery {
 
   /**
    * Returns list of likely OpenID endpoints for a site, ordered by
-   * preference as listed by the site. If there is a link in the host-meta
-   * that points to the OP, then that link becomes the only DisoveryInformation
-   * returned. Otherwise, the host-meta can point to an XRD(S) document, which
-   * may contain a (prioritized) list of endpoints, which will be returned.
+   * preference as listed by the site. The host-meta points to an XRD(S)
+   * document, which contains a (prioritized) list of endpoints, and which
+   * will be returned.
    *
    * @param site the {@link IdpIdentifier} identifying the site for which
    *   OpenID endpoints are being sought.
@@ -155,7 +159,28 @@ public class Discovery2 extends Discovery {
   public List<DiscoveryInformation> discoverOpEndpointsForSite(
       IdpIdentifier site) throws DiscoveryException {
 
-    return performHostMetaBasedDiscovery(site.getIdentifier(), site);
+    String host = site.getIdentifier();
+
+    // get host-meta for that host
+    HostMeta hostMeta;
+    try {
+      hostMeta = hostMetaFetcher.getHostMeta(host);
+    } catch (HostMetaException e) {
+      throw new DiscoveryException("could not get host-meta for " + host, e);
+    }
+
+    // Find XRD that host-meta is pointing to. In the case of site-discovery,
+    // this will point to the site's XRD.
+    URI xrdUri = xrdLocationSelector.findSiteXrdUriForOp(hostMeta,
+        xrdResolver.getDiscoveryDocumentType());
+
+    if (xrdUri == null) {
+      return Collections.emptyList();
+    }
+
+    // now that we have the location of the XRD, perform the actual
+    // discovery based on the XRD.
+    return xrdResolver.findOpEndpointsForSite(site, xrdUri);
   }
 
   /**
@@ -205,8 +230,8 @@ public class Discovery2 extends Discovery {
   /**
    * Returns list of likely OpenID endpoints for a user, ordered by
    * preference. If there is a link-pattern in the host-meta that points to the
-   * OP, then that link becomes the only DisoveryInformation
-   * returned. Otherwise, the host-meta can point to a site's XRD(S) document,
+   * user's XRD(S), we base XRD(S) discovery on that document.
+   * Otherwise, the host-meta can point to a site's XRD(S) document,
    * which may contain URITemplates, which in turn point to the user's XRD(S).
    * The latter should include a list of OpenID endpoints.
    *
@@ -217,24 +242,8 @@ public class Discovery2 extends Discovery {
   List<DiscoveryInformation> tryHostMetaBasedDiscoveryForUser(
       UrlIdentifier claimedId) throws DiscoveryException {
 
-    // extract the host from the user's URL
+    // extract the host from the claimed id
     String host = claimedId.getUrl().getHost();
-
-    return performHostMetaBasedDiscovery(host, claimedId);
-  }
-
-  /**
-   * Performs host-meta-based OpenID discovery for different form of
-   * identifiers (e.g., IdPIdentifier for a site or UrlIdentifier for a user).
-   *
-   * @param host the host for which the host-meta should be fetched.
-   * @param id the identifier for which we're trying to discover the OpenID
-   *   endpoint
-   * @throws DiscoveryException
-   */
-  /* visible for testing */
-  List<DiscoveryInformation> performHostMetaBasedDiscovery(String host,
-      Identifier id) throws DiscoveryException {
 
     // get host-meta for that host
     HostMeta hostMeta;
@@ -244,23 +253,30 @@ public class Discovery2 extends Discovery {
       throw new DiscoveryException("could not get host-meta for " + host, e);
     }
 
-    // Find XRD that host-meta is pointing to. In the case of site-discovery,
-    // this will point to the site's XRD. In the case of user-discovery, this
-    // can either point directly to the user's XRD, or point to the site's XRD.
-    // In this case, the xrdResolver will have to figure out how to get the
-    // user's XRD from the site's XRD.
-    URI xrdUri = xrdLocationSelector.findXrdUriForOp(hostMeta,
-        xrdResolver.getDiscoveryDocumentType(), id);
+    // First, let's check whether there are link-patterns in the host-meta that
+    // point directly to the user's XRD(S).
+    URI xrdUri = xrdLocationSelector.findUserXrdUriForOp(hostMeta,
+        xrdResolver.getDiscoveryDocumentType(), claimedId);
 
-    if (xrdUri == null) {
-      return Collections.emptyList();
+    if (xrdUri != null) {
+
+      // xrdUri points to user's XRD
+      return xrdResolver.findOpEndpointsForUser(claimedId, xrdUri);
     }
 
-    // now that we have the location of the XRD, perform the actual
-    // discovery on the XRD. This might involve simply looking for the correct
-    // Link in the XRD, or it might involve following URITemplate links, etc.,
-    // depending on the kind of Identifier we're performing discovery on.
-    return xrdResolver.findOpEndpoints(id, xrdUri);
+    // There were no link-patterns, i.e.,  we'll have to go with the
+    // site-wide XRD(S)
+    xrdUri = xrdLocationSelector.findSiteXrdUriForOp(hostMeta,
+        xrdResolver.getDiscoveryDocumentType());
+
+    if (xrdUri != null) {
+
+      // xrdUri points to site-wide XRD
+      return xrdResolver.findOpEndpointsForUserThroughSiteXrd(claimedId, xrdUri);
+    }
+
+    // xrdUri == null
+    return Collections.emptyList();
   }
 
   /**
@@ -348,9 +364,13 @@ public class Discovery2 extends Discovery {
       try {
         result = newStyleDiscovery(id);
         if (result != null && result.size() == 0) {
+          logger.log(Level.WARNING, "could not perform new-style discovery on "
+              + id.getIdentifier() + ". discovery returned null");
           result = null;
         }
       } catch (DiscoveryException e) {
+        logger.log(Level.WARNING, "could not perform new-style discovery on "
+            + id.getIdentifier(), e);
         result = null;
       }
 

@@ -16,6 +16,7 @@
  */
 package com.google.step2.discovery;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.step2.http.FetchException;
 import com.google.step2.http.FetchRequest;
@@ -23,7 +24,6 @@ import com.google.step2.http.FetchResponse;
 import com.google.step2.http.HttpFetcher;
 import com.google.step2.util.XmlUtil;
 
-import org.openid4java.discovery.Discovery;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.Identifier;
@@ -36,26 +36,29 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
- * Implements XRDS-based discovery. In this file, we have an abstract
- * superclass, and two different subclasses implementing the XRDS discovery
- * for UrlIdentifiers (for user discovery) and IdPIdentifiers (for site
- * discovery).
+ * Implements XRDS-based discovery.
  */
-public class LegacyXrdsResolver extends AbstractXrdDiscoveryResolver {
+public class LegacyXrdsResolver implements XrdDiscoveryResolver {
+
+  private static final Logger logger =
+      Logger.getLogger(LegacyXrdsResolver.class.getName());
 
   // the type of meta-data document this resolver understands
-  static private final String XRDS_TYPE = "application/xrds+xml";
+  private static final String XRDS_TYPE = "application/xrds+xml";
 
   // specifies a link that points to a document that includes meta data.
   private static final String URI_TEMPLATE_TYPE =
@@ -64,72 +67,67 @@ public class LegacyXrdsResolver extends AbstractXrdDiscoveryResolver {
   // used to generate URIs pointing to user-specific XRDS documents
   private static final String URI_TEMPLATE_TAG = "URITemplate";
 
-  // old-style yadis discovery we use to scan through the XRDS
-  protected final Discovery legacyDiscovery;
+  // used to specify the OP-local id inside Service elements of type signon
+  private static final String LOCAL_ID_TAG = "LocalID";
 
   // injected fetcher
-  protected final HttpFetcher httpFetcher;
+  private final HttpFetcher httpFetcher;
 
   @Inject
-  public LegacyXrdsResolver(Discovery discovery, HttpFetcher httpFetcher) {
-    this.legacyDiscovery = discovery;
+  public LegacyXrdsResolver(HttpFetcher httpFetcher) {
     this.httpFetcher = httpFetcher;
   }
 
-  @Override
   public String getDiscoveryDocumentType() {
     return XRDS_TYPE;
   }
 
   /**
-   * XRDS-based user discovery works as follows: First, we fetch the site-wide
-   * XRDS from the URI provided to us (which was obtained from a /host-meta).
-   *
-   * Then, we look for URITemplates in the XRDS, which will point us to the
-   * user's XRDS. Finally, we look for OP endpoints in the user's XRDS.
-   */
-  @Override
-  protected List<DiscoveryInformation> findOpEndpointsForUser(
-      UrlIdentifier claimedId, URI siteXrdsUri) throws DiscoveryException {
-    // fetch site-wide XRD
-    XRD xrd;
-    try {
-      xrd = fetchXrd(siteXrdsUri);
-    } catch (FetchException e) {
-      throw new DiscoveryException("could not fetch XRDS from " + siteXrdsUri,
-          e);
-    }
-
-    if (xrd == null) {
-      throw new DiscoveryException("XRDS at " + siteXrdsUri + " did not " +
-          "contain any XRD.");
-    }
-
-    // perform mapping to extract user's XRDS location.
-    URI userXrdsuri = mapClaimedIdToUserXrdsUri(xrd, claimedId);
-
-    // now that we have the user XRDS URI, we can use the
-    // parse it and return the list of OP endpoints found in there.
-    return findSignonEndpointsInUserXrds(claimedId, userXrdsuri);
-  }
-
-
-  /**
-   * Finds OP endpoints in a user's XRDS.
-   * @param claimedId the claimed id given to us. This claimedId should be
-   *   included in the discovery infos returned.
-   * @param userXrdsUri the URI from which to load the user's XRDS.
+   * Finds OP endpoints in a site's XRDS.
+   * @param siteXrdsUri the URI from which to load the site's XRDS.
    * @return a list of discovery infos.
    * @throws DiscoveryException
    */
-  private List<DiscoveryInformation> findSignonEndpointsInUserXrds(
+  public List<DiscoveryInformation> findOpEndpointsForSite(IdpIdentifier site,
+      URI siteXrdsUri) throws DiscoveryException {
+    return resolveXrds(getXrd(siteXrdsUri), siteXrdsUri,
+        DiscoveryInformation.OPENID2_OP, site);
+  }
+
+  /**
+   * Returns a list of discovery info objects from a user's XRDS document.
+   * The document's canonical ID is expected to be equal to the claimedID of
+   * the user.
+   * @param claimedId the claimedId of the user
+   * @param userXrdsUri the URI from which to download the user's XRDS document.
+   */
+  public List<DiscoveryInformation> findOpEndpointsForUser(
       UrlIdentifier claimedId, URI userXrdsUri) throws DiscoveryException {
 
-    // the legacy yadis discoverer will fill <uri> as the claimed id, since
-    // that is where it's downloading the XRDS from. We know, however, that
-    // we're performing discovery on <claimedId>, so we will return that in
-    // in the discovery info objects.
-    return filterByVersion(getLegacyDiscoveries(userXrdsUri),
+      return resolveXrds(getXrd(userXrdsUri), userXrdsUri,
+          DiscoveryInformation.OPENID2, claimedId);
+  }
+
+  /**
+   * Returns a list of discovery info objects from a user's XRDS document, but
+   * starts discovery at the site's XRDS document. The site's XRDS document
+   * (whose canonical ID is expected to match the host in the claimed ID) is
+   * expected to contain URITemplate elements which will point to the user's
+   * XRDS document. The latter document's canonical ID is expected to be equal
+   * to the claimedID of the user.
+   * @param claimedId the claimedId of the user
+   * @param siteXrdsUri the URI from which to download the user's XRDS document.
+   */
+  public List<DiscoveryInformation> findOpEndpointsForUserThroughSiteXrd(
+      UrlIdentifier claimedId, URI siteXrdsUri) throws DiscoveryException {
+
+    // We're given the XRDS for the site of the claimedID.
+    // Perform mapping to extract user's XRDS location.
+    URI userXrdsUri = mapClaimedIdToUserXrdsUri(getXrd(siteXrdsUri), claimedId);
+
+    // now that we have the user XRDS URI, we fetch the XRDS
+    // and return the list of OP endpoints found in there.
+    return resolveXrds(getXrd(userXrdsUri), userXrdsUri,
         DiscoveryInformation.OPENID2, claimedId);
   }
 
@@ -152,43 +150,137 @@ public class LegacyXrdsResolver extends AbstractXrdDiscoveryResolver {
     }
 
     // find the <URITemplate> tag inside the <Service> element
-    @SuppressWarnings("unchecked")
-    Vector<Element> templates = service.getOtherTagValues(URI_TEMPLATE_TAG);
-    if (templates == null || templates.size() == 0) {
+    String uriTemplate = getTagValue(service, URI_TEMPLATE_TAG);
+    if (uriTemplate == null) {
       throw new DiscoveryException("missing " + URI_TEMPLATE_TAG + " in " +
           "service specification in XRDS at location " +
           claimedId.getIdentifier());
     }
 
-    // we're just looking at the first URITemplate:
-    Element element = templates.get(0);
-
     // now, apply the mapping:
-    UriTemplate template = new UriTemplate(element.getTextContent());
+    UriTemplate template = new UriTemplate(uriTemplate);
     return template.map(URI.create(claimedId.getIdentifier()));
   }
 
   /**
-   * Finds OP endpoints in a site's XRDS.
-   * @param siteXrdsUri the URI from which to load the site's XRDS.
-   * @return a list of discovery infos.
-   * @throws DiscoveryException
+   * Returns the first value of a tag inside a Service element.
+   * @param service the Service element inside which we're looking for a tag.
+   * @param tagName the name of the tag
+   * @return the value of the tag, or null if no such tag exists.
    */
-  @Override
-  protected List<DiscoveryInformation> findOpEndpointsForSite(
-      URI siteXrdsUri) throws DiscoveryException {
-    return filterByVersion(getLegacyDiscoveries(siteXrdsUri),
-        DiscoveryInformation.OPENID2_OP, null);
-  }
+  private String getTagValue(Service service, String tagName) {
+    @SuppressWarnings("unchecked")
+    Vector<Element> tags = service.getOtherTagValues(tagName);
+    if (tags == null || tags.size() == 0) {
+      return null;
+    }
 
-  @SuppressWarnings("unchecked")
-  private List<DiscoveryInformation> getLegacyDiscoveries(URI uri)
-      throws DiscoveryException {
-    return legacyDiscovery.discover(uri.toString());
+    // we're just looking at the first tag
+    return tags.get(0).getTextContent();
   }
 
   /**
-   * Fetches an OpenID 2.0-styel XRDS document and returns the "final" XRD
+   * Finds OP-endpoints in an XRDS document.
+   * @param xrd The XRD in which we're looking for OP endpoints.
+   * @param source the source from which we've fetched the XRD (for error
+   *   reporting purposes)
+   * @param version the type of <Service> element we're looking for, can be
+   *   either http://specs.openid.net/auth/2.0/signon or
+   *   http://specs.openid.net/auth/2.0/server
+   * @param id the identifier (UrlIdentifier for claimedId, or IdPIdentifier
+   *   for site discovery)
+   * @return a list of discovery info objects.
+   * @throws DiscoveryException
+   */
+  private List<DiscoveryInformation> resolveXrds(XRD xrd, URI source,
+      String version, Identifier id) throws DiscoveryException {
+
+    List<Service> services = getServicesForType(xrd, version);
+
+    if (services == null) {
+      throw new DiscoveryException("could not find <Service> of type " +
+          version + " in XRDS for " + source.toASCIIString());
+    }
+
+    List<DiscoveryInformation> result =
+        Lists.newArrayListWithCapacity(services.size());
+
+    for (Service service : services) {
+      try {
+        if (version.equals(DiscoveryInformation.OPENID2)) {
+          // look for LocalID and use claimedID, if given.
+          result.add(createDiscoveryInfoForSignon(service, id));
+        } else if (version.equals(DiscoveryInformation.OPENID2_OP)) {
+          // for site discovery, just return the URI
+          result.add(createDiscoveryInfoForServer(service));
+        } else {
+          throw new DiscoveryException("unkown OpenID version : " + version);
+        }
+      } catch (MalformedURLException e) {
+        logger.log(Level.WARNING, "found malformed URL in discovery document " +
+            "at " + source.toASCIIString(), e);
+        continue;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Returns a simple {@link DiscoveryInformation} object pointing to an
+   * OP endpoint.
+   * @param service The <Service> element that has the OP endpoint information.
+   * @return a {@link DiscoveryInformation} object.
+   * @throws DiscoveryException
+   * @throws MalformedURLException
+   */
+  private DiscoveryInformation createDiscoveryInfoForServer(Service service)
+      throws DiscoveryException, MalformedURLException {
+    return new DiscoveryInformation(service.getURIAt(0).getURI().toURL());
+  }
+
+  /**
+   * Returns a {@link DiscoveryInformation} object pointing to an
+   * OP endpoint, and possibly containing other information such as the
+   * claimedId and the OP-local id.
+   * @param service The <Service> element that has the OP endpoint information.
+   * @return a {@link DiscoveryInformation} object.
+   * @throws DiscoveryException
+   * @throws MalformedURLException
+   */
+  private DiscoveryInformation createDiscoveryInfoForSignon(Service service,
+      Identifier claimedId) throws DiscoveryException, MalformedURLException {
+
+    // could be null
+    String localId = getTagValue(service, LOCAL_ID_TAG);
+
+    return new DiscoveryInformation(service.getURIAt(0).getURI().toURL(),
+        claimedId, localId, DiscoveryInformation.OPENID2);
+  }
+
+  /**
+   * Fetches an XRD from a URI and returns it, or throws if the XRD can't be
+   * fetched/found.
+   * @param uri from where to fetch the XRDS.
+   * @throws DiscoveryException
+   */
+  private XRD getXrd(URI uri) throws DiscoveryException {
+    XRD result;
+    try {
+      result = fetchXrd(uri);
+    } catch (FetchException e) {
+      throw new DiscoveryException("could not fetch XRDS from "
+          + uri.toASCIIString(), e);
+    }
+    if (result == null) {
+      throw new DiscoveryException("XRDS at " + uri.toASCIIString() + " did " +
+          "not contain an XRD");
+    }
+    return result;
+  }
+
+  /**
+   * Fetches an OpenID 2.0-style XRDS document and returns the "final" XRD
    * from it.
    *
    * @throws FetchException
@@ -247,43 +339,23 @@ public class LegacyXrdsResolver extends AbstractXrdDiscoveryResolver {
   }
 
   /**
-   * Filters a list of discovery infos to include only those infos that
-   * match a certain version. Also, optionally, changes the claimed id's
-   * in those discovery infos to that provided.
-   * @param list unfiltered list
-   * @param version the version by which to filter
-   * @param id if non-null, change the claimed id to this. If null, don't
-   *   change the claimed id.
-   * @return the filtered list
+   * Returns services (highest-priority first) for given type from an XRD
    */
-  private List<DiscoveryInformation> filterByVersion(
-      List<DiscoveryInformation> list, String version, Identifier id)
-      throws DiscoveryException {
+  private List<Service> getServicesForType(XRD xrd, String type) {
 
-    if (list == null) {
-      return Collections.emptyList();
+    @SuppressWarnings("unchecked")
+    Vector<Service> services = xrd.getServicesByType(type);
+
+    if (services == null || services.size() == 0) {
+      return null;
     }
 
-    ArrayList<DiscoveryInformation> result =
-          new ArrayList<DiscoveryInformation>();
-
-    for (DiscoveryInformation info : list) {
-      if (version.equals(info.getVersion())) {
-        if (id == null) {
-
-          result.add(info);
-
-        } else {
-
-          // we were told to change the claimed_id in the discovery info
-          result.add(new DiscoveryInformation(
-              info.getOPEndpoint(),
-              id,
-              info.getDelegateIdentifier(),
-              version));
-        }
+    Collections.sort(services, new Comparator<Service>() {
+      public int compare(Service o1, Service o2) {
+        return o2.getPriority().compareTo(o1.getPriority());
       }
-    }
-    return result;
+    });
+
+    return services;
   }
 }

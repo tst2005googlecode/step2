@@ -20,7 +20,7 @@ import com.google.inject.ImplementedBy;
 
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
-import org.openid4java.discovery.Identifier;
+import org.openid4java.discovery.UrlIdentifier;
 
 import java.net.URI;
 import java.util.List;
@@ -49,15 +49,44 @@ public interface XrdDiscoveryResolver {
   public String getDiscoveryDocumentType();
 
   /**
-   * Finds OP endpoints in XRD(S) documents.
-   * @param id the identifier on which we're performing discovery
-   * @param xrdUri the URL of the XRD(S) document that has OpenID metadata in
-   *   it.
-   * @return a list of discovery info objects. A discovery info object could
-   *   include simply the URL of the discovered endpoint, or it could include
-   *   more information, like the claimed id and OP-local id of a user.
+   * Finds OP endpoints for a site in XRD(S) documents.
+   * @param site the site identifier on which we're performing discovery
+   * @param xrdUri the URL of the site's XRD(S) document that has OpenID
+   *   metadata in it.
+   * @return a list of discovery info objects. A discovery info object will
+   *   include the URL of the discovered endpoint.
    * @throws DiscoveryException
    */
-  public List<DiscoveryInformation> findOpEndpoints(Identifier id, URI xrdUri)
+  public List<DiscoveryInformation> findOpEndpointsForSite(
+      IdpIdentifier site, URI xrdUri)
+      throws DiscoveryException;
+
+  /**
+   * Finds OP endpoints for a user in XRD(S) documents.
+   * @param claimedId the user's identifier
+   * @param xrdUri the URL of the user's XRD(S) document that has OpenID
+   *   metadata in it.
+   * @return a list of discovery info objects. A discovery info object will
+   *   include the URL of the discovered endpoint, the claimed id, and
+   *   possibly the OP-local id of a user.
+   * @throws DiscoveryException
+   */
+  public List<DiscoveryInformation> findOpEndpointsForUser(
+      UrlIdentifier claimedId, URI xrdUri)
+      throws DiscoveryException;
+
+  /**
+   * Finds OP endpoints for a site in XRD(S) documents.
+   * @param claimedId the user's identifier on which we're performing discovery
+   * @param xrdUri the URL of the site's XRD(S) document that has OpenID
+   *   metadata in it. The site in question is the site (host) of the user's
+   *   claimed id.
+   * @return a list of discovery info objects. A discovery info object will
+   *   include the URL of the discovered endpoint, the claimed id, and
+   *   possibly the OP-local id of a user.
+   * @throws DiscoveryException
+   */
+  public List<DiscoveryInformation> findOpEndpointsForUserThroughSiteXrd(
+      UrlIdentifier claimedId, URI xrdUri)
       throws DiscoveryException;
 }

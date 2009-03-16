@@ -40,7 +40,7 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar>; rel=\"describedby\"",  // missing mime-type
         "Link: <http://foo.com/bar2>; rel=http://specs.openid.net/auth/2.0/server");
 
-    assertNull(selector.findXrdUriForOp(hostMeta, mimeType, host));
+    assertNull(selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
 
     // if all possible types are present, it should pick the most specific one
@@ -50,7 +50,7 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
         "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, host));
+    assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
     // pick the most specific one
     correctUri = URI.create("http://foo.com/bar3");
@@ -59,7 +59,7 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=somethingelse",
         "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, host));
+    assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
     // pick the most specific one
     correctUri = URI.create("http://foo.com/bar1");
@@ -68,7 +68,7 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=somethingelse",
         "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=somethingelse");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, host));
+    assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
     // pick the most specific one
     correctUri = URI.create("http://foo.com/bar1");
@@ -77,7 +77,7 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
         "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.foo.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, host));
+    assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
     // pick the most specific one
     correctUri = URI.create("http://foo.com/bar1");
@@ -86,7 +86,7 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
         "Link: <http://foo.com/bar3>; rel=\"foobar http://specs.foo.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, host));
+    assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
     // should pick up bar2, since it includes valid type "describedby"
     correctUri = URI.create("http://foo.com/bar2");
@@ -95,7 +95,7 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar2>; rel=\"foobar describedby\"; type=application/xrds+xml",
         "Link: <http://foo.com/bar3>; rel=\"http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, host));
+    assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
     // should return null
     hostMeta = getHostMeta(
@@ -103,7 +103,7 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op foobar\"; type=application/xrds+xml",
         "Link: <http://foo.com/bar3>; rel=http://specs.openid.net/auth/2.5/xrd;  type=application/xrds+xml");
 
-    assertNull(selector.findXrdUriForOp(hostMeta, mimeType, host));
+    assertNull(selector.findSiteXrdUriForOp(hostMeta, mimeType));
   }
 
   public void testFindXrdUriForOp_forUser() throws Exception {
@@ -113,73 +113,73 @@ public class XrdLocationSelectorTest extends TestCase {
 
     // first, what if it's not in there at all
     HostMeta hostMeta = getHostMeta(
-        "Link: <http://foo.com/bar>; rel=\"describedby\"",  // missing mime-type
-        "Link: <http://foo.com/bar2>; rel=http://specs.openid.net/auth/2.0/server");
+        "Link-Pattern: <http://foo.com/bar>; rel=\"describedby\"",  // missing mime-type
+        "Link-Pattern: <http://foo.com/bar2>; rel=http://specs.openid.net/auth/2.0/server");
 
-    assertNull(selector.findXrdUriForOp(hostMeta, mimeType, user));
+    assertNull(selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
 
     // if all possible types are present, it should pick the most specific one
     URI correctUri = URI.create("http://foo.com/bar2");
     hostMeta = getHostMeta(
-        "Link: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
-        "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, user));
+    assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
     // pick the most specific one
     correctUri = URI.create("http://foo.com/bar3");
     hostMeta = getHostMeta(
-        "Link: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=somethingelse",
-        "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=somethingelse",
+        "Link-Pattern: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, user));
-
-    // pick the most specific one
-    correctUri = URI.create("http://foo.com/bar1");
-    hostMeta = getHostMeta(
-        "Link: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=somethingelse",
-        "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=somethingelse");
-
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, user));
+    assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
     // pick the most specific one
     correctUri = URI.create("http://foo.com/bar1");
     hostMeta = getHostMeta(
-        "Link: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
-        "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.foo.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=somethingelse",
+        "Link-Pattern: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=somethingelse");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, user));
+    assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
     // pick the most specific one
     correctUri = URI.create("http://foo.com/bar1");
     hostMeta = getHostMeta(
-        "Link: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
-        "Link: <http://foo.com/bar3>; rel=\"foobar http://specs.foo.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar3>; rel=\"describedby http://specs.foo.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, user));
+    assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
+
+    // pick the most specific one
+    correctUri = URI.create("http://foo.com/bar1");
+    hostMeta = getHostMeta(
+        "Link-Pattern: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar3>; rel=\"foobar http://specs.foo.net/auth/2.5/xrd\";  type=application/xrds+xml");
+
+    assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
     // should pick up bar2, since it includes valid type "describedby"
     correctUri = URI.create("http://foo.com/bar2");
     hostMeta = getHostMeta(
-        "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"foobar describedby\"; type=application/xrds+xml",
-        "Link: <http://foo.com/bar3>; rel=\"http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar2>; rel=\"foobar describedby\"; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar3>; rel=\"http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, user));
+    assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
     // should return null
     hostMeta = getHostMeta(
-        "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op foobar\"; type=application/xrds+xml",
-        "Link: <http://foo.com/bar3>; rel=http://specs.openid.net/auth/2.5/xrd;  type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op foobar\"; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar3>; rel=http://specs.openid.net/auth/2.5/xrd;  type=application/xrds+xml");
 
-    assertNull(selector.findXrdUriForOp(hostMeta, mimeType, user));
+    assertNull(selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
     // if there is a link-pattern, it should have precendence
     correctUri = URI.create("http://foo.com/bar3?uri=http%3A%2F%2Fhost.com%2Fbob");
@@ -189,9 +189,9 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link-Pattern: <http://foo.com/bar3?uri={%uri}>; rel=\"foobar describedby\"; type=application/xrds+xml",
         "Link: <http://foo.com/bar4>; rel=\"http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, user));
+    assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
-    // if the link-pattern is no good, we fall back to link
+    // if the link-pattern is no good, result should be null
     correctUri = URI.create("http://foo.com/bar2");
     hostMeta = getHostMeta(
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
@@ -199,7 +199,7 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link-Pattern: <http://foo.com/bar3?uri={%uri}>; rel=\"foobar\"; type=application/xrds+xml",
         "Link: <http://foo.com/bar4>; rel=\"http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
 
-    assertEquals(correctUri, selector.findXrdUriForOp(hostMeta, mimeType, user));
+    assertNull(selector.findUserXrdUriForOp(hostMeta, mimeType, user));
   }
 
   static HostMeta getHostMeta(String... links) {

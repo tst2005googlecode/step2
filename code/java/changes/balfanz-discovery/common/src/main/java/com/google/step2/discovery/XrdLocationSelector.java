@@ -18,8 +18,6 @@ package com.google.step2.discovery;
 
 import static com.google.step2.discovery.RelTypes.setOf;
 
-import org.openid4java.discovery.DiscoveryException;
-import org.openid4java.discovery.Identifier;
 import org.openid4java.discovery.UrlIdentifier;
 
 import java.net.URI;
@@ -31,8 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Abstract super-class for, and implementations of, various strategies for
- * finding the URI pointing to a relevant XRD(S) document.
+ * Various strategies for finding the URI pointing to a relevant XRD(S) document.
  *
  * The goal of XRD location selection is to find a suitable URI from a
  * host-meta document that is likely to point to an XRD(S) file with
@@ -81,71 +78,19 @@ public class XrdLocationSelector {
       setOf(REL_DESCRIBED_BY));
 
   /**
-   * Find the pointer to an XRD(S) file in a host-meta.
-   *
-   * @param hostMeta the host-meta in which we're looking for the discovery
-   *   information.
-   * @param mimeType the acceptable mime-type of the document we're looking
-   *   for.
-   * @param id the id on which we're performing discovery. In some cases, the
-   *   id will be included in the returned pointer. For example, in the case of
-   *   an {@link UrlIdentifier}, the pointer might be created by applying the
-   *   claimed id to a Link-Pattern in the host-meta, resulting in a pointer
-   *   (URI) pointing to the user's XRD(S) document.
+   * Returns a URI that points directly to the claimed id's XRD(S) document.
+   * The user's XRD(S) document should contain the pointer to the OP.
    */
-  public URI findXrdUriForOp(HostMeta hostMeta, String mimeType,
-      Identifier id) throws DiscoveryException {
-
-    if (id instanceof UrlIdentifier) {
-      return findUserXrdUriForOp(hostMeta, mimeType, (UrlIdentifier) id);
-    } else if (id instanceof IdpIdentifier) {
-      return findSiteXrdUriForOp(hostMeta, mimeType);
-    } else {
-      throw new DiscoveryException("unkown type of identifier: "
-          + id.getClass().getName());
-    }
-  }
-
-  /**
-   * Returns a URI that points either to a site-wide XRD(S) document, or
-   * directly to the claimed id's XRD(S) document. In the former caser, the
-   * XRD resolver will have to follow another level of indirection through
-   * a URITemplate link. In the latter case, the user's XRD(S) document should
-   * already contain the pointer to the OP.
-   */
-  private URI findUserXrdUriForOp(HostMeta hostMeta, String mimeType,
+  public URI findUserXrdUriForOp(HostMeta hostMeta, String mimeType,
       UrlIdentifier claimedId) {
 
-    // Link-Pattern: pointing directly to the user's XRD(S) has precendence
-    URI uri = tryLinkPatternForUserXrds(hostMeta, mimeType, claimedId);
-    if (uri != null) {
-      return uri;
-    }
-
-    // if we didn't find any link-patterns, we'll go with a site-wide XRD(S)
-    return findSiteXrdUriForOp(hostMeta, mimeType);
-  }
-
-  /**
-   * Tries to find a Link-Pattern that points to the XRD(S) for a given
-   * claimed id, and returns that URI that is created by applying the claimed
-   * id to the Link-Pattern.
-   * @param hostMeta the host-meta in which to look for an appropriate
-   *   Link-Pattern.
-   * @return null if no link-pattern could be found.
-   */
-  private URI tryLinkPatternForUserXrds(HostMeta hostMeta, String mimeType,
-      UrlIdentifier claimedId) {
-
-    LinkPattern pattern = getMatchingLink(hostMeta.getLinkPatterns(),
-        mimeType);
-
-    if (pattern != null) {
-      UriTemplate template = new UriTemplate(pattern.getUriPattern());
-      return template.map(URI.create(claimedId.getIdentifier()));
-    } else {
+    LinkPattern pattern = getMatchingLink(hostMeta.getLinkPatterns(), mimeType);
+    if (pattern == null) {
       return null;
     }
+
+    UriTemplate template = new UriTemplate(pattern.getUriPattern());
+    return template.map(URI.create(claimedId.getIdentifier()));
   }
 
   /**
@@ -158,7 +103,7 @@ public class XrdLocationSelector {
    * @param hostMeta the host-meta we're searching through.
    * @param mimeType the mime-type of the link we're interested in.
    */
-  private URI findSiteXrdUriForOp(HostMeta hostMeta, String mimeType) {
+  public URI findSiteXrdUriForOp(HostMeta hostMeta, String mimeType) {
     Link link = getMatchingLink(hostMeta.getLinks(), mimeType);
     return (link == null) ? null : link.getUri();
   }
