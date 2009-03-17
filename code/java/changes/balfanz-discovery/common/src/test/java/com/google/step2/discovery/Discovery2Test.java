@@ -19,6 +19,7 @@ package com.google.step2.discovery;
 import static com.google.step2.discovery.XrdLocationSelectorTest.getHostMeta;
 import static org.easymock.EasyMock.expect;
 
+import com.google.common.collect.Lists;
 import com.google.step2.discovery.Discovery2.FallbackDiscovery;
 
 import junit.framework.TestCase;
@@ -57,7 +58,7 @@ public class Discovery2Test extends TestCase {
   public void testDiscoverOpEndpointsForSite() throws Exception {
 
     IdpIdentifier host = new IdpIdentifier("host");
-    List<DiscoveryInformation> infos = new ArrayList<DiscoveryInformation>();
+    List<SecureDiscoveryInformation> infos = Lists.newArrayList();
 
     HostMeta hostMeta = getHostMeta(
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
@@ -72,7 +73,7 @@ public class Discovery2Test extends TestCase {
 
     control.replay();
 
-    List<DiscoveryInformation> result = discovery.discoverOpEndpointsForSite(host);
+    List<SecureDiscoveryInformation> result = discovery.discoverOpEndpointsForSite(host);
 
     control.verify();
 
@@ -82,7 +83,7 @@ public class Discovery2Test extends TestCase {
   public void testTryHostMetaBasedClaimedIdDiscovery() throws Exception {
 
     UrlIdentifier user = new UrlIdentifier("http://bob.com/myid");
-    List<DiscoveryInformation> infos = new ArrayList<DiscoveryInformation>();
+    List<SecureDiscoveryInformation> infos = Lists.newArrayList();
 
     HostMeta hostMeta = getHostMeta(
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
@@ -100,7 +101,7 @@ public class Discovery2Test extends TestCase {
 
     control.replay();
 
-    List<DiscoveryInformation> result = discovery.tryHostMetaBasedDiscoveryForUser(user);
+    List<SecureDiscoveryInformation> result = discovery.tryHostMetaBasedDiscoveryForUser(user);
 
     control.verify();
 
@@ -110,7 +111,7 @@ public class Discovery2Test extends TestCase {
   public void testTryHostMetaBasedClaimedIdDiscovery_siteXrd() throws Exception {
 
     UrlIdentifier user = new UrlIdentifier("http://bob.com/myid");
-    List<DiscoveryInformation> infos = new ArrayList<DiscoveryInformation>();
+    List<SecureDiscoveryInformation> infos = Lists.newArrayList();
 
     HostMeta hostMeta = getHostMeta(
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
@@ -125,7 +126,7 @@ public class Discovery2Test extends TestCase {
 
     control.replay();
 
-    List<DiscoveryInformation> result = discovery.tryHostMetaBasedDiscoveryForUser(user);
+    List<SecureDiscoveryInformation> result = discovery.tryHostMetaBasedDiscoveryForUser(user);
 
     control.verify();
 
@@ -135,8 +136,8 @@ public class Discovery2Test extends TestCase {
   public void testFallbackDiscovery_newStyle() throws Exception {
 
     IdpIdentifier host = new IdpIdentifier("host");
-    List<DiscoveryInformation> infos = new ArrayList<DiscoveryInformation>();
-    infos.add(new DiscoveryInformation(new URL("http://foo.com")));
+    List<SecureDiscoveryInformation> infos = Lists.newArrayList();
+    infos.add(new SecureDiscoveryInformation(new URL("http://foo.com")));
 
     FallbackDiscovery<Identifier> mockFallback =
         control.createMock(ForwardingFallbackDiscoverer.class);
@@ -148,7 +149,7 @@ public class Discovery2Test extends TestCase {
 
     control.replay();
 
-    List<DiscoveryInformation> result = fallback.get(host);
+    List<SecureDiscoveryInformation> result = fallback.get(host);
 
     control.verify();
 
@@ -174,11 +175,11 @@ public class Discovery2Test extends TestCase {
 
     control.replay();
 
-    List<DiscoveryInformation> result = fallback.get(host);
+    List<SecureDiscoveryInformation> result = fallback.get(host);
 
     control.verify();
 
-    assertSame(infos, result);
+    assertEquals(Discovery2.convertToNewDiscoveryInfo(infos), result);
   }
 
 
@@ -198,7 +199,7 @@ public class Discovery2Test extends TestCase {
     }
 
     @Override
-    public List<DiscoveryInformation> newStyleDiscovery(Identifier id)
+    public List<SecureDiscoveryInformation> newStyleDiscovery(Identifier id)
         throws DiscoveryException {
       return delegate.newStyleDiscovery(id);
     }

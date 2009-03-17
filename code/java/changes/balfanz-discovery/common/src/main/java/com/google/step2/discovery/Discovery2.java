@@ -16,6 +16,7 @@
  */
 package com.google.step2.discovery;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 import org.openid4java.discovery.Discovery;
@@ -106,8 +107,8 @@ public class Discovery2 extends Discovery {
   private final FallbackDiscovery<IdpIdentifier> siteFallbackDiscoverer =
     new FallbackDiscovery<IdpIdentifier>() {
       @Override
-      public List<DiscoveryInformation> newStyleDiscovery(IdpIdentifier idp)
-          throws DiscoveryException {
+      public List<SecureDiscoveryInformation> newStyleDiscovery(
+          IdpIdentifier idp) throws DiscoveryException {
         // how new-style discovery is performed
         return discoverOpEndpointsForSite(idp);
       }
@@ -126,8 +127,8 @@ public class Discovery2 extends Discovery {
   private final FallbackDiscovery<UrlIdentifier> userFallbackDiscoverer =
     new FallbackDiscovery<UrlIdentifier>() {
       @Override
-      public List<DiscoveryInformation> newStyleDiscovery(UrlIdentifier url)
-          throws DiscoveryException {
+      public List<SecureDiscoveryInformation> newStyleDiscovery(
+          UrlIdentifier url) throws DiscoveryException {
         // how new-style discovery is performed
         return discoverOpEndpointsForUser(url);
       }
@@ -156,7 +157,7 @@ public class Discovery2 extends Discovery {
    * @param site the {@link IdpIdentifier} identifying the site for which
    *   OpenID endpoints are being sought.
    */
-  public List<DiscoveryInformation> discoverOpEndpointsForSite(
+  public List<SecureDiscoveryInformation> discoverOpEndpointsForSite(
       IdpIdentifier site) throws DiscoveryException {
 
     String host = site.getIdentifier();
@@ -199,10 +200,10 @@ public class Discovery2 extends Discovery {
    * @param claimedId the {@link UrlIdentifier} identifying the user's claimed
    *   id
    */
-  public List<DiscoveryInformation> discoverOpEndpointsForUser(
+  public List<SecureDiscoveryInformation> discoverOpEndpointsForUser(
       UrlIdentifier claimedId) throws DiscoveryException {
 
-    List<DiscoveryInformation> result;
+    List<SecureDiscoveryInformation> result;
 
     try {
       result = tryHostMetaBasedDiscoveryForUser(claimedId);
@@ -239,7 +240,7 @@ public class Discovery2 extends Discovery {
    *   OpenID endpoints are being sought.
    */
   /* visible for testing */
-  List<DiscoveryInformation> tryHostMetaBasedDiscoveryForUser(
+  List<SecureDiscoveryInformation> tryHostMetaBasedDiscoveryForUser(
       UrlIdentifier claimedId) throws DiscoveryException {
 
     // extract the host from the claimed id
@@ -272,7 +273,8 @@ public class Discovery2 extends Discovery {
     if (xrdUri != null) {
 
       // xrdUri points to site-wide XRD
-      return xrdResolver.findOpEndpointsForUserThroughSiteXrd(claimedId, xrdUri);
+      return xrdResolver.findOpEndpointsForUserThroughSiteXrd(claimedId,
+          xrdUri);
     }
 
     // xrdUri == null
@@ -282,7 +284,7 @@ public class Discovery2 extends Discovery {
   /**
    * Link-element based discovery.
    */
-  private List<DiscoveryInformation> tryLinkElementBasedDiscoveryForUser(
+  private List<SecureDiscoveryInformation> tryLinkElementBasedDiscoveryForUser(
       UrlIdentifier claimedId) throws DiscoveryException {
     // TODO: implement this
     throw new DiscoveryException("link-element-based discovery is not " +
@@ -292,7 +294,7 @@ public class Discovery2 extends Discovery {
   /**
    * Link-header based discovery.
    */
-  private List<DiscoveryInformation> tryLinkHeaderBasedDiscoveryForUser(
+  private List<SecureDiscoveryInformation> tryLinkHeaderBasedDiscoveryForUser(
       UrlIdentifier claimedId) throws DiscoveryException {
     // TODO: implement this
     throw new DiscoveryException("link-header-based discovery is not " +
@@ -306,7 +308,7 @@ public class Discovery2 extends Discovery {
    * discovery doesn't yield any results.
    */
   @Override
-  public List<DiscoveryInformation> discover(Identifier identifier)
+  public List<SecureDiscoveryInformation> discover(Identifier identifier)
       throws DiscoveryException {
 
     /*
@@ -330,8 +332,30 @@ public class Discovery2 extends Discovery {
       // for all other types of identifiers, use old-style discovery
       @SuppressWarnings("unchecked")
       List<DiscoveryInformation> result = super.discover(identifier);
-      return result;
+      return convertToNewDiscoveryInfo(result);
     }
+  }
+
+  /**
+   * Converts {@link DiscoveryInformation} objects into
+   * {@link SecureDiscoveryInformation} object (which will have the isSecure
+   * bit set to false).
+   */
+  /* visible for testing */
+  static List<SecureDiscoveryInformation> convertToNewDiscoveryInfo(
+      List<DiscoveryInformation> infos) throws DiscoveryException {
+
+    if (infos == null) {
+      return null;
+    }
+
+    List<SecureDiscoveryInformation> result =
+        Lists.newArrayListWithCapacity(infos.size());
+
+    for (DiscoveryInformation info : infos) {
+      result.add(new SecureDiscoveryInformation(info));
+    }
+    return result;
   }
 
   /**
@@ -349,16 +373,16 @@ public class Discovery2 extends Discovery {
   /* visible for testing */
   abstract class FallbackDiscovery<T extends Identifier> {
 
-    public abstract List<DiscoveryInformation> newStyleDiscovery(T id)
+    public abstract List<SecureDiscoveryInformation> newStyleDiscovery(T id)
         throws DiscoveryException;
 
     public abstract Identifier getLegacyIdentifier(T id)
         throws DiscoveryException;
 
-    public List<DiscoveryInformation> get(T id)
+    public List<SecureDiscoveryInformation> get(T id)
         throws DiscoveryException {
 
-      List<DiscoveryInformation> result;
+      List<SecureDiscoveryInformation> result;
 
       // first, try new-style discovery
       try {
@@ -379,7 +403,8 @@ public class Discovery2 extends Discovery {
       }
 
       // if that doesn't work, try old-style discovery
-      return oldStyleDiscovery(getLegacyIdentifier(id));
+      return convertToNewDiscoveryInfo(
+          oldStyleDiscovery(getLegacyIdentifier(id)));
     }
 
     @SuppressWarnings("unchecked")

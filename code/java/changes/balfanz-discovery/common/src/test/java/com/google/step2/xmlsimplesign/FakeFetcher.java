@@ -56,6 +56,10 @@ public class FakeFetcher implements HttpFetcher {
         public int getStatusCode() {
           return 200;
         }
+
+        public String getFirstHeader(String name) {
+          return null;
+        }
       };
     }
     throw new FetchException("Unexpected request for " + url + ", should have been " +

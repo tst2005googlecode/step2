@@ -28,27 +28,27 @@ import com.google.step2.util.FakeTimeSource;
 /**
  *
  */
-public class CertValidatorTest extends TestCase {
+public class CachedCertPathValidatorTest extends TestCase {
 
   private FakeTimeSource timeSource;
-  private CertValidator validator;
+  private CachedCertPathValidator validator;
   private List<X509Certificate> serverChain = Lists.newArrayList(
       CertConstantUtil.SERVER_PUB_CERT, CertConstantUtil.INTERMEDIATE_PUB_CERT);
 
   @Override
   public void setUp() throws Exception {
     timeSource = new FakeTimeSource(1233465103000L); // Jan 31, 2009
-    validator = new CertValidator(ImmutableSet.of(CertConstantUtil.CA_PUB_CERT));
+    validator = new CachedCertPathValidator(ImmutableSet.of(CertConstantUtil.CA_PUB_CERT));
     validator.setTimeSource(timeSource);
   }
 
   public void testVerify() throws Exception {
-    validator.verify(serverChain);
+    validator.validate(serverChain);
   }
 
   public void testOutOfOrder() throws Exception {
     try {
-      validator.verify(Lists.newArrayList(
+      validator.validate(Lists.newArrayList(
           CertConstantUtil.INTERMEDIATE_PUB_CERT, CertConstantUtil.SERVER_PUB_CERT));
       fail("Should have thrown, certs out of order");
     } catch (CertValidatorException e) {
@@ -58,7 +58,7 @@ public class CertValidatorTest extends TestCase {
 
   public void testIncomplete() throws Exception {
     try {
-      validator.verify(Lists.newArrayList(CertConstantUtil.SERVER_PUB_CERT));
+      validator.validate(Lists.newArrayList(CertConstantUtil.SERVER_PUB_CERT));
       fail("Should have thrown, cert chain incomplete.");
     } catch (CertValidatorException e) {
       // good
@@ -67,10 +67,10 @@ public class CertValidatorTest extends TestCase {
 
   public void testExpired() throws Exception {
     timeSource.advanceSeconds(1800L * 24 * 60 * 60); // 1800 days
-    validator.verify(serverChain);
+    validator.validate(serverChain);
     timeSource.advanceSeconds(2000L * 24 * 60 * 60); // 2000 days
     try {
-      validator.verify(serverChain);
+      validator.validate(serverChain);
       fail("Should have thrown, cert expired");
     } catch (CertValidatorException e) {
       // good
@@ -81,7 +81,7 @@ public class CertValidatorTest extends TestCase {
     long start = System.currentTimeMillis();
     long ops = 0;
     while (System.currentTimeMillis() < start + 1000L) {
-      validator.verify(serverChain);
+      validator.validate(serverChain);
       ++ops;
     }
     long stop = System.currentTimeMillis();

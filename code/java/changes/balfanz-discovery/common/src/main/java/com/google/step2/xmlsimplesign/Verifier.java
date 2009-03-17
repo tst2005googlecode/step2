@@ -17,6 +17,7 @@
 package com.google.step2.xmlsimplesign;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 import com.google.step2.http.FetchException;
 import com.google.step2.http.FetchRequest;
 import com.google.step2.http.FetchResponse;
@@ -43,44 +44,46 @@ import java.util.List;
  */
 public class Verifier {
 
-  private CertValidator validator;
-  private byte[] document;
-  private HttpFetcher fetcher;
+  private final CachedCertPathValidator validator;
+  private final HttpFetcher fetcher;
 
-  private String signatureHref;
-  private List<X509Certificate> docCerts;
-
-  public Verifier setCertValidator(CertValidator validator) {
+  @Inject
+  public Verifier(CachedCertPathValidator validator, HttpFetcher fetcher) {
     this.validator = validator;
-    return this;
-  }
-
-  public Verifier setDocument(byte[] document) {
-    this.document = document;
-    return this;
-  }
-
-  public Verifier setFetcher(HttpFetcher fetcher) {
     this.fetcher = fetcher;
-    return this;
   }
 
-  public VerificationResult verify() throws XmlSimpleSignException {
+  /**
+   * Verifies the signature on the given document. If the supplied signature is
+   * not null, then we verify the supplied signature. If the signature is null,
+   * then we fetch the signature from the location specified in the document.
+   *
+   * @param document
+   * @param signature if null, signature is fetched from location specified
+   *   in the document.
+   * @throws XmlSimpleSignException
+   */
+  public VerificationResult verify(byte[] document, String signature)
+      throws XmlSimpleSignException {
     try {
       /* xml parsing bits */
       Document xml = XmlUtil.getJdomDocument(new ByteArrayInputStream(document));
-      Element signature = findDsig(xml.getRootElement(), Constants.SIGNATURE_ELEMENT);
-      parseSignatureInfo(signature);
-      parseSignatureValue(signature);
-      parseCerts(signature);
-      FetchRequest request = FetchRequest.createGetRequest(URI.create(signatureHref));
-      FetchResponse r = fetcher.fetch(request);
-      byte[] sig = EncodingUtil.decodeBase64(r.getContentAsBytes());
-      return checkSignature(sig);
+      Element signatureElement =
+          findDsig(xml.getRootElement(), Constants.SIGNATURE_ELEMENT);
+      parseSignatureInfo(signatureElement);
+
+      List<X509Certificate> docCerts = parseCerts(signatureElement);
+
+      byte[] sig;
+      if (signature == null) {
+        sig = parseSignatureValue(signatureElement);
+      } else {
+        sig = EncodingUtil.decodeBase64(signature);
+      }
+
+      return checkSignature(document, sig, docCerts);
     } catch (JDOMException e) {
       throw new XmlSimpleSignException("XML error", e);
-    } catch (FetchException e) {
-      throw new XmlSimpleSignException("couldn't fetch " + signatureHref, e);
     } catch (IOException e) {
       throw new XmlSimpleSignException("XML error", e);
     } catch (GeneralSecurityException e) {
@@ -91,6 +94,11 @@ public class Verifier {
   }
 
   private void parseSignatureInfo(Element signature) throws XmlSimpleSignException {
+
+    if (signature == null) {
+      throw new XmlSimpleSignException("no Signature element");
+    }
+
     Element signedInfo = findDsig(signature, Constants.SIGNED_INFO_ELEMENT);
     if (signedInfo == null) {
       throw new XmlSimpleSignException("No SignedInfo element");
@@ -114,18 +122,27 @@ public class Verifier {
     }
   }
 
-  private void parseSignatureValue(Element signature) throws XmlSimpleSignException {
+  private byte[] parseSignatureValue(Element signature) throws XmlSimpleSignException {
     Element signatureLocation = findSimpleSig(signature, Constants.SIGNATURE_LOCATION_ELEMENT);
     if (signatureLocation == null) {
       throw new XmlSimpleSignException("No SignatureLocation element found");
     }
-    signatureHref = signatureLocation.getTextTrim();
+    String signatureHref = signatureLocation.getTextTrim();
     if (signatureHref == null) {
       throw new XmlSimpleSignException("No SignatureLocation text found");
     }
+
+    FetchRequest request = FetchRequest.createGetRequest(URI.create(signatureHref));
+    try {
+      FetchResponse r = fetcher.fetch(request);
+      return EncodingUtil.decodeBase64(r.getContentAsBytes());
+    } catch (FetchException e) {
+      throw new XmlSimpleSignException("couldn't fetch signature from " +
+          signatureHref, e);
+    }
   }
 
-  private void parseCerts(Element signature)
+  private List<X509Certificate> parseCerts(Element signature)
       throws XmlSimpleSignException, GeneralSecurityException {
     Element keyInfo = findDsig(signature, Constants.KEY_INFO_ELEMENT);
     if (keyInfo == null) {
@@ -139,13 +156,15 @@ public class Verifier {
     if (certs.isEmpty()) {
       throw new XmlSimpleSignException("No X509Certificate elements found");
     }
-    docCerts = Lists.newArrayList();
+    List<X509Certificate> docCerts = Lists.newArrayList();
     for (Element i : certs) {
       docCerts.add(CertUtil.getCertFromBase64Bytes(i.getTextNormalize()));
     }
+    return docCerts;
   }
 
-  private VerificationResult checkSignature(byte[] sig)
+  private VerificationResult checkSignature(byte[] document, byte[] sig,
+      List<X509Certificate> docCerts)
       throws GeneralSecurityException, XmlSimpleSignException, CertValidatorException {
     Signature verifier = Signature.getInstance(Constants.RSA_SHA1_JCE_ID);
     verifier.initVerify(docCerts.get(0).getPublicKey());
@@ -154,7 +173,7 @@ public class Verifier {
     if (!match) {
       throw new XmlSimpleSignException("Signature is invalid");
     }
-    validator.verify(docCerts);
+    validator.validate(docCerts);
     return new VerificationResult(docCerts);
   }
 

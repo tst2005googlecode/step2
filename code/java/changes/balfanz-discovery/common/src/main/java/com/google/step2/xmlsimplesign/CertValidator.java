@@ -16,87 +16,26 @@
  */
 package com.google.step2.xmlsimplesign;
 
-import java.security.GeneralSecurityException;
-import java.security.cert.CertPath;
-import java.security.cert.CertPathValidator;
-import java.security.cert.CertificateFactory;
-import java.security.cert.PKIXParameters;
-import java.security.cert.TrustAnchor;
+import com.google.inject.ImplementedBy;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.step2.util.ExpiringLruCache;
-import com.google.step2.util.TimeSource;
 
 /**
- * Verifies X.509 certificates.
- *
- * This makes heavy use of the JRE CertPath libraries.  Documentation may be found at
- * http://java.sun.com/j2se/1.5.0/docs/guide/security/certpath/CertPathProgGuide.html
- *
- * TODO: look for sane PKIXParameter certificate policy configuration.
+ * Interface for validating certificates.
  */
-public class CertValidator {
+@ImplementedBy(DefaultCertValidator.class)
+public interface CertValidator {
 
-  private static final Logger log = Logger.getLogger(CertValidator.class.getName());
-  private static final String VALIDATOR_TYPE = "PKIX";
-  private static final String CERTIFICATE_TYPE = "X.509";
-  private static final int VALIDATION_CACHE_SIZE = 1024;
-  private static final long VALIDATION_CACHE_AGE_SECONDS = 10 * 60;
+  /**
+   * Returns true if the certificate matches the given authority.
+   * @param cert the certificate in question. This is usually a certificate
+   *   that was used to sign an XRD document.
+   * @param authority the authority that is supposed to have signed the XRD
+   *   document. Usually, this will be the CanonicalID or Subject of the XRD
+   *   document, but it might also be an authority explicitly delegated to by
+   *   a previous XRD document. In either case, the authority has to "match" the
+   *   certificate.
+   * @return true, if the authority matches the certificate, false otherwise
+   */
+  boolean matches(X509Certificate cert, String authority);
 
-  private final Set<TrustAnchor> trustRoots;
-  private final ExpiringLruCache<List<X509Certificate>, Boolean> validationCache;
-
-  private TimeSource timeSource = new TimeSource();
-
-  public CertValidator(Collection<X509Certificate> trustRoots) {
-    this.trustRoots = createTrustRoots(trustRoots);
-    this.validationCache = new ExpiringLruCache<List<X509Certificate>, Boolean>(
-        VALIDATION_CACHE_SIZE);
-  }
-
-  private ImmutableSet<TrustAnchor> createTrustRoots(Collection<X509Certificate> trustRoots) {
-    List<TrustAnchor> anchors = Lists.newArrayList();
-    for (X509Certificate c : trustRoots) {
-      anchors.add(new TrustAnchor(c, null));
-    }
-    return ImmutableSet.copyOf(anchors);
-  }
-
-  public void setTimeSource(TimeSource timeSource) {
-    this.timeSource = timeSource;
-    validationCache.setTimeSource(timeSource);
-  }
-
-  public void verify(List<X509Certificate> certs) throws CertValidatorException {
-    // If a cert chain validates successfully, we cache it for several minutes.  This improves
-    // performance dramatically (anywhere from 10x to 50x decrease in CPU usage when repeatedly
-    // verifying the same certificate chain.
-    if (validationCache.get(certs) != null) {
-      return;
-    }
-    verifyNoCache(certs);
-    validationCache.put(certs, Boolean.TRUE, VALIDATION_CACHE_AGE_SECONDS);
-  }
-
-  private void verifyNoCache(List<X509Certificate> certs) throws CertValidatorException {
-    try {
-      CertPathValidator validator = CertPathValidator.getInstance(VALIDATOR_TYPE);
-      PKIXParameters params = new PKIXParameters(trustRoots);
-      params.setDate(timeSource.now());
-      params.setRevocationEnabled(false);
-      CertificateFactory certFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
-      CertPath certPath = certFactory.generateCertPath(certs);
-      validator.validate(certPath, params);
-    } catch (GeneralSecurityException e) {
-      log.log(Level.WARNING, "Certificate validation failed, certs were: " + certs, e);
-      throw new CertValidatorException("Certificate validation failure", e);
-    }
-  }
 }

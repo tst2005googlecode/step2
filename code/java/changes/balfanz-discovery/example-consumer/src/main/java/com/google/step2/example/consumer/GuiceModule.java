@@ -32,6 +32,10 @@ import com.google.step2.discovery.ParallelHostMetaFetcher;
 import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.openid.ax2.AxMessage2;
 import com.google.step2.servlet.ConsumerManagerProvider;
+import com.google.step2.xmlsimplesign.CertValidator;
+import com.google.step2.xmlsimplesign.CnConstraintCertValidator;
+import com.google.step2.xmlsimplesign.DefaultCertValidator;
+import com.google.step2.xmlsimplesign.DisjunctiveCertValidator;
 
 import net.oauth.client.OAuthClient;
 
@@ -93,6 +97,12 @@ public class GuiceModule extends AbstractModule {
     bind(HostMetaFetcher.class)
         .toProvider(HostMetaFetcherProvider.class).in(Scopes.SINGLETON);
 
+    // we're using a cert validator that will validate certs either if they
+    // belong to the expected signer of the XRD, or if they're signed
+    // by Google.
+    bind(CertValidator.class)
+        .toProvider(CertValidatorProvider.class).in(Scopes.SINGLETON);
+
     // we're waiting at most 10 seconds for the two host-meta fetchers to find
     // a host-meta
     bind(Long.class)
@@ -108,6 +118,32 @@ public class GuiceModule extends AbstractModule {
   private OAuthClient getOAuthClient() {
     return new OAuthClient(new net.oauth.client.httpclient4.HttpClient4());
   }
+
+  @Singleton
+  private static class CertValidatorProvider
+    implements Provider<CertValidator> {
+
+    private final CertValidator validator;
+
+    @Inject
+    public CertValidatorProvider(DefaultCertValidator defaultValidator) {
+
+      CertValidator hardCodedValidator = new CnConstraintCertValidator() {
+        @Override
+        protected String getRequiredCn(String authority) {
+          return "hosted-id.google.com";
+        }
+      };
+
+      validator = new DisjunctiveCertValidator(
+          defaultValidator, hardCodedValidator);
+    }
+
+    public CertValidator get() {
+      return validator;
+    }
+  }
+
 
   @Singleton
   private static class HostMetaFetcherProvider

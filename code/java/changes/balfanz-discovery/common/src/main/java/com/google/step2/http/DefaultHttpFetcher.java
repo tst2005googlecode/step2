@@ -17,6 +17,7 @@
 package com.google.step2.http;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
@@ -108,6 +109,14 @@ public class DefaultHttpFetcher implements HttpFetcher {
       } catch (IOException e) {
         throw new FetchException(e);
       }
+    }
+
+    public String getFirstHeader(String name) {
+      Header header = response.getFirstHeader(name);
+      if (header == null) {
+        return null;
+      }
+      return header.getValue();
     }
   }
 }

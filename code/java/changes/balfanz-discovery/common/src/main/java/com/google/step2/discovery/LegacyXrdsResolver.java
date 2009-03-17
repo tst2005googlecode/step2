@@ -23,6 +23,10 @@ import com.google.step2.http.FetchRequest;
 import com.google.step2.http.FetchResponse;
 import com.google.step2.http.HttpFetcher;
 import com.google.step2.util.XmlUtil;
+import com.google.step2.xmlsimplesign.CertValidator;
+import com.google.step2.xmlsimplesign.VerificationResult;
+import com.google.step2.xmlsimplesign.Verifier;
+import com.google.step2.xmlsimplesign.XmlSimpleSignException;
 
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
@@ -35,6 +39,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -67,15 +72,28 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
   // used to generate URIs pointing to user-specific XRDS documents
   private static final String URI_TEMPLATE_TAG = "URITemplate";
 
+  // used to delegate to new signer in next XRDS document
+  private static final String NEXT_AUTHORITY_TAG = "NextAuthority";
+
   // used to specify the OP-local id inside Service elements of type signon
   private static final String LOCAL_ID_TAG = "LocalID";
 
   // injected fetcher
   private final HttpFetcher httpFetcher;
 
+  // injected XRD signature verifier
+  private final Verifier verifier;
+
+  // the object that will validate the signing cert, i.e., decide whether
+  // the signing cert belongs to an authority appropriate for the given XRD
+  private final CertValidator certValidator;
+
   @Inject
-  public LegacyXrdsResolver(HttpFetcher httpFetcher) {
+  public LegacyXrdsResolver(HttpFetcher httpFetcher, Verifier verifier,
+      CertValidator validator) {
     this.httpFetcher = httpFetcher;
+    this.verifier = verifier;
+    this.certValidator = validator;
   }
 
   public String getDiscoveryDocumentType() {
@@ -88,10 +106,10 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
    * @return a list of discovery infos.
    * @throws DiscoveryException
    */
-  public List<DiscoveryInformation> findOpEndpointsForSite(IdpIdentifier site,
-      URI siteXrdsUri) throws DiscoveryException {
-    return resolveXrds(getXrd(siteXrdsUri), siteXrdsUri,
-        DiscoveryInformation.OPENID2_OP, site);
+  public List<SecureDiscoveryInformation> findOpEndpointsForSite(
+      IdpIdentifier site, URI siteXrdsUri) throws DiscoveryException {
+    return resolveXrds(getXrd(siteXrdsUri), DiscoveryInformation.OPENID2_OP,
+        site, null);
   }
 
   /**
@@ -101,11 +119,11 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
    * @param claimedId the claimedId of the user
    * @param userXrdsUri the URI from which to download the user's XRDS document.
    */
-  public List<DiscoveryInformation> findOpEndpointsForUser(
+  public List<SecureDiscoveryInformation> findOpEndpointsForUser(
       UrlIdentifier claimedId, URI userXrdsUri) throws DiscoveryException {
 
-      return resolveXrds(getXrd(userXrdsUri), userXrdsUri,
-          DiscoveryInformation.OPENID2, claimedId);
+      return resolveXrds(getXrd(userXrdsUri), DiscoveryInformation.OPENID2,
+          claimedId, null);
   }
 
   /**
@@ -118,36 +136,58 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
    * @param claimedId the claimedId of the user
    * @param siteXrdsUri the URI from which to download the user's XRDS document.
    */
-  public List<DiscoveryInformation> findOpEndpointsForUserThroughSiteXrd(
+  public List<SecureDiscoveryInformation> findOpEndpointsForUserThroughSiteXrd(
       UrlIdentifier claimedId, URI siteXrdsUri) throws DiscoveryException {
 
     // We're given the XRDS for the site of the claimedID.
     // Perform mapping to extract user's XRDS location.
-    URI userXrdsUri = mapClaimedIdToUserXrdsUri(getXrd(siteXrdsUri), claimedId);
+    NextXrdLocation userXrdsLocation =
+        mapClaimedIdToUserXrdsUri(getXrd(siteXrdsUri), claimedId);
 
     // now that we have the user XRDS URI, we fetch the XRDS
     // and return the list of OP endpoints found in there.
-    return resolveXrds(getXrd(userXrdsUri), userXrdsUri,
-        DiscoveryInformation.OPENID2, claimedId);
+    return resolveXrds(getXrd(userXrdsLocation.getUri()),
+        DiscoveryInformation.OPENID2,
+        claimedId,
+        userXrdsLocation.getNextAuthority());
   }
 
   /**
    * Looks for a URITemplate in the XRD, and applies the claimed id to it in
    * order to generate the user's XRDS endpoint.
    *
+   * @param siteXrd the XRD for the site (host) identified in the claimedId
+   *
+   * @return A {@link NextXrdLocation}, which is a struct containing the URI
+   *   obtained by mapping the claimedId onto the URITemplate found in the XRD,
+   *   and also a String identifying the next authority expected to sign the
+   *   XRD that the URI points to. This authority string might be null, which
+   *   means that the XRD that the URI points to should be signed by an
+   *   authority that matches the claimedId.
+   *
    * @throws DiscoveryException
    */
   /* visible for testing */
-  URI mapClaimedIdToUserXrdsUri(XRD xrd, UrlIdentifier claimedId)
-      throws DiscoveryException {
+  NextXrdLocation mapClaimedIdToUserXrdsUri(XrdRepresentations siteXrd,
+      UrlIdentifier claimedId) throws DiscoveryException {
+
+    // extract the host from the claimed id - this is the canonicalID
+    // we expect in the site's XRD
+    IdpIdentifier host = new IdpIdentifier(claimedId.getUrl().getHost());
 
     // find the <Service> element with type '.../describedby'
-    Service service = getServiceForType(xrd, URI_TEMPLATE_TYPE);
+    Service service = getServiceForType(siteXrd.getXrd(), URI_TEMPLATE_TYPE);
     if (service == null) {
       throw new DiscoveryException("could not find service of type " +
           URI_TEMPLATE_TYPE + " in XRDS at location " +
           claimedId.getIdentifier());
     }
+
+    // is there a NextAuthority? We only trust the next authority element
+    // if the document is properly signed.
+    String nextAuthority = checkSecurity(siteXrd, host, null)
+        ? getTagValue(service, NEXT_AUTHORITY_TAG)  // might still be null
+        : null;                                     // must be null if unsigned
 
     // find the <URITemplate> tag inside the <Service> element
     String uriTemplate = getTagValue(service, URI_TEMPLATE_TAG);
@@ -159,7 +199,9 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
 
     // now, apply the mapping:
     UriTemplate template = new UriTemplate(uriTemplate);
-    return template.map(URI.create(claimedId.getIdentifier()));
+    URI newUri = template.map(URI.create(claimedId.getIdentifier()));
+
+    return new NextXrdLocation(newUri, nextAuthority);
   }
 
   /**
@@ -182,43 +224,47 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
   /**
    * Finds OP-endpoints in an XRDS document.
    * @param xrd The XRD in which we're looking for OP endpoints.
-   * @param source the source from which we've fetched the XRD (for error
-   *   reporting purposes)
    * @param version the type of <Service> element we're looking for, can be
    *   either http://specs.openid.net/auth/2.0/signon or
    *   http://specs.openid.net/auth/2.0/server
    * @param id the identifier (UrlIdentifier for claimedId, or IdPIdentifier
    *   for site discovery)
+   * @param authority who we expect to be signing this XRD. If this is null,
+   *   then the XRD must be signed by an authority that matches the
+   *   canonicalID in the document.
    * @return a list of discovery info objects.
    * @throws DiscoveryException
    */
-  private List<DiscoveryInformation> resolveXrds(XRD xrd, URI source,
-      String version, Identifier id) throws DiscoveryException {
+  private List<SecureDiscoveryInformation> resolveXrds(XrdRepresentations xrd,
+      String version, Identifier id, String authority)
+      throws DiscoveryException {
 
-    List<Service> services = getServicesForType(xrd, version);
+    boolean isSecure = checkSecurity(xrd, id, authority);
+
+    List<Service> services = getServicesForType(xrd.getXrd(), version);
 
     if (services == null) {
       throw new DiscoveryException("could not find <Service> of type " +
-          version + " in XRDS for " + source.toASCIIString());
+          version + " in XRDS for " + xrd.getSource());
     }
 
-    List<DiscoveryInformation> result =
+    List<SecureDiscoveryInformation> result =
         Lists.newArrayListWithCapacity(services.size());
 
     for (Service service : services) {
       try {
         if (version.equals(DiscoveryInformation.OPENID2)) {
           // look for LocalID and use claimedID, if given.
-          result.add(createDiscoveryInfoForSignon(service, id));
+          result.add(createDiscoveryInfoForSignon(service, id, isSecure));
         } else if (version.equals(DiscoveryInformation.OPENID2_OP)) {
           // for site discovery, just return the URI
-          result.add(createDiscoveryInfoForServer(service));
+          result.add(createDiscoveryInfoForServer(service, isSecure));
         } else {
           throw new DiscoveryException("unkown OpenID version : " + version);
         }
       } catch (MalformedURLException e) {
         logger.log(Level.WARNING, "found malformed URL in discovery document " +
-            "at " + source.toASCIIString(), e);
+            "at " + xrd.getSource(), e);
         continue;
       }
     }
@@ -227,35 +273,108 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
   }
 
   /**
-   * Returns a simple {@link DiscoveryInformation} object pointing to an
-   * OP endpoint.
-   * @param service The <Service> element that has the OP endpoint information.
-   * @return a {@link DiscoveryInformation} object.
-   * @throws DiscoveryException
-   * @throws MalformedURLException
+   * Checks whether the XRD is properly signed.
+   * @param xrd the XRD in question.
+   * @param id the id that we expect this XRD to be about.
+   * @param authority the authority that we expect this document to have signed.
+   *   If null, the document should be signed by an authority matching the
+   *   CanonicalId.
+   * @return true if the signature could be validated, false otherwise
    */
-  private DiscoveryInformation createDiscoveryInfoForServer(Service service)
-      throws DiscoveryException, MalformedURLException {
-    return new DiscoveryInformation(service.getURIAt(0).getURI().toURL());
+  private boolean checkSecurity(XrdRepresentations xrd, Identifier id,
+      String authority) {
+
+    // first, we make sure that the canonicalID in this XRD matches
+    // the given identifier
+    String canonicalId = getCanonicalId(xrd.getXrd());
+    if (canonicalId == null) {
+      logger.warning("XRD from " + xrd.getSource() +
+          "did not have canonical Id");
+      return false;
+    }
+
+    if (!canonicalId.equals(id.getIdentifier())) {
+      logger.warning("Canonical ID " + canonicalId + " in XRD from " +
+          xrd.getSource() + " did not equal identifier " +
+          id.getIdentifier());
+      return false;
+    }
+
+    // now, check the signature:
+    VerificationResult verificatioResult;
+    try {
+      verificatioResult = verifier.verify(xrd.getDocument(), xrd.getSignature());
+    } catch (XmlSimpleSignException e) {
+      logger.log(Level.WARNING, "signature on XRD from " + xrd.getSource() +
+          "did not verify", e);
+      return false;
+    }
+
+    // finally, validate the signing cert (make sure it belongs to the authority
+    // that is supposed to have signed this XRD). If we're not given an
+    // authority, the XRD should be signed by the entity identified in the
+    // canonical id.
+    authority = (authority == null) ? canonicalId : authority;
+    return certValidator.matches(verificatioResult.getCerts().get(0), authority);
   }
 
   /**
-   * Returns a {@link DiscoveryInformation} object pointing to an
-   * OP endpoint, and possibly containing other information such as the
-   * claimedId and the OP-local id.
+   * Returns CanonicalId of this document. There should be exactly one
+   * CanonicalId in the document for us to consider the document securel.
+   * @param xrd
+   */
+  private String getCanonicalId(XRD xrd) {
+    if (xrd.getNumCanonicalids() != 1) {
+      return null;
+    }
+    return xrd.getCanonicalidAt(0).getValue();
+  }
+
+  /**
+   * Returns a simple {@link SecureDiscoveryInformation} object pointing to an
+   * OP endpoint.
    * @param service The <Service> element that has the OP endpoint information.
-   * @return a {@link DiscoveryInformation} object.
+   * @param isSecure whether to mark the {@link SecureDiscoveryInformation}
+   *   object as secure.
+   * @return a {@link SecureDiscoveryInformation} object.
    * @throws DiscoveryException
    * @throws MalformedURLException
    */
-  private DiscoveryInformation createDiscoveryInfoForSignon(Service service,
-      Identifier claimedId) throws DiscoveryException, MalformedURLException {
+  private SecureDiscoveryInformation createDiscoveryInfoForServer(
+      Service service, boolean isSecure) throws DiscoveryException, MalformedURLException {
+    SecureDiscoveryInformation result =
+        new SecureDiscoveryInformation(service.getURIAt(0).getURI().toURL());
+    result.setSecure(isSecure);
+    return result;
+  }
+
+  /**
+   * Returns a {@link SecureDiscoveryInformation} object pointing to an
+   * OP endpoint, and possibly containing other information such as the
+   * claimedId and the OP-local id.
+   * @param service The <Service> element that has the OP endpoint information.
+   * @param claimedId the claimedId we currently performing discovery on.
+   * @param isSecure whether to mark the {@link SecureDiscoveryInformation}
+   *   object as secure.
+   * @return a {@link SecureDiscoveryInformation} object.
+   * @throws DiscoveryException
+   * @throws MalformedURLException
+   */
+  private SecureDiscoveryInformation createDiscoveryInfoForSignon(
+      Service service, Identifier claimedId, boolean isSecure)
+      throws DiscoveryException, MalformedURLException {
 
     // could be null
     String localId = getTagValue(service, LOCAL_ID_TAG);
 
-    return new DiscoveryInformation(service.getURIAt(0).getURI().toURL(),
-        claimedId, localId, DiscoveryInformation.OPENID2);
+    SecureDiscoveryInformation result = new SecureDiscoveryInformation(
+        service.getURIAt(0).getURI().toURL(),
+        claimedId,
+        localId,
+        DiscoveryInformation.OPENID2);
+
+    result.setSecure(isSecure);
+    return result;
   }
 
   /**
@@ -264,8 +383,8 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
    * @param uri from where to fetch the XRDS.
    * @throws DiscoveryException
    */
-  private XRD getXrd(URI uri) throws DiscoveryException {
-    XRD result;
+  private XrdRepresentations getXrd(URI uri) throws DiscoveryException {
+    XrdRepresentations result;
     try {
       result = fetchXrd(uri);
     } catch (FetchException e) {
@@ -283,17 +402,29 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
    * Fetches an OpenID 2.0-style XRDS document and returns the "final" XRD
    * from it.
    *
+   * @return an {@link XrdRepresentations} object, which not only contains the
+   *   parsed XRD, but also the document as a byte array, the URI from which
+   *   the XRD was fetched, and the Signature that we might have see in the
+   *   HTTP response's Signature header.
+   *
    * @throws FetchException
    */
-  private XRD fetchXrd(URI uri) throws FetchException {
+  private XrdRepresentations fetchXrd(URI uri) throws FetchException {
 
     FetchRequest request = FetchRequest.createGetRequest(uri);
 
     XRDS xrds;
+    byte[] documentBytes;
+    String signature;
+
     try {
       FetchResponse response = httpFetcher.fetch(request);
 
-      Document document = XmlUtil.getDocument(response.getContentAsStream());
+      documentBytes = response.getContentAsBytes();
+      signature = response.getFirstHeader("Signature"); // could be null
+
+      Document document =
+          XmlUtil.getDocument(new ByteArrayInputStream(documentBytes));
 
       xrds = new XRDS(document.getDocumentElement(), false);
 
@@ -309,7 +440,8 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
       throw new FetchException(e);
     }
 
-    return xrds.getFinalXRD();
+    return new XrdRepresentations(xrds.getFinalXRD(), uri.toASCIIString(),
+        documentBytes, signature);
   }
 
   /**
@@ -357,5 +489,67 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
     });
 
     return services;
+  }
+
+  /**
+   * Helper class that bundles the location of the next XRD document in the
+   * discovery chain, together with the authority that should sign that next
+   * XRD document.
+   */
+  private static class NextXrdLocation {
+
+    private final URI uri;
+    private final String nextAuthority;
+
+    public NextXrdLocation(URI uri, String nextAuthority) {
+      this.uri = uri;
+      this.nextAuthority = nextAuthority;
+    }
+
+    public URI getUri() {
+      return uri;
+    }
+
+    public String getNextAuthority() {
+      return nextAuthority;
+    }
+  }
+
+  /**
+   * Helper class that hold two different representations of the XRD: the
+   * parsed version (useful for extracting information from it), and the
+   * raw bytes (useful for verifying the signature). Also holds the value
+   * of the Signature: header, if it was present when fetching the XRD, and
+   * the location (source) from which the the XRD was fetched.
+   */
+  private static class XrdRepresentations {
+
+    private final XRD xrd;
+    private final byte[] document;
+    private final String source;
+    private final String signature;
+
+    public XrdRepresentations(XRD xrd, String source, byte[] document, String signature) {
+      this.xrd = xrd;
+      this.source = source;
+      this.document = document;
+      this.signature = signature;
+    }
+
+    public XRD getXrd() {
+      return xrd;
+    }
+
+    public byte[] getDocument() {
+      return document;
+    }
+
+    public String getSignature() {
+      return signature;
+    }
+
+    public String getSource() {
+      return source;
+    }
   }
 }

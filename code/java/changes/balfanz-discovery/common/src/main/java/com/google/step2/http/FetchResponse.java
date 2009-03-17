@@ -39,4 +39,10 @@ public interface FetchResponse {
    * Returns the contents of this HTTP response, as a byte array
    */
   public byte[] getContentAsBytes() throws FetchException;
+
+  /**
+   * Returns the value of the first header with the given name, null if
+   * no such header was found.
+   */
+  public String getFirstHeader(String name);
 }

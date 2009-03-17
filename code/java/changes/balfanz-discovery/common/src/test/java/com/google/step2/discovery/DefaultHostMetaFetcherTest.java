@@ -116,5 +116,9 @@ public class DefaultHostMetaFetcherTest extends TestCase {
     public int getStatusCode() {
       return status;
     }
+
+    public String getFirstHeader(String name) {
+      return null;
+    }
   }
 }

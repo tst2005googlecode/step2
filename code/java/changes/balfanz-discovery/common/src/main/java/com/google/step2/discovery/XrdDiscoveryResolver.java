@@ -19,7 +19,6 @@ package com.google.step2.discovery;
 import com.google.inject.ImplementedBy;
 
 import org.openid4java.discovery.DiscoveryException;
-import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.UrlIdentifier;
 
 import java.net.URI;
@@ -57,7 +56,7 @@ public interface XrdDiscoveryResolver {
    *   include the URL of the discovered endpoint.
    * @throws DiscoveryException
    */
-  public List<DiscoveryInformation> findOpEndpointsForSite(
+  public List<SecureDiscoveryInformation> findOpEndpointsForSite(
       IdpIdentifier site, URI xrdUri)
       throws DiscoveryException;
 
@@ -71,7 +70,7 @@ public interface XrdDiscoveryResolver {
    *   possibly the OP-local id of a user.
    * @throws DiscoveryException
    */
-  public List<DiscoveryInformation> findOpEndpointsForUser(
+  public List<SecureDiscoveryInformation> findOpEndpointsForUser(
       UrlIdentifier claimedId, URI xrdUri)
       throws DiscoveryException;
 
@@ -86,7 +85,7 @@ public interface XrdDiscoveryResolver {
    *   possibly the OP-local id of a user.
    * @throws DiscoveryException
    */
-  public List<DiscoveryInformation> findOpEndpointsForUserThroughSiteXrd(
+  public List<SecureDiscoveryInformation> findOpEndpointsForUserThroughSiteXrd(
       UrlIdentifier claimedId, URI xrdUri)
       throws DiscoveryException;
 }
