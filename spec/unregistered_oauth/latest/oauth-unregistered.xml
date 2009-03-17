@@ -72,13 +72,32 @@
     </section>      
     <section title="Authenticating with OAuth">
       <section title="Obtaining User Authorization">
-        <section title="Consumer Directs the User to the Service Provider">
+        <section title="Consumer Directs the User to the Service Provider" anchor="authorize">
           <t>This differs from Section 6.2.1 of <xref target="OAuth"/> in that
             'oauth_callback' MUST be included by the Consumer
             as part of the browser-mediated request, and 'oauth_token'
-            MUST NOT be included. 
+            MUST NOT be included. There is also an optional parameter
+            'oauth_callback_method', which signals to the Service Provider
+            whether to use GET or POST when redirecting the user back
+            to the Consumer:
+	    <list style="hanging">
+              <t hangText='oauth_callback'>
+		REQUIRED. The presence of this parameter, and the absence
+		of the oauth_token parameter, signals to the Service
+		Provider that the Consumer is not registered. The Service
+		Provider will redirect the User back to the Consumer
+		using the URL provided in this parameter.</t>
+              <t hangText="oauth_callback_method">
+		OPTIONAL. Values can be "get" or "post". If not specified,
+		the value is assumed to be "post". This parameter
+		specifies whether the Consumer would like the callback URL
+		provided in the oauth_callback parameter to be invoked
+		through HTTP GET or POST, with POST being the default.
+	      </t>
+            </list>
           </t>
         </section>
+
         <section title="Service Provider Authenticates the User and Obtains Consent">
           <t>The Service Provider MUST use the
             callback URL to infer the entity that the user should trust in
@@ -100,14 +119,24 @@
             as in Section 6.2.2 of <xref target="OAuth"/>.
           </t>
         </section>
+
         <section title="Service Provider Directs the User Back to the Consumer">
-          <t>The service provider MUST include an
+          <t>The Service Provider MUST include an
             'oauth_token' parameter. It is RECOMMENDED that
             the OAuth token have a short expiration time (i.e., several seconds
-            to a few minutes).
-          </t>
+            to a few minutes).</t>
+	  <t>The Service Provider SHOULD cause the
+            User's user agent to use the HTTP POST method to invoke
+            the callback URL provided in <xref target="authorize"/>,
+            unless the Consumer specified oauth_callback_method=get in
+            that step.</t>
+	  <t>When redirecting the User to the Consumer's callback URL
+            through an HTTP GET method, the Service Provider SHOULD
+            provide the oauth_token parameter in the URL fragment, as
+            opposed to the URL query component.</t>
         </section>
       </section>
+
       <section title="Obtaining an Access Token">
         <section title="Consumer Requests an Access Token">
           <t>The signature is computed according to
@@ -128,38 +157,21 @@
     </section>
 
     <section title="Security Considerations" anchor="security">
-      <t>In order to have better assurance that the request from an unregistered
-        consumer is legitimate, the service provider should attempt to perform
-        some validation of the callback URL. In particular, if the callback URL
-        contains query parameters it may be exploiting an open redirector on
-        a reputable site. Simply displaying the full callback URL to the user is
-        generally not sufficient, as most users cannot make informed decisions
-        with this data. In the following, some alternatives are described that
-        will allow service providers to acquire greater confidence in the
-        source of the requests.
-        <list style='symbols'>
-          <t>Service providers SHOULD limit the format of callback URLs, for instance
-            by rejecting callback URLs containing query parameters
-            without the "oauth" prefix.
-          </t>
-	  <t>
-            Service providers SHOULD also limit the acceptable URI
-            schemes in callback URLs, for example by rejecting
-            javascript: URI schemes. Many mobile applications register
-            URI schemes as callbacks to particular applications;
-            Service Providers may therefore decide to blacklist,
-            rather than whitelist, URI schemes.
-          </t>
-          <t>If the OAuth request is sent together with an OpenID authorization
-            request, as in
-            the OpenID OAuth extension <xref target="OpenIDOAuth"/>, and the
-            service provider performs callback URL verification via the OpenID
-            realm verification mechanism, the provider can be assured with a
-            good degree of confidence about the origin of the requests, and
-            may use only the shorter OpenID realm URL for UI purposes in
-            requesting user authentication.
-          </t>
-        </list>
+      <t>We RECOMMEND using the HTTP POST method for transmitting the
+	OAuth token to the Consumer because most open redirectors
+	don't respond to POST requests, and therefore it is less
+	likely that users will be tricked into delegating OAuth access
+	to sites they don't intend to.
+      </t>
+      <t>If a Consumer is implemented in Javascript and wants to avoid
+	the roundtrip to the server, it can specify
+	oauth_callback_method=get in <xref target="authorize"/>. This
+	way, the Service Provider will specify the OAuth token in the
+	URL fragment. This will cause the browser to load the
+	corresponding page from its cache in the common case. It has
+	also the benefit of not sending the token to the server if the
+	page has to be fetched from the server, as that server might
+	be an open redirector.
       </t> 
     </section>
   </middle>
@@ -178,38 +190,6 @@
         </front>
         <format type="HTML" target="http://oauth.net/core/1.0/"/>
        </reference>
-       <reference anchor="OpenIDOAuth" target="http://breno.demedeiros.googlepages.com/openidoauth.html">
-         <front>
-           <title>OpenID OAuth Extension</title>
-           <author initials='D.' surname="Balfanz" fullname='Dirk Balfanz (editor)'>
-             <organization abbrev='Google'>Google, Inc.</organization>
-             <address>
-               <email>balfanz@google.com</email>
-             </address>
-           </author>
-           <author initials='B.' surname="de Medeiros" fullname='Breno de Medeiros (editor)'>
-             <organization abbrev='Google'>Google, Inc.</organization>
-             <address>
-               <email>breno@google.com</email>
-             </address>
-           </author>
-           <author initials='D.' surname="Recordon" fullname='David Recordon (editor)'>
-             <organization abbrev='Six Apart'>Six Apart, Ltd.</organization>
-             <address>
-               <email>david@sixapart.com</email>
-             </address>
-           </author>
-           <author initials='J.' surname="Smarr" fullname='Joseph Smarr (editor)'>
-             <organization abbrev='Plaxo'>Plaxo, Inc.</organization>
-             <address>
-               <email>joseph@plaxo.com</email>
-             </address>
-           </author>
-           <date year='2009'/>
-         </front>
-         <format type="HTML" target="http://breno.demedeiros.googlepages.com/openidoauth.html"/>
-         <!--<format type="TXT" target="http://openid.net/specs/ext/oauth/1.0/oauth.txt"/>-->
-      </reference>
      </references>
    </back>
  </rfc>

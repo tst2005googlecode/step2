@@ -5,7 +5,7 @@ draft                                                         D. Balfanz
                                                                 B. Eaton
                                                           B. de Medeiros
                                                                   Google
-                                                         January 8, 2009
+                                                          March 17, 2009
 
 
            OAuth Extension to Support Unregistered Consumers
@@ -54,7 +54,7 @@ draft                                                         D. Balfanz
 
 Balfanz, et al.                                                 [Page 1]
 
-                           unregistered-oauth               January 2009
+                           unregistered-oauth                 March 2009
 
 
 Abstract
@@ -76,9 +76,9 @@ Table of Contents
                Obtains Consent  . . . . . . . . . . . . . . . . . . .  6
        4.1.3.  Service Provider Directs the User Back to the
                Consumer . . . . . . . . . . . . . . . . . . . . . . .  6
-     4.2.  Obtaining an Access Token  . . . . . . . . . . . . . . . .  6
-       4.2.1.  Consumer Requests an Access Token  . . . . . . . . . .  6
-       4.2.2.  Service Provider Grants an Access Token  . . . . . . .  6
+     4.2.  Obtaining an Access Token  . . . . . . . . . . . . . . . .  7
+       4.2.1.  Consumer Requests an Access Token  . . . . . . . . . .  7
+       4.2.2.  Service Provider Grants an Access Token  . . . . . . .  7
      4.3.  Accessing Protected Resources  . . . . . . . . . . . . . .  7
    5.  Security Considerations  . . . . . . . . . . . . . . . . . . .  8
    6.  Normative References . . . . . . . . . . . . . . . . . . . . .  9
@@ -110,7 +110,7 @@ Table of Contents
 
 Balfanz, et al.                                                 [Page 2]
 
-                           unregistered-oauth               January 2009
+                           unregistered-oauth                 March 2009
 
 
 1.  Requirements notation
@@ -166,7 +166,7 @@ Balfanz, et al.                                                 [Page 2]
 
 Balfanz, et al.                                                 [Page 3]
 
-                           unregistered-oauth               January 2009
+                           unregistered-oauth                 March 2009
 
 
 2.  Terminology
@@ -222,7 +222,7 @@ Balfanz, et al.                                                 [Page 3]
 
 Balfanz, et al.                                                 [Page 4]
 
-                           unregistered-oauth               January 2009
+                           unregistered-oauth                 March 2009
 
 
 3.  Overview
@@ -278,7 +278,7 @@ Balfanz, et al.                                                 [Page 4]
 
 Balfanz, et al.                                                 [Page 5]
 
-                           unregistered-oauth               January 2009
+                           unregistered-oauth                 March 2009
 
 
 4.  Authenticating with OAuth
@@ -289,7 +289,22 @@ Balfanz, et al.                                                 [Page 5]
 
    This differs from Section 6.2.1 of [OAuth] in that 'oauth_callback'
    MUST be included by the Consumer as part of the browser-mediated
-   request, and 'oauth_token' MUST NOT be included.
+   request, and 'oauth_token' MUST NOT be included.  There is also an
+   optional parameter 'oauth_callback_method', which signals to the
+   Service Provider whether to use GET or POST when redirecting the user
+   back to the Consumer:
+
+   oauth_callback  REQUIRED.  The presence of this parameter, and the
+      absence of the oauth_token parameter, signals to the Service
+      Provider that the Consumer is not registered.  The Service
+      Provider will redirect the User back to the Consumer using the URL
+      provided in this parameter.
+
+   oauth_callback_method  OPTIONAL.  Values can be "get" or "post".  If
+      not specified, the value is assumed to be "post".  This parameter
+      specifies whether the Consumer would like the callback URL
+      provided in the oauth_callback parameter to be invoked through
+      HTTP GET or POST, with POST being the default.
 
 4.1.2.  Service Provider Authenticates the User and Obtains Consent
 
@@ -312,9 +327,26 @@ Balfanz, et al.                                                 [Page 5]
 
 4.1.3.  Service Provider Directs the User Back to the Consumer
 
-   The service provider MUST include an 'oauth_token' parameter.  It is
+   The Service Provider MUST include an 'oauth_token' parameter.  It is
    RECOMMENDED that the OAuth token have a short expiration time (i.e.,
+
+
+
+Balfanz, et al.                                                 [Page 6]
+
+                           unregistered-oauth                 March 2009
+
+
    several seconds to a few minutes).
+
+   The Service Provider SHOULD cause the User's user agent to use the
+   HTTP POST method to invoke the callback URL provided in
+   Section 4.1.1, unless the Consumer specified
+   oauth_callback_method=get in that step.
+
+   When redirecting the User to the Consumer's callback URL through an
+   HTTP GET method, the Service Provider SHOULD provide the oauth_token
+   parameter in the URL fragment, as opposed to the URL query component.
 
 4.2.  Obtaining an Access Token
 
@@ -328,14 +360,6 @@ Balfanz, et al.                                                 [Page 5]
 4.2.2.  Service Provider Grants an Access Token
 
    As usual.
-
-
-
-
-Balfanz, et al.                                                 [Page 6]
-
-                           unregistered-oauth               January 2009
-
 
 4.3.  Accessing Protected Resources
 
@@ -364,65 +388,41 @@ Balfanz, et al.                                                 [Page 6]
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Balfanz, et al.                                                 [Page 7]
 
-                           unregistered-oauth               January 2009
+                           unregistered-oauth                 March 2009
 
 
 5.  Security Considerations
 
-   In order to have better assurance that the request from an
-   unregistered consumer is legitimate, the service provider should
-   attempt to perform some validation of the callback URL.  In
-   particular, if the callback URL contains query parameters it may be
-   exploiting an open redirector on a reputable site.  Simply displaying
-   the full callback URL to the user is generally not sufficient, as
-   most users cannot make informed decisions with this data.  In the
-   following, some alternatives are described that will allow service
-   providers to acquire greater confidence in the source of the
-   requests.
+   We RECOMMEND using the HTTP POST method for transmitting the OAuth
+   token to the Consumer because most open redirectors don't respond to
+   POST requests, and therefore it is less likely that users will be
+   tricked into delegating OAuth access to sites they don't intend to.
 
-   o  Service providers SHOULD limit the format of callback URLs, for
-      instance by rejecting callback URLs containing query parameters
-      without the "oauth" prefix.
+   If a Consumer is implemented in Javascript and wants to avoid the
+   roundtrip to the server, it can specify oauth_callback_method=get in
+   Section 4.1.1.  This way, the Service Provider will specify the OAuth
+   token in the URL fragment.  This will cause the browser to load the
+   corresponding page from its cache in the common case.  It has also
+   the benefit of not sending the token to the server if the page has to
+   be fetched from the server, as that server might be an open
+   redirector.
 
-   o  Service providers SHOULD also limit the acceptable URI schemes in
-      callback URLs, for example by rejecting javascript: URI schemes.
-      Many mobile applications register URI schemes as callbacks to
-      particular applications; Service Providers may therefore decide to
-      blacklist, rather than whitelist, URI schemes.
 
-   o  If the OAuth request is sent together with an OpenID authorization
-      request, as in the OpenID OAuth extension [OpenIDOAuth], and the
-      service provider performs callback URL verification via the OpenID
-      realm verification mechanism, the provider can be assured with a
-      good degree of confidence about the origin of the requests, and
-      may use only the shorter OpenID realm URL for UI purposes in
-      requesting user authentication.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -446,19 +446,13 @@ Balfanz, et al.                                                 [Page 7]
 
 Balfanz, et al.                                                 [Page 8]
 
-                           unregistered-oauth               January 2009
+                           unregistered-oauth                 March 2009
 
 
 6.  Normative References
 
    [OAuth]    OAuth Core Workgroup, "OAuth Core 1.0", December 2007,
               <http://oauth.net/core/1.0/>.
-
-   [OpenIDOAuth]
-              Balfanz, D., de Medeiros, B., Recordon, D., and J. Smarr,
-              "OpenID OAuth Extension", 2009,
-              <http://breno.demedeiros.googlepages.com/
-              openidoauth.html>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -500,9 +494,15 @@ Balfanz, et al.                                                 [Page 8]
 
 
 
+
+
+
+
+
+
 Balfanz, et al.                                                 [Page 9]
 
-                           unregistered-oauth               January 2009
+                           unregistered-oauth                 March 2009
 
 
 Authors' Addresses

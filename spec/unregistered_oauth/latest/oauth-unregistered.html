@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en"><head><title>draft: OAuth Extension to Support Unregistered Consumers</title>
-<meta http-equiv="Expires" content="Wed, 07 Jan 2009 23:34:25 +0000">
+<meta http-equiv="Expires" content="Tue, 17 Mar 2009 18:04:52 +0000">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="OAuth Extension to Support Unregistered Consumers">
 <meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
@@ -146,7 +146,7 @@
 <tr><td class="header">&nbsp;</td><td class="header">B. Eaton</td></tr>
 <tr><td class="header">&nbsp;</td><td class="header">B. de Medeiros</td></tr>
 <tr><td class="header">&nbsp;</td><td class="header">Google</td></tr>
-<tr><td class="header">&nbsp;</td><td class="header">January 7, 2009</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">March 17, 2009</td></tr>
 </table></td></tr></table>
 <h1><br />OAuth Extension to Support Unregistered Consumers</h1>
 
@@ -169,19 +169,19 @@ Overview<br />
 Authenticating with OAuth<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor5">4.1.</a>&nbsp;
 Obtaining User Authorization<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor6">4.1.1.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#authorize">4.1.1.</a>&nbsp;
 Consumer Directs the User to the Service Provider<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor7">4.1.2.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor6">4.1.2.</a>&nbsp;
 Service Provider Authenticates the User and Obtains Consent<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor8">4.1.3.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor7">4.1.3.</a>&nbsp;
 Service Provider Directs the User Back to the Consumer<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor9">4.2.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor8">4.2.</a>&nbsp;
 Obtaining an Access Token<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor10">4.2.1.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor9">4.2.1.</a>&nbsp;
 Consumer Requests an Access Token<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor11">4.2.2.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor10">4.2.2.</a>&nbsp;
 Service Provider Grants an Access Token<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor12">4.3.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor11">4.3.</a>&nbsp;
 Accessing Protected Resources<br />
 <a href="#security">5.</a>&nbsp;
 Security Considerations<br />
@@ -235,7 +235,7 @@ Authenticating with OAuth</h3>
 <a name="rfc.section.4.1"></a><h3>4.1.&nbsp;
 Obtaining User Authorization</h3>
 
-<a name="anchor6"></a><br /><hr />
+<a name="authorize"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.4.1.1"></a><h3>4.1.1.&nbsp;
 Consumer Directs the User to the Service Provider</h3>
@@ -243,10 +243,33 @@ Consumer Directs the User to the Service Provider</h3>
 <p>This differs from Section 6.2.1 of <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a> in that
             'oauth_callback' MUST be included by the Consumer
             as part of the browser-mediated request, and 'oauth_token'
-            MUST NOT be included. 
+            MUST NOT be included. There is also an optional parameter
+            'oauth_callback_method', which signals to the Service Provider
+            whether to use GET or POST when redirecting the user back
+            to the Consumer:
+	    </p>
+<blockquote class="text"><dl>
+<dt>oauth_callback</dt>
+<dd>
+		REQUIRED. The presence of this parameter, and the absence
+		of the oauth_token parameter, signals to the Service
+		Provider that the Consumer is not registered. The Service
+		Provider will redirect the User back to the Consumer
+		using the URL provided in this parameter.
+</dd>
+<dt>oauth_callback_method</dt>
+<dd>
+		OPTIONAL. Values can be "get" or "post". If not specified,
+		the value is assumed to be "post". This parameter
+		specifies whether the Consumer would like the callback URL
+		provided in the oauth_callback parameter to be invoked
+		through HTTP GET or POST, with POST being the default.
+	      
+</dd>
+</dl></blockquote><p>
           
 </p>
-<a name="anchor7"></a><br /><hr />
+<a name="anchor6"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.4.1.2"></a><h3>4.1.2.&nbsp;
 Service Provider Authenticates the User and Obtains Consent</h3>
@@ -259,7 +282,10 @@ Service Provider Authenticates the User and Obtains Consent</h3>
             perform verification of the callback URL (the precise mechanism
             for doing so is left unspecified here, but see
             <a class='info' href='#security'>Section&nbsp;5<span> (</span><span class='info'>Security Considerations</span><span>)</span></a>) some suggestions are provided
-            in the security considerations section). If callback URL verification
+            in the security considerations section). 
+	  
+</p>
+<p>If callback URL verification
             is not possible, it is RECOMMENDED that the Service Provider indicate
             to the user that there is
             a lower level of assurance about the identity of the party requesting
@@ -271,23 +297,33 @@ Service Provider Authenticates the User and Obtains Consent</h3>
             as in Section 6.2.2 of <a class='info' href='#OAuth'>[OAuth]<span> (</span><span class='info'>OAuth Core Workgroup, &ldquo;OAuth Core 1.0,&rdquo; December&nbsp;2007.</span><span>)</span></a>.
           
 </p>
-<a name="anchor8"></a><br /><hr />
+<a name="anchor7"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.4.1.3"></a><h3>4.1.3.&nbsp;
 Service Provider Directs the User Back to the Consumer</h3>
 
-<p>The service provider MUST include an
+<p>The Service Provider MUST include an
             'oauth_token' parameter. It is RECOMMENDED that
             the OAuth token have a short expiration time (i.e., several seconds
             to a few minutes).
-          
 </p>
-<a name="anchor9"></a><br /><hr />
+<p>The Service Provider SHOULD cause the
+            User's user agent to use the HTTP POST method to invoke
+            the callback URL provided in <a class='info' href='#authorize'>Section&nbsp;4.1.1<span> (</span><span class='info'>Consumer Directs the User to the Service Provider</span><span>)</span></a>,
+            unless the Consumer specified oauth_callback_method=get in
+            that step.
+</p>
+<p>When redirecting the User to the Consumer's callback URL
+            through an HTTP GET method, the Service Provider SHOULD
+            provide the oauth_token parameter in the URL fragment, as
+            opposed to the URL query component.
+</p>
+<a name="anchor8"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.4.2"></a><h3>4.2.&nbsp;
 Obtaining an Access Token</h3>
 
-<a name="anchor10"></a><br /><hr />
+<a name="anchor9"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.4.2.1"></a><h3>4.2.1.&nbsp;
 Consumer Requests an Access Token</h3>
@@ -297,7 +333,7 @@ Consumer Requests an Access Token</h3>
             be HMAC-SHA1, with the Consumer Key and Consumer Secret, as well as the Request Token Secret  set to the empty string.
           
 </p>
-<a name="anchor11"></a><br /><hr />
+<a name="anchor10"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.4.2.2"></a><h3>4.2.2.&nbsp;
 Service Provider Grants an Access Token</h3>
@@ -305,7 +341,7 @@ Service Provider Grants an Access Token</h3>
 <p>As usual.
           
 </p>
-<a name="anchor12"></a><br /><hr />
+<a name="anchor11"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.4.3"></a><h3>4.3.&nbsp;
 Accessing Protected Resources</h3>
@@ -319,42 +355,22 @@ Accessing Protected Resources</h3>
 <a name="rfc.section.5"></a><h3>5.&nbsp;
 Security Considerations</h3>
 
-<p>In order to have better assurance that the request from an unregistered
-        consumer is legitimate, the service provider should attempt to perform
-        some validation of the callback URL. In particular, if the callback URL
-        contains query parameters it may be exploiting an open redirector on
-        a reputable site. Simply displaying the full callback URL to the user is
-        generally not sufficient, as most users cannot make informed decisions
-        with this data. In the following, some alternatives are described that
-        will allow service providers to acquire greater confidence in the
-        source of the requests.
-        </p>
-<ul class="text">
-<li>Service providers SHOULD limit the format of callback URLs, for instance
-            by rejecting callback URLs containing query parameters
-            without the "oauth" prefix.
-          
-</li>
-<li>
-            Service providers SHOULD also limit the acceptable URI
-            schemes in callback URLs, for example by rejecting
-            javascript: URI schemes. Many mobile applications register
-            URI schemes as callbacks to particular applications;
-            Service Providers may therefore decide to blacklist,
-            rather than whitelist, URI schemes.
-          
-</li>
-<li>If the OAuth request is sent together with an OpenID authorization
-            request, as in
-            the OpenID OAuth extension <a class='info' href='#OpenIDOAuth'>[OpenIDOAuth]<span> (</span><span class='info'>Balfanz, D., de Medeiros, B., Recordon, D., and J. Smarr, &ldquo;OpenID OAuth Extension,&rdquo; 2009.</span><span>)</span></a>, and the
-            service provider performs callback URL verification via the OpenID
-            realm verification mechanism, the provider can be assured with a
-            good degree of confidence about the origin of the requests, and
-            may use only the shorter OpenID realm URL for UI purposes in
-            requesting user authentication.
-          
-</li>
-</ul><p>
+<p>We RECOMMEND using the HTTP POST method for transmitting the
+	OAuth token to the Consumer because most open redirectors
+	don't respond to POST requests, and therefore it is less
+	likely that users will be tricked into delegating OAuth access
+	to sites they don't intend to.
+      
+</p>
+<p>If a Consumer is implemented in Javascript and wants to avoid
+	the roundtrip to the server, it can specify
+	oauth_callback_method=get in <a class='info' href='#authorize'>Section&nbsp;4.1.1<span> (</span><span class='info'>Consumer Directs the User to the Service Provider</span><span>)</span></a>. This
+	way, the Service Provider will specify the OAuth token in the
+	URL fragment. This will cause the browser to load the
+	corresponding page from its cache in the common case. It has
+	also the benefit of not sending the token to the server if the
+	page has to be fetched from the server, as that server might
+	be an open redirector.
       
 </p>
 <a name="rfc.references1"></a><br /><hr />
@@ -363,8 +379,6 @@ Security Considerations</h3>
 <table width="99%" border="0">
 <tr><td class="author-text" valign="top"><a name="OAuth">[OAuth]</a></td>
 <td class="author-text"><a href="mailto:spec@oauth.net">OAuth Core Workgroup</a>, &ldquo;<a href="http://oauth.net/core/1.0/">OAuth Core 1.0</a>,&rdquo; December&nbsp;2007 (<a href="http://oauth.net/core/1.0/">HTML</a>).</td></tr>
-<tr><td class="author-text" valign="top"><a name="OpenIDOAuth">[OpenIDOAuth]</a></td>
-<td class="author-text"><a href="mailto:balfanz@google.com">Balfanz, D.</a>, <a href="mailto:breno@google.com">de Medeiros, B.</a>, <a href="mailto:david@sixapart.com">Recordon, D.</a>, and <a href="mailto:joseph@plaxo.com">J. Smarr</a>, &ldquo;<a href="http://breno.demedeiros.googlepages.com/openidoauth.html">OpenID OAuth Extension</a>,&rdquo; 2009 (<a href="http://breno.demedeiros.googlepages.com/openidoauth.html">HTML</a>).</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC2119">[RFC2119]</a></td>
 <td class="author-text"><a href="mailto:sob@harvard.edu">Bradner, S.</a>, &ldquo;<a href="http://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>,&rdquo; BCP&nbsp;14, RFC&nbsp;2119, March&nbsp;1997 (<a href="ftp://ftp.isi.edu/in-notes/rfc2119.txt">TXT</a>, <a href="http://xml.resource.org/public/rfc/html/rfc2119.html">HTML</a>, <a href="http://xml.resource.org/public/rfc/xml/rfc2119.xml">XML</a>).</td></tr>
 </table>
