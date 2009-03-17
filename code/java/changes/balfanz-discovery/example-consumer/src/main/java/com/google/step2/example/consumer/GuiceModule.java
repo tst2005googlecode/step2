@@ -23,8 +23,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.discovery.DefaultHostMetaFetcher;
 import com.google.step2.discovery.HostMetaFetcher;
@@ -102,17 +100,6 @@ public class GuiceModule extends AbstractModule {
     // by Google.
     bind(CertValidator.class)
         .toProvider(CertValidatorProvider.class).in(Scopes.SINGLETON);
-
-    // we're waiting at most 10 seconds for the two host-meta fetchers to find
-    // a host-meta
-    bind(Long.class)
-        .annotatedWith(Names.named("hostMetaTimeout"))
-        .toInstance(Long.valueOf(10)); // 10 seconds
-
-    // we're supplying at most 20 threads for host-meta fetchers
-    bind(ExecutorService.class)
-        .annotatedWith(Names.named("ParallelHostMetaFetcherExecutor"))
-        .toInstance(Executors.newFixedThreadPool(20));
   }
 
   private OAuthClient getOAuthClient() {
@@ -153,11 +140,18 @@ public class GuiceModule extends AbstractModule {
 
     @Inject
     public HostMetaFetcherProvider(
-        @Named("ParallelHostMetaFetcherExecutor") ExecutorService executor,
-        @Named("hostMetaTimeout") Long timeout,
         DefaultHostMetaFetcher fetcher1,
         GoogleHostedHostMetaFetcher fetcher2) {
-      fetcher = new ParallelHostMetaFetcher(executor, timeout, fetcher1, fetcher2);
+
+      // we're waiting at most 10 seconds for the two host-meta fetchers to find
+      // a host-meta
+      long hostMetatimeout = 10; // seconds.
+
+      // we're supplying at most 20 threads for host-meta fetchers
+      ExecutorService executor = Executors.newFixedThreadPool(20);
+
+      fetcher = new ParallelHostMetaFetcher(executor, hostMetatimeout,
+          fetcher1, fetcher2);
     }
 
     public HostMetaFetcher get() {
