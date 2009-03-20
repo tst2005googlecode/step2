@@ -4,26 +4,26 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.google.step2;
 
+import com.google.step2.discovery.SecureUrlIdentifier;
 import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.hybrid.HybridOauthResponse;
 import com.google.step2.openid.ax2.AxMessage2;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.openid4java.consumer.VerificationResult;
+import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.Identifier;
 import org.openid4java.message.AuthFailure;
 import org.openid4java.message.AuthImmediateFailure;
@@ -36,15 +36,17 @@ import org.openid4java.message.ax.FetchResponse;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Class that makes it easier to handle responses from the IdP.
- * 
+ *
  * @author Dirk Balfanz (dirk.balfanz@gmail.com)
  * @author Breno de Medeiros (breno.demedeiros@gmail.com)
  */
 public class AuthResponseHelper {
-  private static Log log = LogFactory.getLog(AuthResponseHelper.class);
+  private static Logger log = Logger.getLogger(AuthRequestHelper.class.getName());
 
   public enum ResultType {
     AUTH_SUCCESS,  // response is of type AuthSuccess
@@ -54,9 +56,11 @@ public class AuthResponseHelper {
   }
 
   private final VerificationResult result;
+  private final boolean isSecure;
 
-  AuthResponseHelper(VerificationResult verification) {
+  AuthResponseHelper(VerificationResult verification, boolean isSecure) {
     this.result = verification;
+    this.isSecure = isSecure;
   }
 
   /**
@@ -71,7 +75,7 @@ public class AuthResponseHelper {
    * @return the {@link ResultType}.
    */
   public ResultType getAuthResultType() {
-    log.info(result.getAuthResponse());
+    log.info(result.getAuthResponse().toString());
     if (result.getAuthResponse() instanceof AuthSuccess) {
       return ResultType.AUTH_SUCCESS;
     } else if (result.getAuthResponse() instanceof AuthImmediateFailure) {
@@ -120,20 +124,30 @@ public class AuthResponseHelper {
    *   successful AuthResponse or doesn't include a claimed id
    */
   public Identifier getClaimedId() {
-    if (getAuthResultType() == ResultType.AUTH_SUCCESS) {
-      return result.getVerifiedId(); 
-    } else {
+
+    if (getAuthResultType() != ResultType.AUTH_SUCCESS) {
+      return null;
+    }
+
+    try {
+      return isSecure
+          ? new SecureUrlIdentifier(result.getVerifiedId())
+          : result.getVerifiedId();
+    } catch (DiscoveryException e) {
+      log.log(Level.WARNING,
+          "could not create SecureUrlIdentifier from UrlIdentifier", e);
       return null;
     }
   }
-  
+
+  @SuppressWarnings("unchecked")
   private <T extends MessageExtension> T getExtension(Class<T> type,
       String typeUri) throws MessageException {
     if (!getAuthResponse().hasExtension(typeUri)) {
       throw new MessageException("Response does not have extension for type: "
           + typeUri);
     }
-    
+
     MessageExtension ext = getAuthResponse().getExtension(typeUri);
     if (type.isAssignableFrom(ext.getClass())) {
       return (T) ext;
@@ -141,17 +155,17 @@ public class AuthResponseHelper {
     throw new MessageException("Cannot cast type " + ext.getClass().getName() +
         " to " + type.getName());
   }
-  
+
   /**
-   * @return True if response message includes the Oauth extension. 
+   * @return True if response message includes the Oauth extension.
    */
   public boolean hasHybridOauthExtension() {
     return getAuthResponse().hasExtension(HybridOauthMessage.OPENID_NS_OAUTH);
   }
-  
+
   /**
    * Returns a HybridOauthResponse if available
-   * 
+   *
    * @return a HybridOauthResponse object
    *
    * @throws MessageException If the hybrid message parameters were not included
@@ -161,11 +175,11 @@ public class AuthResponseHelper {
     return getExtension(HybridOauthResponse.class,
         HybridOauthMessage.OPENID_NS_OAUTH);
   }
-  
+
   public Class<? extends AxMessage> getAxExtensionType() throws MessageException {
     Message resp = getAuthResponse();
     if (resp.hasExtension(AxMessage2.OPENID_NS_AX_FINAL)) {
-      MessageExtension extension = 
+      MessageExtension extension =
         resp.getExtension(AxMessage2.OPENID_NS_AX_FINAL);
       if (extension instanceof FetchResponse) {
         return FetchResponse.class;
@@ -175,12 +189,12 @@ public class AuthResponseHelper {
   }
 
   /**
-   * @return True if response message includes the Attribute Exchange extension. 
+   * @return True if response message includes the Attribute Exchange extension.
    */
   public boolean hasAxExtension() {
     return getAuthResponse().hasExtension(AxMessage2.OPENID_NS_AX_FINAL);
   }
-  
+
   /**
    * Returns the complete FetchResponse object representing all the attributes
    * returned through the Attribute Extension.
@@ -193,7 +207,7 @@ public class AuthResponseHelper {
   public FetchResponse getAxFetchResponse() throws MessageException {
     return getExtension(FetchResponse.class, AxMessage2.OPENID_NS_AX_FINAL);
   }
-  
+
 
   /**
    * Returns a list of AX attribute values.
@@ -207,15 +221,16 @@ public class AuthResponseHelper {
     try {
       resp = getAxFetchResponse();
     } catch (MessageException e) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
 
     // when the parameter is not there, then the library returns a list of
     // length 1 with null as its only member. Go figure.
+    @SuppressWarnings("unchecked")
     List<String> result = resp.getAttributeValues(alias);
 
     if ((result.size() == 1) && (null == result.get(0))) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     } else {
       return result;
     }
@@ -236,7 +251,7 @@ public class AuthResponseHelper {
 
     return values.get(0);
   }
-  
+
   /**
    * Gets an AX attribute value. If there are more than one value returned,
    * this method returns just one of the returned values. If there are no
