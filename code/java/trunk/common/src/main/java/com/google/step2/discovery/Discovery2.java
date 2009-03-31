@@ -117,7 +117,12 @@ public class Discovery2 extends Discovery {
       public Identifier getLegacyIdentifier(IdpIdentifier idp)
           throws DiscoveryException {
         // which identifier is to be used for the fallback old-style discovery
+        try {
         return new UrlIdentifier(idp.getIdentifier());
+        } catch (IllegalArgumentException e) {
+          // thrown if the identifier doesn't look like a host name
+          throw new DiscoveryException(e);
+        }
       }
     };
 
