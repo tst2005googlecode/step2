@@ -34,25 +34,31 @@
 
   <artifactId>step2-example-consumer</artifactId>
   <dependencies>
-  	<dependency>
-  		<groupId>com.google.step2</groupId>
-  		<artifactId>step2-consumer</artifactId>
-  		<version>1-SNAPSHOT</version>
-  	</dependency>
-        <dependency>
-            <groupId>com.google.gdata</groupId>
-            <artifactId>gdata.core</artifactId>
-            <version>1.0</version>
-	    <scope>system</scope>
-	    <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/gdata-core-1.0.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>com.google.gdata</groupId>
-            <artifactId>gdata.contacts</artifactId>
-            <version>2.0</version>
-	    <scope>system</scope>
-	    <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/gdata-contacts-2.0.jar</systemPath>
-        </dependency>
+    <dependency>
+      <groupId>com.google.step2</groupId>
+      <artifactId>step2-consumer</artifactId>
+      <version>1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gdata</groupId>
+      <artifactId>gdata.core</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/gdata-core-1.0.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gdata</groupId>
+      <artifactId>gdata.contacts</artifactId>
+      <version>2.0</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/gdata-contacts-2.0.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.json-lib</groupId>
+      <artifactId>json-lib</artifactId>
+      <version>2.2.3</version>
+      <classifier>jdk15</classifier>
+    </dependency>
   </dependencies>
 
   <build>

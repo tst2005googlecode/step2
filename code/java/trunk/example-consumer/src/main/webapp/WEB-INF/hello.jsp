@@ -80,7 +80,7 @@ for an access token automatically:</p>
     }
 %>
 
-<a href="?logout">Logout</a>
+<a href="/hello?logout">Logout</a>
 </div>
 
 <% if (longVersion) { %>

@@ -19,6 +19,10 @@
 This example form will authenticate a user though an identity provider and
 optionally request user email and country attributes.
 </p>
+<p>
+<b>There is also a <a href="/popup">popup-style</a> and an <a href="/lso">email-based</a>
+login screen available for testing.</b>
+</p>
 
 <%
   ParameterList requestParams =
@@ -29,17 +33,17 @@ optionally request user email and country attributes.
     System.out.println(errorMessage);
 %>
   <p>An error occurred: <%= errorMessage %></p>
-<%    
+<%
     }
   }
 %>
 
-<form method="post">  
+<form method="post">
 <div>
   OpenID URL: <input type="text" id="openid" name="openid" size="50" />
 </div>
-<div>  
-  <input type="checkbox" name="email" value="yes" />AX Request email 
+<div>
+  <input type="checkbox" name="email" value="yes" />AX Request email
 </div>
 <div>
   <input type="checkbox" name="country" value="yes" />AX Request home country
