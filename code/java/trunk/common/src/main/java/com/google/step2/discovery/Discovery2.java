@@ -118,7 +118,18 @@ public class Discovery2 extends Discovery {
           throws DiscoveryException {
         // which identifier is to be used for the fallback old-style discovery
         try {
-        return new UrlIdentifier(idp.getIdentifier());
+          String openIdAsString = idp.getIdentifier().trim();
+
+          // since we're going to convert this to a URL anyway, we might as
+          // well make sure that the identifier starts with http[s]://
+          // Otherwise, the URL classes used inside UrlIdentifier tend to
+          // get huffy.
+          URI openIdAsUri = URI.create(openIdAsString);
+          if (openIdAsUri.getScheme() == null) {
+            openIdAsString = "http://" + openIdAsString;
+          }
+
+          return new UrlIdentifier(openIdAsString);
         } catch (IllegalArgumentException e) {
           // thrown if the identifier doesn't look like a host name
           throw new DiscoveryException(e);
