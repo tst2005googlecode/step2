@@ -4,7 +4,7 @@ You'll need maven2 to check out, compile, and run the server.
 
   * Check out the code:
 {{{
-svn checkout http://step2.googlecode.com/svn/code/java/trunk/ step2
+$ svn checkout http://step2.googlecode.com/svn/code/java/trunk/ step2
 }}}
   * Build the server:
 {{{
