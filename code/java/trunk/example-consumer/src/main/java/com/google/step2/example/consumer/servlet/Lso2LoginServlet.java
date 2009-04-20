@@ -16,6 +16,7 @@
  */
 package com.google.step2.example.consumer.servlet;
 
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.step2.AuthRequestHelper;
 import com.google.step2.ConsumerHelper;
@@ -23,12 +24,15 @@ import com.google.step2.Step2;
 import com.google.step2.discovery.IdpIdentifier;
 import com.google.step2.servlet.InjectableServlet;
 
+import net.sf.json.JSONObject;
+
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.MessageException;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -36,9 +40,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-public class LsoLoginServlet extends InjectableServlet {
+public class Lso2LoginServlet extends InjectableServlet {
 
-  private static final String TEMPLATE_FILE = "/WEB-INF/lso.jsp";
+  private static final String TEMPLATE_FILE = "/WEB-INF/lso2.jsp";
   private static final String REDIRECT_PATH = "/checkauth";
   private static final String YES_STRING = "yes";
 
@@ -86,6 +90,10 @@ public class LsoLoginServlet extends InjectableServlet {
 
     String openid = req.getParameter("openid");
 
+    if (openid == null || openid.length() == 0) {
+      handleEmptyOpenId(resp);
+    }
+
     // if the user typed am email address, ignore the user part
     openid = openid.replaceFirst(".*@", "");
 
@@ -128,7 +136,8 @@ public class LsoLoginServlet extends InjectableServlet {
       authReq.setRealm(realm);
       session.setAttribute("discovered", helper.getDiscoveryInformation());
     } catch (DiscoveryException e) {
-      throw new ServletException(e);
+      handleDiscoveryFailed(resp);
+      return;
     } catch (MessageException e) {
       throw new ServletException(e);
     } catch (ConsumerException e) {
@@ -141,9 +150,31 @@ public class LsoLoginServlet extends InjectableServlet {
         req.getRequestDispatcher("/WEB-INF/formredirection.jsp");
       d.forward(req, resp);
     } else {
-      // using GET
-      resp.sendRedirect(authReq.getDestinationUrl(true));
+      handleDiscoverySucceeded_RedirectThroughGet(resp, authReq.getDestinationUrl(true));
     }
+  }
+
+  private void handleEmptyOpenId(HttpServletResponse resp) throws IOException {
+    Map<String, String> response = Maps.newHashMap();
+    response.put("status", "empty");
+    JSONObject.fromObject(response).write(resp.getWriter());
+    resp.setStatus(200);
+  }
+
+  private void handleDiscoverySucceeded_RedirectThroughGet(
+      HttpServletResponse resp, String destinationUrl) throws IOException {
+    Map<String, String> response = Maps.newHashMap();
+    response.put("status", "success");
+    response.put("redirectUrl", destinationUrl);
+    JSONObject.fromObject(response).write(resp.getWriter());
+    resp.setStatus(200);
+  }
+
+  private void handleDiscoveryFailed(HttpServletResponse resp) throws IOException {
+    Map<String, String> response = Maps.newHashMap();
+    response.put("status", "error");
+    JSONObject.fromObject(response).write(resp.getWriter());
+    resp.setStatus(200);
   }
 
   private void handlePasswordLogin(HttpServletRequest req,
