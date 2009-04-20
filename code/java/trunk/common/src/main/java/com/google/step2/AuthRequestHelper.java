@@ -109,9 +109,17 @@ public class AuthRequestHelper {
       Discovery discovery = consumerManager.getDiscovery();
       @SuppressWarnings("unchecked")
       List<DiscoveryInformation> discoveries = discovery.discover(openId);
+
+      if (discoveries == null || discoveries.size() == 0) {
+        throw new DiscoveryException("discovery on " + openId.getIdentifier() +
+            " failed.");
+      }
+
       discovered = consumerManager.associate(discoveries);
     }
 
+    // could still be null at this point - but that means that the association
+    // failed, not the discovery
     return discovered;
   }
 
