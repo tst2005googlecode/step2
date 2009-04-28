@@ -21,9 +21,12 @@ import com.google.inject.Inject;
 import com.google.step2.AuthRequestHelper;
 import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
+import com.google.step2.consumer.OAuthProviderInfoStore;
+import com.google.step2.consumer.ProviderInfoNotFoundException;
 import com.google.step2.discovery.IdpIdentifier;
 import com.google.step2.servlet.InjectableServlet;
 
+import net.oauth.OAuthAccessor;
 import net.sf.json.JSONObject;
 
 import org.openid4java.consumer.ConsumerException;
@@ -47,10 +50,16 @@ public class Lso2LoginServlet extends InjectableServlet {
   private static final String YES_STRING = "yes";
 
   private ConsumerHelper consumerHelper;
+  private OAuthProviderInfoStore providerStore;
 
   @Inject
   public void setConsumerHelper(ConsumerHelper helper) {
     this.consumerHelper = helper;
+  }
+
+  @Inject
+  public void setProviderInfoStore(OAuthProviderInfoStore store) {
+    this.providerStore = store;
   }
 
   @Override
@@ -73,7 +82,7 @@ public class Lso2LoginServlet extends InjectableServlet {
   private void handleDiscovery(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
 
-    // posted means they're sending us an OpenID4
+    // posted means they're sending us an OpenID
     StringBuffer realmBuf = new StringBuffer(req.getScheme())
         .append("://").append(req.getServerName());
 
@@ -105,8 +114,14 @@ public class Lso2LoginServlet extends InjectableServlet {
 
 
     if (YES_STRING.equals(req.getParameter("oauth"))) {
-      helper.requestOauthAuthorization(realm,
-          "http://www.google.com/m8/feeds/");
+      try {
+        OAuthAccessor accessor = providerStore.getOAuthAccessor("google");
+        helper.requestOauthAuthorization(accessor.consumer.consumerKey,
+            "http://www.google.com/m8/feeds/");
+      } catch (ProviderInfoNotFoundException e) {
+        log("could not find provider info for Google", e);
+        // we'll just ignore the OAuth request and proceed without it.
+      }
     }
 
     if (YES_STRING.equals(req.getParameter("email"))) {
