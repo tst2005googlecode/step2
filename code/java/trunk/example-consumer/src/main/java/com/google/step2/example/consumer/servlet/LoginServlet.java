@@ -60,6 +60,7 @@ public class LoginServlet extends InjectableServlet {
 
   private ConsumerHelper consumerHelper;
   private OAuthProviderInfoStore providerStore;
+  private OAuthConsumerUtil oauthConsumerUtil;
   private static final String YES_STRING = "yes";
 
   @Inject
@@ -70,6 +71,11 @@ public class LoginServlet extends InjectableServlet {
   @Inject
   public void setProviderInfoStore(OAuthProviderInfoStore providerStore) {
     this.providerStore = providerStore;
+  }
+
+  @Inject
+  public void setOAuthConsumerUtil(OAuthConsumerUtil util) {
+    oauthConsumerUtil = util;
   }
 
   @Override
@@ -106,7 +112,7 @@ public class LoginServlet extends InjectableServlet {
     if (YES_STRING.equals(req.getParameter("oauth"))) {
       try {
         accessor = providerStore.getOAuthAccessor("google");
-        accessor = OAuthConsumerUtil.getRequestToken(accessor);
+        accessor = oauthConsumerUtil.getRequestToken(accessor);
 
         // TODO(sweis): Put this string contstant somewhere that makes sense
         String oauthTestEndpoint =

@@ -53,7 +53,6 @@ import javax.servlet.http.HttpSession;
 public class LoginViaPopupServlet extends InjectableServlet {
 
   private static final String OPENID_2_0_SERVER = "http://specs.openid.net/auth/2.0/server";
-  private static final String UTF8 = "UTF-8";
   private static final String TEMPLATE_FILE = "/WEB-INF/popup.jsp";
   private static final String PROJECT = "";
   private static final String REDIRECT_PATH = "/checkauth?login_type=popup";

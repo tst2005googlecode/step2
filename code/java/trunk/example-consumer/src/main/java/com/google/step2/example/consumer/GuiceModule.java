@@ -35,16 +35,11 @@ import com.google.step2.xmlsimplesign.CnConstraintCertValidator;
 import com.google.step2.xmlsimplesign.DefaultCertValidator;
 import com.google.step2.xmlsimplesign.DisjunctiveCertValidator;
 
-import net.oauth.client.OAuthClient;
-
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.openid4java.consumer.ConsumerAssociationStore;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.message.Message;
 import org.openid4java.message.MessageException;
-import org.openid4java.util.HttpClientFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,18 +65,13 @@ public class GuiceModule extends AbstractModule {
       throw new CreationException(null);
     }
 
-    bind(ConsumerAssociationStore.class)
-        .to(InMemoryConsumerAssociationStore.class)
-        .in(Scopes.SINGLETON);
-
     bind(ConsumerManager.class)
         .toProvider(ConsumerManagerProvider.class)
         .in(Scopes.SINGLETON);
 
-    bind(HttpClient.class).toInstance(HttpClientFactory.getInstance(0,
-        Boolean.FALSE, 10000, 10000, CookiePolicy.IGNORE_COOKIES));
-
-    bind(OAuthClient.class).toInstance(getOAuthClient());
+    bind(ConsumerAssociationStore.class)
+        .to(InMemoryConsumerAssociationStore.class)
+        .in(Scopes.SINGLETON);
 
     bind(OAuthProviderInfoStore.class)
         .to(SimpleProviderInfoStore.class).in(Scopes.SINGLETON);
@@ -100,10 +90,6 @@ public class GuiceModule extends AbstractModule {
     // by Google.
     bind(CertValidator.class)
         .toProvider(CertValidatorProvider.class).in(Scopes.SINGLETON);
-  }
-
-  private OAuthClient getOAuthClient() {
-    return new OAuthClient(new net.oauth.client.httpclient4.HttpClient4());
   }
 
   @Singleton

@@ -21,6 +21,7 @@ import com.google.inject.Inject;
 import com.google.step2.AuthResponseHelper;
 import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
+import com.google.step2.Step2OAuthClient;
 import com.google.step2.VerificationException;
 import com.google.step2.AuthResponseHelper.ResultType;
 import com.google.step2.consumer.OAuthProviderInfoStore;
@@ -31,7 +32,6 @@ import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthException;
 import net.oauth.OAuthMessage;
-import net.oauth.client.OAuthClient;
 
 import org.openid4java.association.AssociationException;
 import org.openid4java.discovery.DiscoveryException;
@@ -62,7 +62,7 @@ import javax.servlet.http.HttpSession;
 public class CheckAuthServlet extends InjectableServlet {
   private ConsumerHelper helper;
   private OAuthProviderInfoStore providerStore;
-  private OAuthClient oauthClient;
+  private Step2OAuthClient oauthClient;
   private static final String NO_TOKEN = "None";
   private static final String UNKNOWN = "Unknown";
   private static final String TEMPLATE_FILE = "/WEB-INF/checkauth.jsp";
@@ -81,7 +81,7 @@ public class CheckAuthServlet extends InjectableServlet {
   }
 
   @Inject
-  void setOAuthHttpClient(OAuthClient client) {
+  void setOAuthHttpClient(Step2OAuthClient client) {
     this.oauthClient = client;
   }
 
