@@ -37,6 +37,7 @@ import org.openid4java.consumer.ConsumerException;
 import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.MessageException;
+import org.openid4java.message.pape.PapeRequest;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -163,7 +164,6 @@ public class LoginServlet extends InjectableServlet {
       helper.requestAxAttribute(Step2.AxSchema.FIRST_NAME, true);
     }
 
-
     if (YES_STRING.equals(req.getParameter("lastName"))) {
       log.debug("Requesting AX country");
       helper.requestAxAttribute(Step2.AxSchema.LAST_NAME, true);
@@ -174,6 +174,15 @@ public class LoginServlet extends InjectableServlet {
     try {
       authReq = helper.generateRequest();
       authReq.setRealm(realm);
+
+      // add PAPE, if requested
+      if (YES_STRING.equals(req.getParameter("reauth"))) {
+        log.debug("Requesting PAPE reauth");
+        PapeRequest pape = PapeRequest.createPapeRequest();
+        pape.setMaxAuthAge(1);
+        authReq.addExtension(pape);
+      }
+
       session.setAttribute("discovered", helper.getDiscoveryInformation());
     } catch (DiscoveryException e) {
       StringBuffer errorMessage =

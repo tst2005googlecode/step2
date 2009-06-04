@@ -43,25 +43,28 @@ and another <a href="/lso2">email-based</a> login screen available for testing.<
   OpenID URL: <input type="text" id="openid" name="openid" size="50" />
 </div>
 <div>
-  <input type="checkbox" name="email" value="yes" />AX Request email
+  <label><input type="checkbox" name="email" value="yes" />AX Request email</label>
 </div>
 <div>
-  <input type="checkbox" name="country" value="yes" />AX Request home country
+  <label><input type="checkbox" name="country" value="yes" />AX Request home country</label>
 </div>
 <div>
-  <input type="checkbox" name="language" value="yes" />AX Request preferred language
+  <label><input type="checkbox" name="language" value="yes" />AX Request preferred language</label>
 </div>
 <div>
-  <input type="checkbox" name="firstName" value="yes" />AX Request first name
+  <label><input type="checkbox" name="firstName" value="yes" />AX Request first name</label>
 </div>
 <div>
-  <input type="checkbox" name="lastName" value="yes" />AX Request last name
+  <label><input type="checkbox" name="lastName" value="yes" />AX Request last name</label>
 </div><hr />
 <div>
-  <input type="checkbox" name="usePost" value="yes" />Use POST instead of GET
+  <label><input type="checkbox" name="usePost" value="yes" />Use POST instead of GET</label>
 </div>
 <div>
-  <input type="checkbox" name="oauth" value="yes" />Get OAuth Request token, then authorize
+  <label><input type="checkbox" name="oauth" value="yes" />Get OAuth Request token, then authorize</label>
+</div>
+<div>
+  <label><input type="checkbox" name="reauth" value="yes" />Force user reauth with PAPE</label>
 </div>
 <div>
   <input type="submit" title="Login" />
