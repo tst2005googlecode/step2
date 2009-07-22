@@ -19,6 +19,7 @@ package com.google.step2;
 
 import com.google.step2.hybrid.HybridOauthRequest;
 import com.google.step2.openid.ax2.FetchRequest2;
+import com.google.step2.openid.ui.UiMessageRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -81,6 +82,9 @@ public class AuthRequestHelper {
 
   // If AX attributes are specified, this object will hold them.
   private FetchRequest2 axFetchRequest = null;
+
+  // If UI extensions are requested, this object will hold the specifics.
+  private UiMessageRequest uiRequest = null;
 
   // If a Hybrid Oauth extension is specified, this object will hold it
   private HybridOauthRequest hybridOauthRequest = null;
@@ -190,6 +194,19 @@ public class AuthRequestHelper {
     return this;
   }
 
+  public AuthRequestHelper requestUxIcon(boolean showIcon) {
+    UiMessageRequest ui = getOrCreateUiRequest();
+    ui.setIconRequest(showIcon);
+    return this;
+  }
+
+  private UiMessageRequest getOrCreateUiRequest() {
+    if (uiRequest == null) {
+      uiRequest = new UiMessageRequest();
+    }
+    return uiRequest;
+  }
+
   /**
    * Generates a new auth request, which can be queried for a redirect-URL
    * to send the user agent to (and which will point to he OP).
@@ -207,6 +224,10 @@ public class AuthRequestHelper {
 
     if (hybridOauthRequest != null) {
       authReq.addExtension(hybridOauthRequest);
+    }
+
+    if (uiRequest != null) {
+      authReq.addExtension(uiRequest);
     }
 
     log.info(authReq);
