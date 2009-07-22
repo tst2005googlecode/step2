@@ -42,19 +42,19 @@ public class XrdLocationSelector {
   // data about OpenID OPs. Whether the document is old-style XRDS or new-style
   // XRD depends on the (MIME) type specified in the Link.
   public static final RelType REL_OPENID_OP_XRD =
-      new RelType("http://specs.openid.net/auth/2.5/xrd-op");
+      new RelType("http://reltype.google.com/openid/xrd-op");
 
   // specifies a link that points to an XRD(S) document that includes meta
   // data about OpenID RPs. Whether the document is old-style XRDS or new-style
   // XRD depends on the (MIME) type specified in the Link.
   public static final RelType REL_OPENID_RP_XRD =
-      new RelType("http://specs.openid.net/auth/2.5/xrd-rp");
+      new RelType("http://reltype.google.com/openid/xrd-rp");
 
   // specifies a link that points to an XRD(S) document that includes meta
   // data about OpenID. Whether the document is old-style XRDS or new-style
   // XRD depends on the (MIME) type specified in the Link.
   public static final RelType REL_OPENID_XRD =
-      new RelType("http://specs.openid.net/auth/2.5/xrd");
+      new RelType("http://reltype.google.com/openid/xrd");
 
   // specifies a link that points to an XRD(S) document that includes some
   // meta-data.
@@ -112,7 +112,7 @@ public class XrdLocationSelector {
    * Returns a link or link-pattern (from the collection passed in) that matches
    * the requirements of OP discovery. That is, it needs to have the the
    * specified mime-type, and is preferrably rel-typed as (describedby,
-   * http://specs.openid.net/auth/2.5/xrd-op) (although less specific rel-types
+   * http://reltype.google.com/openid/xrd-op) (although less specific rel-types
    * are also considered if the most specific one cannot be found).
    */
   private <T extends LinkBase> T getMatchingLink(Collection<T> links,

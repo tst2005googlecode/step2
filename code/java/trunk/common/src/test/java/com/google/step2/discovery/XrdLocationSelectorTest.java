@@ -47,8 +47,10 @@ public class XrdLocationSelectorTest extends TestCase {
     URI correctUri = URI.create("http://foo.com/bar2");
     hostMeta = getHostMeta(
         "Link: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
-        "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link: <http://foo.com/bar2>; rel=\"" + XrdLocationSelector.REL_OPENID_OP_XRD.getRelationshipType() +
+            " describedby\"; type=application/xrds+xml",
+        "Link: <http://foo.com/bar3>; rel=\"describedby " + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType() +
+            "\";  type=application/xrds+xml");
 
     assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
@@ -56,8 +58,10 @@ public class XrdLocationSelectorTest extends TestCase {
     correctUri = URI.create("http://foo.com/bar3");
     hostMeta = getHostMeta(
         "Link: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=somethingelse",
-        "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link: <http://foo.com/bar2>; rel=\"" + XrdLocationSelector.REL_OPENID_OP_XRD.getRelationshipType() +
+            " describedby\"; type=somethingelse",
+        "Link: <http://foo.com/bar3>; rel=\"describedby " + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType()
+            + "\";  type=application/xrds+xml");
 
     assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
@@ -65,8 +69,10 @@ public class XrdLocationSelectorTest extends TestCase {
     correctUri = URI.create("http://foo.com/bar1");
     hostMeta = getHostMeta(
         "Link: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=somethingelse",
-        "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=somethingelse");
+        "Link: <http://foo.com/bar2>; rel=\"" + XrdLocationSelector.REL_OPENID_OP_XRD.getRelationshipType() +
+            " describedby\"; type=somethingelse",
+        "Link: <http://foo.com/bar3>; rel=\"describedby " + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType()
+            + "\";  type=somethingelse");
 
     assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
@@ -76,7 +82,7 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
         "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
         "Link: <http://foo.com/bar3>; rel=\"describedby http://specs.foo.net/auth/2.5/xrd\";  type=application/xrds+xml");
-
+    // this one
     assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
     // pick the most specific one
@@ -93,7 +99,8 @@ public class XrdLocationSelectorTest extends TestCase {
     hostMeta = getHostMeta(
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
         "Link: <http://foo.com/bar2>; rel=\"foobar describedby\"; type=application/xrds+xml",
-        "Link: <http://foo.com/bar3>; rel=\"http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link: <http://foo.com/bar3>; rel=\"" + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType()
+            + "\";  type=application/xrds+xml");
 
     assertEquals(correctUri, selector.findSiteXrdUriForOp(hostMeta, mimeType));
 
@@ -101,7 +108,8 @@ public class XrdLocationSelectorTest extends TestCase {
     hostMeta = getHostMeta(
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
         "Link: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op foobar\"; type=application/xrds+xml",
-        "Link: <http://foo.com/bar3>; rel=http://specs.openid.net/auth/2.5/xrd;  type=application/xrds+xml");
+        "Link: <http://foo.com/bar3>; rel=" + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType()
+            + ";  type=application/xrds+xml");
 
     assertNull(selector.findSiteXrdUriForOp(hostMeta, mimeType));
   }
@@ -123,8 +131,10 @@ public class XrdLocationSelectorTest extends TestCase {
     URI correctUri = URI.create("http://foo.com/bar2");
     hostMeta = getHostMeta(
         "Link-Pattern: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link-Pattern: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=application/xrds+xml",
-        "Link-Pattern: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar2>; rel=\"" + XrdLocationSelector.REL_OPENID_OP_XRD.getRelationshipType()
+            + " describedby\"; type=application/xrds+xml",
+        "Link-Pattern: <http://foo.com/bar3>; rel=\"describedby " + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType()
+            + "\";  type=application/xrds+xml");
 
     assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
@@ -132,8 +142,10 @@ public class XrdLocationSelectorTest extends TestCase {
     correctUri = URI.create("http://foo.com/bar3");
     hostMeta = getHostMeta(
         "Link-Pattern: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link-Pattern: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=somethingelse",
-        "Link-Pattern: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar2>; rel=\"" + XrdLocationSelector.REL_OPENID_OP_XRD.getRelationshipType() +
+            " describedby\"; type=somethingelse",
+        "Link-Pattern: <http://foo.com/bar3>; rel=\"describedby " + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType() +
+            "\";  type=application/xrds+xml");
 
     assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
@@ -141,8 +153,10 @@ public class XrdLocationSelectorTest extends TestCase {
     correctUri = URI.create("http://foo.com/bar1");
     hostMeta = getHostMeta(
         "Link-Pattern: <http://foo.com/bar1>; rel=describedby; type=application/xrds+xml",
-        "Link-Pattern: <http://foo.com/bar2>; rel=\"http://specs.openid.net/auth/2.5/xrd-op describedby\"; type=somethingelse",
-        "Link-Pattern: <http://foo.com/bar3>; rel=\"describedby http://specs.openid.net/auth/2.5/xrd\";  type=somethingelse");
+        "Link-Pattern: <http://foo.com/bar2>; rel=\"" + XrdLocationSelector.REL_OPENID_OP_XRD.getRelationshipType() +
+            " describedby\"; type=somethingelse",
+        "Link-Pattern: <http://foo.com/bar3>; rel=\"describedby " + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType()
+            + "\";  type=somethingelse");
 
     assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
@@ -169,7 +183,8 @@ public class XrdLocationSelectorTest extends TestCase {
     hostMeta = getHostMeta(
         "Link-Pattern: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
         "Link-Pattern: <http://foo.com/bar2>; rel=\"foobar describedby\"; type=application/xrds+xml",
-        "Link-Pattern: <http://foo.com/bar3>; rel=\"http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar3>; rel=\"" + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType()
+            + "\";  type=application/xrds+xml");
 
     assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
@@ -177,7 +192,8 @@ public class XrdLocationSelectorTest extends TestCase {
     hostMeta = getHostMeta(
         "Link-Pattern: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
         "Link-Pattern: <http://foo.com/bar2>; rel=\"http://specs.foo.net/auth/2.5/xrd-op foobar\"; type=application/xrds+xml",
-        "Link-Pattern: <http://foo.com/bar3>; rel=http://specs.openid.net/auth/2.5/xrd;  type=application/xrds+xml");
+        "Link-Pattern: <http://foo.com/bar3>; rel=" + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType()
+            + ";  type=application/xrds+xml");
 
     assertNull(selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
@@ -187,7 +203,8 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
         "Link: <http://foo.com/bar2>; rel=\"foobar describedby\"; type=application/xrds+xml",
         "Link-Pattern: <http://foo.com/bar3?uri={%uri}>; rel=\"foobar describedby\"; type=application/xrds+xml",
-        "Link: <http://foo.com/bar4>; rel=\"http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link: <http://foo.com/bar4>; rel=\"" + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType()
+            + "\";  type=application/xrds+xml");
 
     assertEquals(correctUri, selector.findUserXrdUriForOp(hostMeta, mimeType, user));
 
@@ -197,7 +214,8 @@ public class XrdLocationSelectorTest extends TestCase {
         "Link: <http://foo.com/bar1>; rel=foobar; type=application/xrds+xml",
         "Link: <http://foo.com/bar2>; rel=\"foobar describedby\"; type=application/xrds+xml",
         "Link-Pattern: <http://foo.com/bar3?uri={%uri}>; rel=\"foobar\"; type=application/xrds+xml",
-        "Link: <http://foo.com/bar4>; rel=\"http://specs.openid.net/auth/2.5/xrd\";  type=application/xrds+xml");
+        "Link: <http://foo.com/bar4>; rel=\"" + XrdLocationSelector.REL_OPENID_XRD.getRelationshipType()
+            + "\";  type=application/xrds+xml");
 
     assertNull(selector.findUserXrdUriForOp(hostMeta, mimeType, user));
   }

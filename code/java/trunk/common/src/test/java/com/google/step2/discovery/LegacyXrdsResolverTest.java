@@ -48,8 +48,7 @@ public class LegacyXrdsResolverTest extends TestCase {
 
   private static String SITE_XRD =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-    "<xrds:XRDS xmlns:xrds=\"xri://$xrds\" xmlns:openid=\"http://openid.net/" +
-        "xmlns/1.0\" xmlns=\"xri://$xrd*($v*2.0)\">\n" +
+    "<xrds:XRDS xmlns:xrds=\"xri://$xrds\" xmlns=\"xri://$xrd*($v*2.0)\">\n" +
     "<XRD>\n" +
     "<CanonicalID>balfanz.net</CanonicalID>\n" +
     "<Service priority=\"0\">\n" +
@@ -57,19 +56,18 @@ public class LegacyXrdsResolverTest extends TestCase {
     "<Type>http://openid.net/srv/ax/1.0</Type>\n" +
     "<URI>https://www.google.com/a/balfanz.net/o8/ud?be=o8</URI>\n" +
     "</Service>\n" +
-    "<Service priority=\"0\">\n" +
+    "<Service priority=\"0\" xmlns:openid=\"http://namespace.google.com/openid/xmlns\">\n" +
     "<Type>http://www.iana.org/assignments/relation/describedby</Type>\n" +
     "<MediaType>application/xdrs+xml</MediaType>\n" +
-    "<URITemplate>https://www.google.com/accounts/o8/user-xrds?uri={%uri}" +
-        "</URITemplate>\n" +
+    "<openid:URITemplate>https://www.google.com/accounts/o8/user-xrds?uri={%uri}" +
+        "</openid:URITemplate>\n" +
     "</Service>\n" +
     "</XRD>\n" +
     "</xrds:XRDS>\n";
 
   private static String SITE_XRD_NEXT_AUTHORITY =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-    "<xrds:XRDS xmlns:xrds=\"xri://$xrds\" xmlns:openid=\"http://openid.net/" +
-        "xmlns/1.0\" xmlns=\"xri://$xrd*($v*2.0)\">\n" +
+    "<xrds:XRDS xmlns:xrds=\"xri://$xrds\" xmlns=\"xri://$xrd*($v*2.0)\">\n" +
     "<XRD>\n" +
     "<CanonicalID>balfanz.net</CanonicalID>\n" +
     "<Service priority=\"0\">\n" +
@@ -77,12 +75,12 @@ public class LegacyXrdsResolverTest extends TestCase {
     "<Type>http://openid.net/srv/ax/1.0</Type>\n" +
     "<URI>https://www.google.com/a/balfanz.net/o8/ud?be=o8</URI>\n" +
     "</Service>\n" +
-    "<Service priority=\"0\">\n" +
+    "<Service priority=\"0\" xmlns:openid=\"http://namespace.google.com/openid/xmlns\">\n" +
     "<Type>http://www.iana.org/assignments/relation/describedby</Type>\n" +
     "<MediaType>application/xdrs+xml</MediaType>\n" +
-    "<URITemplate>https://www.google.com/accounts/o8/user-xrds?uri={%uri}" +
-        "</URITemplate>\n" +
-    "<NextAuthority>www.google.com</NextAuthority>\n" +
+    "<openid:URITemplate>https://www.google.com/accounts/o8/user-xrds?uri={%uri}" +
+        "</openid:URITemplate>\n" +
+    "<openid:NextAuthority>www.google.com</openid:NextAuthority>\n" +
     "</Service>\n" +
     "</XRD>\n" +
     "</xrds:XRDS>\n";
@@ -90,8 +88,7 @@ public class LegacyXrdsResolverTest extends TestCase {
 
   private static String USER_XRD =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-    "<xrds:XRDS xmlns:xrds=\"xri://$xrds\" xmlns:openid=\"http://openid.net/" +
-        "xmlns/1.0\" xmlns=\"xri://$xrd*($v*2.0)\">\n" +
+    "<xrds:XRDS xmlns:xrds=\"xri://$xrds\" xmlns=\"xri://$xrd*($v*2.0)\">\n" +
     "<XRD>\n" +
     "<CanonicalID>http://balfanz.net/openid?id=12345</CanonicalID>\n" +
     "<Service priority=\"0\">\n" +
@@ -104,15 +101,14 @@ public class LegacyXrdsResolverTest extends TestCase {
 
   private static String USER_XRD_WITH_LOCAL_ID =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-    "<xrds:XRDS xmlns:xrds=\"xri://$xrds\" xmlns:openid=\"http://openid.net/" +
-        "xmlns/1.0\" xmlns=\"xri://$xrd*($v*2.0)\">\n" +
+    "<xrds:XRDS xmlns:xrds=\"xri://$xrds\" xmlns=\"xri://$xrd*($v*2.0)\">\n" +
     "<XRD>\n" +
     "<CanonicalID>http://balfanz.net/openid?id=12345</CanonicalID>\n" +
-    "<Service priority=\"0\">\n" +
+    "<Service priority=\"0\" xmlns:openid=\"http://namespace.google.com/openid/xmlns\">\n" +
     "<Type>http://specs.openid.net/auth/2.0/signon</Type>\n" +
     "<Type>http://openid.net/srv/ax/1.0</Type>\n" +
     "<URI>https://www.google.com/a/balfanz.net/o8/ud?be=o8</URI>\n" +
-    "<LocalID>12345</LocalID>\n" +
+    "<openid:LocalID>12345</openid:LocalID>\n" +
     "</Service>\n" +
     "</XRD>\n" +
     "</xrds:XRDS>\n";
