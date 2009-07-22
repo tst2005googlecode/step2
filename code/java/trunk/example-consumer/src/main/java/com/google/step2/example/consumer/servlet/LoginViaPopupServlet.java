@@ -20,6 +20,8 @@ package com.google.step2.example.consumer.servlet;
 import com.google.inject.Inject;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.consumer.ProviderInfoNotFoundException;
+import com.google.step2.openid.ui.UiMessage;
+import com.google.step2.openid.ui.UiMessageExtension;
 import com.google.step2.servlet.InjectableServlet;
 import com.google.step2.Step2;
 
@@ -195,7 +197,19 @@ public class LoginViaPopupServlet extends InjectableServlet {
           .append(getOAuthExtensionParameters(consumer));
     }
 
+    String uiParams = getUiExtensionParameters(consumer);
+    if (uiParams.length() > 0) {
+        buf.append(", ")
+          .append(uiParams);
+    }
+
     return buf.append(" } ").toString();
+  }
+
+  private String getUiExtensionParameters(String consumer) {
+    return new StringBuilder()
+        .append("'openid.ui.icon' : 'true'")
+        .toString();
   }
 
   /**

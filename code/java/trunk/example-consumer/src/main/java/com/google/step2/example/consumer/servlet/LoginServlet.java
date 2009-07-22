@@ -137,6 +137,8 @@ public class LoginServlet extends InjectableServlet {
     AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(
         openId, returnToUrl.toString());
 
+    helper.requestUxIcon(true);
+
     if (accessor != null) {
       log.debug("Requesting OAuth scope : " +
           (String) accessor.getProperty("scope"));

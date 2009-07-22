@@ -112,6 +112,7 @@ public class Lso2LoginServlet extends InjectableServlet {
     AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(
         openId, returnToUrl.toString());
 
+    helper.requestUxIcon(true);
 
     if (YES_STRING.equals(req.getParameter("oauth"))) {
       try {
