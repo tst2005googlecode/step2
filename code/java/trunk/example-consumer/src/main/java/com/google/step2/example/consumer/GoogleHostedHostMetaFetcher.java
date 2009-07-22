@@ -30,7 +30,7 @@ public class GoogleHostedHostMetaFetcher extends UrlHostMetaFetcher {
 
   private static final String SOURCE_PARAM = "step2.hostmeta.google.source";
   private static final String DEFAULT_SOURCE = "https://www.google.com";
-  private static final String HOST_META_PATH = "/accounts/o8/host-meta";
+  private static final String HOST_META_PATH = "/accounts/o8/.well-known/host-meta";
   private static final String DOMAIN_PARAM = "hd";
 
   @Inject
