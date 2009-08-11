@@ -65,8 +65,10 @@
 
     <div id="popupForm">
       <div id="welcomePane">
+        <div id="gafyd" style="margin-top:200px">
+        </div>
         <button name = "submit_button" id = "submit_button"
-                style = "background-color:transparent;border-width:1px;border-color:#000000;padding:3px;margin-top:200px;">
+                style = "padding:5px;margin-top:20px;">
           <img src="<%= buttonImage %>" alt="<%= opFriendlyName %>" style="margin-bottom:-3px;"/>&nbsp; Sign in using your Google Account
         </button>
         <br />
@@ -83,12 +85,8 @@
       </div>
     </div>
     <script type="text/javascript">
-      $.ajax({ url: "/popuplib.js",
-               success: function(response) {
-                   $("#popuplib_source").html('<pre style="text-align:left;">'+response+'</pre>');
-               }
-             });
-      var greetUser = function() {
+
+      function greetUser() {
         if ($("#stayOnPage").is(":checked")) {
           $.ajax({
               url: "/hello?size=short",
@@ -101,6 +99,54 @@
           window.location = "/hello";
         }
       };
+
+      function setAttribute(node, name, value) {
+        var attr = document.createAttribute(name);
+        attr.nodeValue = value;
+        node.setAttributeNode(attr);
+      }
+
+      function addGafydButton(idp) {
+
+        var button = document.createElement("button");
+        setAttribute(button, "id", "submit_" + idp.subject);
+        setAttribute(button, "style", "padding:5px;");
+        var image = document.createElement("img");
+        setAttribute(image, "src", idp.smallImage);
+        setAttribute(image, "alt", idp.subject);
+        setAttribute(image, "style", "margin-bottom:-3px;");
+        button.appendChild(image);
+        button.appendChild(document.createTextNode("  Sign in using your " + idp.subject + " account"));
+        document.getElementById("gafyd").appendChild(button);
+
+        var extensions = <%= extensionParameters %>;
+        var googleOpener = popupManager.createPopupOpener(
+          { 'realm' : '<%= realm %>',
+            'opEndpoint' : idp.discovery,
+            'returnToUrl' : '<%= returnToUrl %>',
+            'onCloseHandler' : greetUser,
+            'shouldEncodeUrls' : true,
+            'extensions' : extensions });
+        document.getElementById("submit_" + idp.subject).onclick = function() {
+          googleOpener.popup(450,500);
+          return true;
+        };
+      };
+
+      function addGafydButtons(json) {
+        idps = json.idp;
+        for (var i = 0; i < idps.length; i++) {
+          addGafydButton(idps[i]);
+        }
+      };
+    </script>
+    <script type="text/javascript" src="https://www.google.com/a/o8/pds?be=o8&callback=addGafydButtons"></script>
+    <script type="text/javascript">
+      $.ajax({ url: "/popuplib.js",
+               success: function(response) {
+                   $("#popuplib_source").html('<pre style="text-align:left;">'+response+'</pre>');
+               }
+             });
       var extensions = <%= extensionParameters %>;
       var googleOpener = popupManager.createPopupOpener(
           { 'realm' : '<%= realm %>',
