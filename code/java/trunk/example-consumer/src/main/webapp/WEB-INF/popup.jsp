@@ -110,7 +110,7 @@
 
         var button = document.createElement("button");
         setAttribute(button, "id", "submit_" + idp.subject);
-        setAttribute(button, "style", "padding:5px;");
+        setAttribute(button, "style", "padding:5px;margin-top:10px");
         var image = document.createElement("img");
         setAttribute(image, "src", idp.smallImage);
         setAttribute(image, "alt", idp.subject);
@@ -118,6 +118,7 @@
         button.appendChild(image);
         button.appendChild(document.createTextNode("  Sign in using your " + idp.subject + " account"));
         document.getElementById("gafyd").appendChild(button);
+        document.getElementById("gafyd").appendChild(document.createElement("br"));
 
         var extensions = <%= extensionParameters %>;
         var googleOpener = popupManager.createPopupOpener(
