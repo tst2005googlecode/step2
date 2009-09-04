@@ -29,7 +29,12 @@
     <dependency>
       <groupId>org.openid4java</groupId>
       <artifactId>openid4java</artifactId>
-      <version>0.9.5-SNAPSHOT</version>
+      <version>0.9.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openid4java</groupId>
+      <artifactId>openid4java-xri</artifactId>
+      <version>0.9.5</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.guice</groupId>
@@ -122,10 +127,6 @@
     <repository>
       <id>oauth</id>
       <url>http://oauth.googlecode.com/svn/code/maven</url>
-    </repository>
-    <repository>
-      <id>openid4java snapshot</id>
-      <url>http://openid4java.googlecode.com/svn/maven-repo</url>
     </repository>
     <repository>
       <id>maven2-repository.dev.java.net</id>

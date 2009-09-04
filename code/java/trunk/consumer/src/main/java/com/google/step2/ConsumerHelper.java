@@ -202,8 +202,8 @@ public class ConsumerHelper {
     String assertId = authResp.getIdentity();
 
     // claimed identifier in the AuthResponse, without fragment
-    Identifier respClaimed =
-      Discovery.parseIdentifier(authResp.getClaimed(), true);
+    Identifier respClaimed = consumerManager.getDiscovery()
+        .parseIdentifier(authResp.getClaimed(), true);
 
     // the OP endpoint sent in the response
     String respEndpoint = authResp.getOpEndpoint();

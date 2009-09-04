@@ -18,25 +18,20 @@
 package com.google.step2.example.consumer.servlet;
 
 import com.google.inject.Inject;
+import com.google.step2.ConsumerHelper;
+import com.google.step2.Step2;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.consumer.ProviderInfoNotFoundException;
-import com.google.step2.openid.ui.UiMessage;
-import com.google.step2.openid.ui.UiMessageExtension;
+import com.google.step2.discovery.IdpIdentifier;
 import com.google.step2.servlet.InjectableServlet;
-import com.google.step2.Step2;
 
 import net.oauth.OAuthAccessor;
 
-import org.openid4java.discovery.yadis.YadisException;
-import org.openid4java.discovery.yadis.YadisResolver;
-import org.openid4java.discovery.yadis.YadisResult;
-import org.openxri.xml.SEPType;
-import org.openxri.xml.SEPUri;
-import org.openxri.xml.Service;
-import org.openxri.xml.XRD;
+import org.openid4java.consumer.ConsumerException;
+import org.openid4java.discovery.DiscoveryException;
+import org.openid4java.message.MessageException;
 
 import java.io.IOException;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.servlet.RequestDispatcher;
@@ -70,10 +65,16 @@ public class LoginViaPopupServlet extends InjectableServlet {
   private static final String AX_1_0 = "http://openid.net/srv/ax/1.0";
 
   private OAuthProviderInfoStore providerStore;
+  private ConsumerHelper consumerHelper;
 
   @Inject
   public void setProviderInfoStore(OAuthProviderInfoStore store) {
     this.providerStore = store;
+  }
+
+  @Inject
+  public void setConsumerHelper(ConsumerHelper helper) {
+    this.consumerHelper = helper;
   }
 
   @Override
@@ -142,49 +143,29 @@ public class LoginViaPopupServlet extends InjectableServlet {
   private void perOpCustomize(HttpServletRequest req) throws ServletException {
 
     HttpSession session = req.getSession();
-    // Now set the endpoint for user authentication.
-    Service service = discoverService(OPENID_2_0_SERVER);
-    Vector<SEPType> types = service.getTypes();
-    String endpointUrl = null;
-    for (SEPType type : types) {
-      // This RP support Attribute Exchange, so looks if advertized as a supported
-      // type for this OpenID server
-      if (type.getType().equals(AX_1_0)) {
-        session.setAttribute(EXTENSION_PARAMS,
-            getExtensionParameters(req.getServerName()));
-      }
+
+    String opEndpoint;
+    try {
+      opEndpoint = consumerHelper.getAuthRequestHelper(
+          new IdpIdentifier("gmail.com"),
+          "http://localhost/this_is_never_used").generateRequest().getOPEndpoint();
+    } catch (DiscoveryException e) {
+      throw new ServletException(e);
+    } catch (MessageException e) {
+      throw new ServletException(e);
+    } catch (ConsumerException e) {
+      throw new ServletException(e);
     }
-    // Now for the actual location URL of the service
-    Vector<SEPUri> uris = service.getURIs();
-    if ((null == uris) || (uris.size() == 0)) {
-      throw new ServletException("Service endpoint not found!");
-    }
+
+    session.setAttribute(EXTENSION_PARAMS,
+        getExtensionParameters(req.getServerName()));
+
     // Use the first location
-    session.setAttribute(OP_ENDPOINT, uris.get(0).getURI().toString());
+    session.setAttribute(OP_ENDPOINT, opEndpoint);
     session.setAttribute(BUTTON_IMAGE, OpSettings.GOOGLE.getImage());
     session.setAttribute(OP_FRIENDLY, OpSettings.GOOGLE.getFriendlyName());
   }
 
-  /**
-   * This assumes that the OP is 'Google Accounts' so it performs discovery
-   * at that location. In practice, this needs to be generalized for other OPs.
-   * @return the endpoint for user login.
-   */
-  private Service discoverService(String type) {
-    String discoveryUrl = OpSettings.GOOGLE.getDiscoveryUrl();
-    // TODO(breno): Add caching of discovery results to this example.
-    YadisResolver resolver = new YadisResolver();
-    try {
-      YadisResult result = resolver.discover(discoveryUrl);
-      XRD xrd = result.getXrds().getFinalXRD();
-      return xrd.getServiceForType(type);
-    } catch (YadisException e) {
-      // Can't find the server endpoint
-      logger.severe("Can't find the op Enpoint! Yadis exception thrown:"
-          + e.getMessage());
-      return null;
-    }
-  }
 
   private String getExtensionParameters(String consumer) {
     StringBuffer buf =  new StringBuffer()

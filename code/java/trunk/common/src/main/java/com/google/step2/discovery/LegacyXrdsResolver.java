@@ -45,6 +45,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -365,7 +366,7 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
       throws DiscoveryException, MalformedURLException {
 
     // could be null
-    String localId = getTagValue(service, LOCAL_ID_TAG);
+    String localId = getLocalId(service);
 
     SecureDiscoveryInformation result = new SecureDiscoveryInformation(
         service.getURIAt(0).getURI().toURL(),
@@ -375,6 +376,21 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
 
     result.setSecure(isSecure);
     return result;
+  }
+
+  /**
+   * Returns LocalID from a <Service> element.
+   * @param service
+   * @return null if there is no LocalID specified.
+   */
+  private String getLocalId(Service service) {
+    int numLocalIds = service.getNumLocalIDs();
+
+    if (numLocalIds == 0) {
+      return null;
+    }
+
+    return service.getLocalIDAt(0).getValue();
   }
 
   /**
@@ -450,24 +466,19 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
   private Service getServiceForType(XRD xrd, String type) {
 
     @SuppressWarnings("unchecked")
-    Vector<Service> services = xrd.getServicesByType(type);
+    List<Service> allServices = xrd.getPrioritizedServices();
 
-    if (services == null || services.size() == 0) {
+    if (allServices == null) {
       return null;
     }
 
-    Service result = services.get(0);
-    int priority = result.getPriority();
-
-    // see whether there are services with higher (i.e. smaller) priority
-    for (Service service : services) {
-      if (service.getPriority() < priority) {
-        priority = service.getPriority();
-        result = service;
+    for (Service service : allServices) {
+      if (service.matchType(type)) {
+        return service;
       }
     }
 
-    return result;
+    return null;
   }
 
   /**
@@ -476,19 +487,24 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
   private List<Service> getServicesForType(XRD xrd, String type) {
 
     @SuppressWarnings("unchecked")
-    Vector<Service> services = xrd.getServicesByType(type);
+    List<Service> allServices = xrd.getPrioritizedServices();
+    List<Service> result = Lists.newArrayList();
 
-    if (services == null || services.size() == 0) {
+    if (allServices == null) {
       return null;
     }
 
-    Collections.sort(services, new Comparator<Service>() {
-      public int compare(Service o1, Service o2) {
-        return o2.getPriority().compareTo(o1.getPriority());
+    for (Service service : allServices) {
+      if (service.matchType(type)) {
+        result.add(service);
       }
-    });
+    }
 
-    return services;
+    if (result.size() == 0) {
+      return null;
+    }
+
+    return result;
   }
 
   /**
