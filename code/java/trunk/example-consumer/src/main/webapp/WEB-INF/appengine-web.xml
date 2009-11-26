@@ -15,6 +15,8 @@
   </resource-files>
 
   <system-properties>
+    <property name="com.google.gdata.DisableCookieHandler" 
+              value="true"/>
     <property name="java.util.logging.config.file"
               value="WEB-INF/logging.properties" />
     <property name="org.apache.commons.logging.Log"
