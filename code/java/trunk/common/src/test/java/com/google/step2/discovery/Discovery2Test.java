@@ -52,7 +52,7 @@ public class Discovery2Test extends TestCase {
 
     xrdResolver = control.createMock(XrdDiscoveryResolver.class);
 
-    discovery = new Discovery2(hostMetafetcher, xrdResolver);
+    discovery = new Discovery2(hostMetafetcher, xrdResolver, null, null, null);
   }
 
   public void testDiscoverOpEndpointsForSite() throws Exception {

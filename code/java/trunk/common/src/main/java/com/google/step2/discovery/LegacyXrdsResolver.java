@@ -76,9 +76,6 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
   // used to delegate to new signer in next XRDS document
   private static final String NEXT_AUTHORITY_TAG = "NextAuthority";
 
-  // used to specify the OP-local id inside Service elements of type signon
-  private static final String LOCAL_ID_TAG = "LocalID";
-
   // injected fetcher
   private final HttpFetcher httpFetcher;
 
@@ -321,10 +318,13 @@ public class LegacyXrdsResolver implements XrdDiscoveryResolver {
 
   /**
    * Returns CanonicalId of this document. There should be exactly one
-   * CanonicalId in the document for us to consider the document securel.
+   * CanonicalId in the document for us to consider the document secure.
    * @param xrd
    */
+  @SuppressWarnings("deprecation")
   private String getCanonicalId(XRD xrd) {
+    // The new API doesn't tell us if there are more than one canonical ID
+    // in the document, but we need to know.
     if (xrd.getNumCanonicalids() != 1) {
       return null;
     }

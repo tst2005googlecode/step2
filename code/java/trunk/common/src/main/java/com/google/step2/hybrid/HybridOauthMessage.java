@@ -43,6 +43,7 @@ public class HybridOauthMessage implements MessageExtension,
   static final String SCOPE = "scope";
   static final String OAUTH_TOKEN = "request_token";
 
+  @SuppressWarnings("unused")
   private static Log log = LogFactory.getLog(HybridOauthMessage.class);
 
   public MessageExtension getExtension(ParameterList parameterList,
@@ -88,7 +89,9 @@ public class HybridOauthMessage implements MessageExtension,
     }
 
     // Check that all fields in this request are required or optional
-    for (Parameter p : ((List<Parameter>) parameters.getParameters())) {
+    @SuppressWarnings("unchecked")
+    List<Parameter> params = parameters.getParameters();
+    for (Parameter p : params) {
       if (!requiredFields.contains(p.getKey()) &&
           !optionalFields.contains(p.getKey())) {
         return false;

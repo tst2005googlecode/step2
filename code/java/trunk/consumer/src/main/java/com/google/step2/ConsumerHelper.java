@@ -133,7 +133,6 @@ public class ConsumerHelper {
    * Makes sure that the VerificationResult matches the discovery information.
    * @param d2
    * @param verification
-   * @return
    */
   private boolean checkResponse(SecureDiscoveryInformation d2,
       VerificationResult verification) {
@@ -202,8 +201,8 @@ public class ConsumerHelper {
     String assertId = authResp.getIdentity();
 
     // claimed identifier in the AuthResponse, without fragment
-    Identifier respClaimed = consumerManager.getDiscovery()
-        .parseIdentifier(authResp.getClaimed(), true);
+    Identifier respClaimed =
+      consumerManager.getDiscovery().parseIdentifier(authResp.getClaimed(), true);
 
     // the OP endpoint sent in the response
     String respEndpoint = authResp.getOpEndpoint();

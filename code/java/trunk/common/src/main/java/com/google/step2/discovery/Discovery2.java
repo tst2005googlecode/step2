@@ -24,6 +24,9 @@ import org.openid4java.discovery.DiscoveryException;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.Identifier;
 import org.openid4java.discovery.UrlIdentifier;
+import org.openid4java.discovery.html.HtmlResolver;
+import org.openid4java.discovery.xri.XriResolver;
+import org.openid4java.discovery.yadis.YadisResolver;
 
 import java.net.URI;
 import java.util.Collections;
@@ -158,7 +161,10 @@ public class Discovery2 extends Discovery {
 
   @Inject
   public Discovery2(HostMetaFetcher hostMetaFetcher,
-      XrdDiscoveryResolver xrdResolver) {
+      XrdDiscoveryResolver xrdResolver,
+      HtmlResolver htmlResolver, YadisResolver yadisResolver,
+      XriResolver xriResolver) {
+    super(htmlResolver, yadisResolver, xriResolver);
     this.hostMetaFetcher = hostMetaFetcher;
     this.xrdResolver = xrdResolver;
     this.xrdLocationSelector = new XrdLocationSelector();

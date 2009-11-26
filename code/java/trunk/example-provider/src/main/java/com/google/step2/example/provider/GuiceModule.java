@@ -22,10 +22,8 @@ import com.google.inject.CreationException;
 import com.google.inject.Scopes;
 import com.google.step2.hybrid.HybridOauthMessage;
 import com.google.step2.openid.ax2.AxMessage2;
-import com.google.step2.servlet.ConsumerManagerProvider;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
+import org.apache.http.client.HttpClient;
 import org.openid4java.consumer.ConsumerAssociationStore;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
@@ -59,11 +57,7 @@ public class GuiceModule extends AbstractModule {
         .to(InMemoryConsumerAssociationStore.class)
         .in(Scopes.SINGLETON);
 
-    bind(ConsumerManager.class)
-        .toProvider(ConsumerManagerProvider.class)
-        .in(Scopes.SINGLETON);
-
     bind(HttpClient.class).toInstance(HttpClientFactory.getInstance(0,
-        Boolean.FALSE, 10000, 10000, CookiePolicy.IGNORE_COOKIES));
+        Boolean.FALSE, 10000, 10000, null));
   }
 }
