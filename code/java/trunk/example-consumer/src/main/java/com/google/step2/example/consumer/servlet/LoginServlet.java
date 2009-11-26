@@ -57,7 +57,7 @@ import javax.servlet.http.HttpSession;
 public class LoginServlet extends InjectableServlet {
   private Log log = LogFactory.getLog(LoginServlet.class);
   private static final String TEMPLATE_FILE = "/WEB-INF/login.jsp";
-  private static final String REDIRECT_PATH = "/checkauth";
+  private static final String REDIRECT_PATH = "/checkauth?foo=bar";
 
   private ConsumerHelper consumerHelper;
   private OAuthProviderInfoStore providerStore;

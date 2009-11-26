@@ -1,0 +1,23 @@
+
+To run this example server in jetty:
+
+- go to the parent directory and say "mvn install"
+- come back to this directory and say "mvn jetty:run"
+- point your browser to http://localhost:8080/
+
+To prepare for running this example server in appengine:
+
+- go to the parent directory and say "mvn install"
+- come back to this directory and say "mvn package"
+
+To run app in development AppEngine server:
+
+- say "$PATH_TO_APPENGINE/dev_appserver.sh -a <your-host-name> target/step2-example-consumer-1-SNAPSHOT"
+- point your browser to http://<you-host-name>:8080/
+
+To run app on AppEngine:
+
+- change name of app in src/main/webapp/WEB-INF/appengine-web.xml to some app that you own
+- say "mvn package"
+- say "$PATH_TO_APPENGINE/appcfg.sh update target/step2-example-consumer-1-SNAPSHOT"
+

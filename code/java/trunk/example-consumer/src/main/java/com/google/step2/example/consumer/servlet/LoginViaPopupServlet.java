@@ -18,20 +18,19 @@
 package com.google.step2.example.consumer.servlet;
 
 import com.google.inject.Inject;
-import com.google.step2.ConsumerHelper;
 import com.google.step2.Step2;
 import com.google.step2.consumer.OAuthProviderInfoStore;
 import com.google.step2.consumer.ProviderInfoNotFoundException;
-import com.google.step2.discovery.IdpIdentifier;
 import com.google.step2.servlet.InjectableServlet;
 
 import net.oauth.OAuthAccessor;
 
-import org.openid4java.consumer.ConsumerException;
+import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.discovery.DiscoveryException;
-import org.openid4java.message.MessageException;
+import org.openid4java.discovery.DiscoveryInformation;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.servlet.RequestDispatcher;
@@ -60,12 +59,13 @@ public class LoginViaPopupServlet extends InjectableServlet {
   public static final String OP_FRIENDLY = "step2_popup_op_friendly_name";
   public static final String EXTENSION_PARAMS = "step2_popup_extension_params";
 
+  @SuppressWarnings("unused")
   private static final Logger logger =
       Logger.getLogger(LoginViaPopupServlet.class.getCanonicalName());
   private static final String AX_1_0 = "http://openid.net/srv/ax/1.0";
 
   private OAuthProviderInfoStore providerStore;
-  private ConsumerHelper consumerHelper;
+  private ConsumerManager consumerManager;
 
   @Inject
   public void setProviderInfoStore(OAuthProviderInfoStore store) {
@@ -73,8 +73,8 @@ public class LoginViaPopupServlet extends InjectableServlet {
   }
 
   @Inject
-  public void setConsumerHelper(ConsumerHelper helper) {
-    this.consumerHelper = helper;
+  public void setConsumerManager(ConsumerManager manager) {
+    this.consumerManager = manager;
   }
 
   @Override
@@ -144,28 +144,26 @@ public class LoginViaPopupServlet extends InjectableServlet {
 
     HttpSession session = req.getSession();
 
-    String opEndpoint;
+    // TODO(breno): This assumes that the OP is 'Google Accounts' so it performs
+    // discovery at that location. In practice, this needs to be generalized for
+    // other OPs.
+    List<DiscoveryInformation> discoveries;
     try {
-      opEndpoint = consumerHelper.getAuthRequestHelper(
-          new IdpIdentifier("gmail.com"),
-          "http://localhost/this_is_never_used").generateRequest().getOPEndpoint();
+      discoveries = consumerManager.discover(OpSettings.GOOGLE.getDiscoveryUrl());
     } catch (DiscoveryException e) {
-      throw new ServletException(e);
-    } catch (MessageException e) {
-      throw new ServletException(e);
-    } catch (ConsumerException e) {
       throw new ServletException(e);
     }
 
-    session.setAttribute(EXTENSION_PARAMS,
-        getExtensionParameters(req.getServerName()));
-
+    // Now set the endpoint for user authentication.
+    if ((null == discoveries) || (discoveries.size() == 0)) {
+      throw new ServletException("Service endpoint not found!");
+    }
     // Use the first location
-    session.setAttribute(OP_ENDPOINT, opEndpoint);
+    session.setAttribute(OP_ENDPOINT, discoveries.get(0).getOPEndpoint().toString());
+    session.setAttribute(EXTENSION_PARAMS, getExtensionParameters(req.getServerName()));
     session.setAttribute(BUTTON_IMAGE, OpSettings.GOOGLE.getImage());
     session.setAttribute(OP_FRIENDLY, OpSettings.GOOGLE.getFriendlyName());
   }
-
 
   private String getExtensionParameters(String consumer) {
     StringBuffer buf =  new StringBuffer()
