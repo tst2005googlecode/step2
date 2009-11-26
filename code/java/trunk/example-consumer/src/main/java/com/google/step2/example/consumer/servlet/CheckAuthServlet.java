@@ -163,7 +163,7 @@ public class CheckAuthServlet extends InjectableServlet {
     if (!NO_TOKEN.equals(requestToken)) {
       // Try getting an acess token from this request token.
       try {
-        OAuthAccessor accessor = providerStore.getOAuthAccessor("staging");
+        OAuthAccessor accessor = providerStore.getOAuthAccessor("google");
 
         OAuthMessage response = oauthClient.invoke(accessor,
             accessor.consumer.serviceProvider.accessTokenURL,
