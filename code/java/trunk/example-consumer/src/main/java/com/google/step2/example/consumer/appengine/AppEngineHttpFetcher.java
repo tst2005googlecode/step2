@@ -90,7 +90,7 @@ public class AppEngineHttpFetcher implements HttpFetcher {
     public String getFirstHeader(String name) {
       List<HTTPHeader> headers = httpResponse.getHeaders();
       for (HTTPHeader header : headers) {
-        if (header.getName().equals(name)) {
+        if (header.getName().equalsIgnoreCase(name)) {
           return header.getValue();
         }
       }
