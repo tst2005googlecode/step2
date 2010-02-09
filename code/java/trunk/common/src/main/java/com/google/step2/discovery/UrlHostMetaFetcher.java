@@ -25,6 +25,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -47,6 +48,9 @@ public abstract class UrlHostMetaFetcher implements HostMetaFetcher {
   }
 
   public HostMeta getHostMeta(String host) throws HostMetaException {
+
+    InputStream responseStream = null;
+
     try {
       URI uri = getHostMetaUriForHost(host);
       FetchRequest request = FetchRequest.createGetRequest(uri);
@@ -55,12 +59,14 @@ public abstract class UrlHostMetaFetcher implements HostMetaFetcher {
 
       int status = response.getStatusCode();
 
+      responseStream = response.getContentAsStream();
+
       if (status != HttpStatus.SC_OK) {
         throw new HttpResponseException(status, "fetching host-meta from " +
             host + " return status " + status);
       }
 
-      return HostMeta.parseFromStream(response.getContentAsStream());
+      return HostMeta.parseFromStream(responseStream);
 
     } catch (FetchException e) {
       throw new HostMetaException(e);
@@ -70,6 +76,15 @@ public abstract class UrlHostMetaFetcher implements HostMetaFetcher {
       throw new HostMetaException(e);
     } catch (IOException e) {
       throw new HostMetaException(e);
+
+    } finally {
+      if(responseStream != null) {
+        try {
+          responseStream.close();
+        } catch(IOException ex) {
+          // ignored
+        }
+      }
     }
   }
 

@@ -25,7 +25,6 @@ import com.google.step2.openid.ax2.AxMessage2;
 
 import org.apache.http.client.HttpClient;
 import org.openid4java.consumer.ConsumerAssociationStore;
-import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.InMemoryConsumerAssociationStore;
 import org.openid4java.message.Message;
 import org.openid4java.message.MessageException;

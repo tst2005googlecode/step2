@@ -63,10 +63,11 @@
       <groupId>aopalliance</groupId>
       <artifactId>aopalliance</artifactId>
       <version>1.0</version>
-    </dependency>    <dependency>
-      <groupId>net.oauth</groupId>
-      <artifactId>oauth-core</artifactId>
-      <version>20090121</version>
+    </dependency>
+    <dependency>
+      <groupId>net.oauth.core</groupId>
+      <artifactId>oauth-httpclient4</artifactId>
+      <version>20090913</version>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>

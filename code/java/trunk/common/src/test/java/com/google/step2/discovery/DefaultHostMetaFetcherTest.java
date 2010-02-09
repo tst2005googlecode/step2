@@ -29,6 +29,7 @@ import org.easymock.classextension.EasyMock;
 import org.easymock.classextension.IMocksControl;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
@@ -60,6 +61,7 @@ public class DefaultHostMetaFetcherTest extends TestCase {
     control.verify();
 
     assertEquals(1, hostMeta.getLinks().size());
+    assertInputStreamIsClosed(response);
   }
 
   public void testGet_syntaxError() throws Exception {
@@ -76,6 +78,7 @@ public class DefaultHostMetaFetcherTest extends TestCase {
     control.verify();
 
     assertEquals(0, hostMeta.getLinks().size());
+    assertInputStreamIsClosed(response);
   }
 
   public void testGet_fetchException() throws Exception {
@@ -95,18 +98,66 @@ public class DefaultHostMetaFetcherTest extends TestCase {
     control.verify();
   }
 
+  public void testGet_httpErrorCode() throws Exception {
+    String host = "host.com";
+    FetchRequest request =
+        FetchRequest.createGetRequest(new URI("http://host.com/host-meta"));
+    FetchResponse response = new FakeFetchResponse(400, "error");
+
+    expect(http.fetch(request)).andReturn(response);
+
+    control.replay();
+    try {
+      HostMeta hostMeta = fetcher.getHostMeta(host);
+      fail("expected exception, but didn't get it");
+    } catch (HostMetaException e) {
+      // expected
+    }
+    control.verify();
+
+    assertInputStreamIsClosed(response);
+  }
+
+  private static void assertInputStreamIsClosed(FetchResponse resp)
+      throws Exception {
+    CloseableByteArrayInputStream in =
+        (CloseableByteArrayInputStream) resp.getContentAsStream();
+    assertTrue(in.isClosed());
+  }
+
+  private static class CloseableByteArrayInputStream extends ByteArrayInputStream {
+
+    private boolean isClosed = false;
+
+    public CloseableByteArrayInputStream(byte[] buf) {
+      super(buf);
+    }
+
+    @Override
+    public void close() throws IOException {
+      super.close();
+      isClosed = true;
+    }
+
+    public boolean isClosed() {
+      return isClosed;
+    }
+  }
+
   private static class FakeFetchResponse implements FetchResponse {
 
     private final int status;
     private final String response;
+    private final InputStream responseStream;
 
     public FakeFetchResponse(int statusCode, String responseContent) {
       this.status = statusCode;
       this.response = responseContent;
+      this.responseStream = new CloseableByteArrayInputStream(response.getBytes());
     }
 
     public InputStream getContentAsStream() {
-      return new ByteArrayInputStream(response.getBytes());
+      return responseStream;
     }
 
     public byte[] getContentAsBytes() {

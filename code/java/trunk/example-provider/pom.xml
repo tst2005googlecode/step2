@@ -56,6 +56,11 @@
       <artifactId>step2-common</artifactId>
       <version>1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>net.oauth.core</groupId>
+      <artifactId>oauth-provider</artifactId>
+      <version>20090531</version>
+    </dependency>
   </dependencies>
 
 </project>

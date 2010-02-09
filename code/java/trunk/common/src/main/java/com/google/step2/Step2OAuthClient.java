@@ -33,6 +33,7 @@ import net.oauth.http.HttpResponseMessage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 @Singleton
 public class Step2OAuthClient extends OAuthClient {
@@ -55,7 +56,8 @@ public class Step2OAuthClient extends OAuthClient {
       this.httpFetcher = httpFetcher;
     }
 
-    public HttpResponseMessage execute(HttpMessage request) throws IOException {
+    public HttpResponseMessage execute(HttpMessage request,
+        Map<String, Object> clientParams) throws IOException {
       try {
         FetchRequest fetchRequest;
         if ("post".equals(request.method.toLowerCase())) {
