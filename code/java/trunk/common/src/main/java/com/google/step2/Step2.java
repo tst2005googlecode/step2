@@ -54,6 +54,15 @@ public class Step2 {
     public String getShortName() {
       return shortName;
     }
+
+    public static AxSchema ofTypeUri(String uri) {
+      for (AxSchema schema : AxSchema.values()) {
+        if (schema.getUri().equals(uri)) {
+          return schema;
+        }
+      }
+      return null;
+    }
   }
   
   /**
