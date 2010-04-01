@@ -2,6 +2,7 @@
 <%@page import="com.google.gdata.data.Link"%>
 <%@page import="com.google.gdata.data.contacts.ContactEntry"%>
 <%@page import="com.google.gdata.data.contacts.ContactFeed"%>
+<%@page import="java.util.Enumeration"%>
 
 <%
   boolean longVersion = !"short".equals(request.getParameter("size"));
@@ -36,7 +37,6 @@
 <li>AX Fetch First Name Response: ${firstName}</li>
 <li>AX Fetch Last Name Response: ${lastName}</li>
 <li>AX Validated Email: ${emailval}</li>
-</c:if>
 </ul>
 
 <% if (longVersion) { %>
@@ -49,6 +49,19 @@ for an access token automatically:</p>
 <li>Authorized OAuth request token: ${request_token} </li>
 <li>Oauth access token: ${access_token}</li>
 <li>Oauth access token secret: ${access_token_secret}</li>
+</ul>
+
+<h3>All Session Attributes:</h3>
+<ul>
+<% Enumeration attributeNames = request.getSession().getAttributeNames();
+   while (attributeNames.hasMoreElements()) {
+     String attributeName = (String) attributeNames.nextElement();
+     %>
+     <li><b><%=attributeName %>:</b> <%=request.getSession().getAttribute(attributeName) %></li>
+     <%
+   }
+%>
+</c:if>
 </ul>
 
 <% } %>

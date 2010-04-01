@@ -137,9 +137,19 @@ public class CheckAuthServlet extends InjectableServlet {
             authResponse.getAxExtensionType();
         if (axExtensionType != null) {
           if (axExtensionType.equals(FetchResponse.class)) {
-            for (Step2.AxSchema schema : SUPPORTED_AX_SCHEMAS) {
-              session.setAttribute(schema.getShortName(),
-                  authResponse.getAxFetchAttributeValue(schema));
+            FetchResponse fetchResponse = authResponse.getAxFetchResponse();
+            List<String> aliases = fetchResponse.getAttributeAliases();
+            for (String alias : aliases) {
+              String typeUri = fetchResponse.getAttributeTypeUri(alias);
+              String value = fetchResponse.getAttributeValueByTypeUri(typeUri);
+
+              // check if it's a known type
+              Step2.AxSchema schema = Step2.AxSchema.ofTypeUri(typeUri);
+              if (null != schema) {
+                session.setAttribute(schema.getShortName(), value);
+              } else {
+                session.setAttribute(alias + " (" + typeUri + ")", value);
+              }
             }
           }
         }
