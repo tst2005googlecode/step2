@@ -21,6 +21,7 @@ import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.Identifier;
 
 import java.net.URL;
+import java.util.Set;
 
 /**
  * A subclass of {@link DiscoveryInformation} that can keep track of whether
@@ -39,6 +40,12 @@ public class SecureDiscoveryInformation extends DiscoveryInformation {
     super(opEndpoint, claimedIdentifier, delegate, version);
   }
 
+  public SecureDiscoveryInformation(URL opEndpoint,
+      Identifier claimedIdentifier, String delegate, String version, Set types)
+      throws DiscoveryException {
+    super(opEndpoint, claimedIdentifier, delegate, version, types);
+  }
+
   public SecureDiscoveryInformation(URL opEndpoint) throws DiscoveryException {
     super(opEndpoint);
   }
@@ -48,7 +55,8 @@ public class SecureDiscoveryInformation extends DiscoveryInformation {
     this(info.getOPEndpoint(),
          info.getClaimedIdentifier(),
          info.getDelegateIdentifier(),
-         info.getVersion());
+         info.getVersion(),
+         info.getTypes());
     if (info instanceof SecureDiscoveryInformation) {
       this.setSecure(((SecureDiscoveryInformation) info).isSecure());
     } else {
