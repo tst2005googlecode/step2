@@ -58,6 +58,11 @@ public class AxMessage2 extends AxMessage {
   }
 
   @Override
+  public boolean signRequired() {
+    return true;
+  }
+
+  @Override
   public MessageExtension getExtension(ParameterList parameterList,
       boolean isRequest) throws MessageException {
     if (parameterList.hasParameter(MODE)) {
