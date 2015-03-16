@@ -1,0 +1,1 @@
+This project aims to combine the OpenID authentication and the OAuth authorization protocols.
